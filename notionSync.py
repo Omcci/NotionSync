@@ -17,6 +17,31 @@ repo_name = os.getenv('REPO_NAME')
 # start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
 # end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
 
+# TODO: Add a Commit ID Field to Notion Database, Modify the Script to Use Another Unique Identifier
+
+# def query_commit_in_notion(notion_token, database_id, commit_id):
+#     query_url = f"https://api.notion.com/v1/databases/{database_id}/query"
+#     headers = {
+#         "Authorization": f"Bearer {notion_token}",
+#         "Content-Type": "application/json",
+#         "Notion-Version": "2022-06-28"
+#     }
+#     query_data = {
+#         "filter": {
+#             "property": "Commit ID",
+#             "text": {
+#                 "equals": commit_id
+#             }
+#         }
+#     }
+#     response = requests.post(query_url, headers=headers, json=query_data)
+#     if response.status_code == 200:
+#         results = response.json().get("results", [])
+#         return len(results) > 0
+#     else:
+#         print(f"Error querying commit in Notion: {response.status_code}")
+#         return False
+
 def fetch_org_repos(org_name, github_token):
     github_api_url = f"https://api.github.com/orgs/{org_name}/repos"
     headers = {"Authorization": f"token {github_token}"}
@@ -47,21 +72,24 @@ def update_notion(notion_token, database_id, commits, repo_name):
         "Notion-Version": "2022-06-28"
     }
     for commit in commits:
-        commit_message = commit.get("commit", {}).get("message", "No commit message")
-        data = {
-            "parent": {"database_id": database_id},
-            "properties": {
-                "Name": {"title": [{"text": {"content": commit_message.split('\n')[0]}}]},
-                "Date": {"date": {"start": commit["commit"]["author"]["date"]}},
-                "Repository": {"rich_text": [{"text": {"content": repo_name}}]}
+        # commit_sha = commit['sha']
+        # if not query_commit_in_notion(notion_token, database_id, commit_sha):
+            commit_message = commit.get("commit", {}).get("message", "No commit message")
+            data = {
+                "parent": {"database_id": database_id},
+                "properties": {
+                    "Name": {"title": [{"text": {"content": commit_message.split('\n')[0]}}]},
+                    "Date": {"date": {"start": commit["commit"]["author"]["date"]}},
+                    "Repository": {"rich_text": [{"text": {"content": repo_name}}]}
+                }
             }
-        }
-        response = requests.post(notion_api_url, headers=headers, json=data)
-        response.encoding = 'utf-8'
-        if response.status_code != 200:
-            print(f"Erreur de requête Notion : {response.status_code}, Réponse : {response.text}")
-        else:
-            print(f"Commit de '{repo_name}' transféré avec succès.")
+            response = requests.post(notion_api_url, headers=headers, json=data)
+            if response.status_code == 200:
+                print(f"Commit '{commit_sha}' added to Notion successfully.")
+            else:
+                print(f"Error adding commit to Notion: {response.status_code}, Response: {response.text}")
+        # else:
+        #     print(f"Commit '{commit_sha}' already exists in Notion. Skipping.")
 
 def main(github_token, org_name, repo_name):
     commits = fetch_commits_for_user_in_repo(github_token, org_name, repo_name)
