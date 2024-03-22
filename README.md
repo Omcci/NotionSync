@@ -11,6 +11,7 @@ To utilize NotionSync, ensure you have the following prerequisites:
 - The `requests` library installed. Install it using `pip install requests`.
 - A GitHub Personal Access Token with access to the specified repository.
 - A Notion Integration Token and the ID of the Notion database targeted for updates.
+- A Notion database with the following properties : `CommitID as Text`, `Repository as Text`, `Date as Date`, `Name as Title`, `Branch as Text`.
 
 ## Configuration
 1. Clone this repository to your local machine.
@@ -32,3 +33,10 @@ Execute the script to start populating your specified user commits into your Not
 ``
 python notionSync.py
 ``
+
+Execute the script to clean your database from duplicate if necessary:
+
+``
+python cleanNotionDB.py
+``
+
