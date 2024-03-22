@@ -1,5 +1,6 @@
 import requests
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
@@ -30,14 +31,14 @@ def fetch_all_commits_from_notion(notion_token, database_id):
     return commits
 
 def delete_duplicate_commits(notion_token, duplicate_commit_ids):
-for block_id in duplicate_commit_ids:
-    delete_url = f"https://api.notion.com/v1/blocks/{block_id}"
-    headers = {"Authorization": f"Bearer {notion_token}", "Notion-Version": "2022-06-28"}
-    response = requests.delete(delete_url, headers=headers)
-    if response.status_code == 200:
-        print(f"Deleted duplicate commit block successfully: {block_id}")
-    else:
-        print(f"Failed to delete duplicate commit block: {block_id}, Status Code: {response.status_code}, Response: {response.text}")
+    for block_id in duplicate_commit_ids:
+        delete_url = f"https://api.notion.com/v1/blocks/{block_id}"
+        headers = {"Authorization": f"Bearer {notion_token}", "Notion-Version": "2022-06-28"}
+        response = requests.delete(delete_url, headers=headers)
+        if response.status_code == 200:
+            print(f"Deleted duplicate commit block successfully: {block_id}")
+        else:
+            print(f"Failed to delete duplicate commit block: {block_id}, Status Code: {response.status_code}, Response: {response.text}")
 
 
 # def delete_duplicate_commits(notion_token, block_id):
