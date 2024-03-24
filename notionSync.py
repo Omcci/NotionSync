@@ -20,6 +20,7 @@ mistral_token = os.getenv('MISTRAL_TOKEN')
 # start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
 # end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
 
+#TODO : Improve the prompt + add the token used in total in a print 
 
 def summarize_commit_with_mistral(diff, mistral_token):
     model = "open-mistral-7b"
