@@ -60,15 +60,19 @@ def fetch_commits_for_user_in_repo(github_token, org_name, repo_name, branch_nam
 #     commit_details = response.json()
 #     return commit_details
 
-# def fetch_commit_diff(github_token, org_name, repo_name, commit_sha):
-#     diff_url = f"https://api.github.com/repos/{org_name}/{repo_name}/commits/{commit_sha}.diff"
-#     headers = {"Authorization": f"token {github_token}"}
-#     response = requests.get(diff_url, headers=headers)
-#     if response.status_code == 200:
-#         return response.text  # Return the diff as a string
-#     else:
-#         print(f"Error retrieving commit diff for {repo_name} on commit {commit_sha}: {response.status_code}")
-#         return None
+def fetch_commit_diff(github_token, org_name, repo_name, commit_sha):
+    diff_url = f"https://api.github.com/repos/{org_name}/{repo_name}/commits/{commit_sha}"
+    headers = {
+            "Authorization": f"token {github_token}",
+            "Accept": "application/vnd.github.v3.diff"  # Request diff format
+    }    
+    response = requests.get(diff_url, headers=headers)
+    if response.status_code == 200:
+        return response.text  # Return the diff as a string
+    else:
+        print(response.json().get('message'))
+        print(f"Error retrieving commit diff for {repo_name} on commit {commit_sha}: {response.status_code}")
+        return None
     
 def commit_exists_in_notion(commit_sha, notion_token, database_id):
     notion_query_url = f"https://api.notion.com/v1/databases/{database_id}/query"
@@ -79,11 +83,11 @@ def commit_exists_in_notion(commit_sha, notion_token, database_id):
     return len(results) > 0, results
 
 def add_commit_to_notion(commit, notion_token, database_id, repo_name, branch_name, mistral_token):
-    # commit_diff = fetch_commit_diff(github_token, org_name, repo_name, commit["sha"])
-    # if not commit_diff:
-    #         print(f"Could not fetch diff for commit {commit['sha']}. Skipping.")
-    #         return    
-    # summary = summarize_commit_with_mistral(commit_diff, mistral_token)    
+    commit_diff = fetch_commit_diff(github_token, org_name, repo_name, commit["sha"])
+    if not commit_diff:
+            print(f"Could not fetch diff for commit {commit['sha']}. Skipping.")
+            return    
+    summary = summarize_commit_with_mistral(commit_diff, mistral_token)    
     notion_api_url = "https://api.notion.com/v1/pages"
     headers = {"Authorization": f"Bearer {notion_token}", "Content-Type": "application/json", "Notion-Version": "2022-06-28"}
     data = {
