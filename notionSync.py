@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
+from prompts import mistral_prompt
 
 load_dotenv()
 
@@ -19,12 +20,28 @@ mistral_token = os.getenv('MISTRAL_TOKEN')
 # start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
 # end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
 
-# TODO : Fetch all diff from github and summarize them with mistral
 
 def summarize_commit_with_mistral(diff, mistral_token):
     model = "open-mistral-7b"
     client = MistralClient(api_key=mistral_token)
-    prompt = f"Summarize these changes. Keep in mind that text.content.length should be ≤ `2000`: \n{diff}"
+#     prompt = f"You are an expert programmer, and you are trying to summarize a git diff.
+# Reminders about the git diff format:
+# For every file, there are a few metadata lines, like (for example):
+# \`\`\`
+# diff --git a/lib/index.js b/lib/index.js
+# index aadf691..bfef603 100644
+# --- a/lib/index.js
+# +++ b/lib/index.js
+# \`\`\`
+# This means that \`lib/index.js\` was modified in this commit. Note that this is only an example.
+# Then there is a specifier of the lines that were modified.
+# A line starting with \`+\` means it was added.
+# A line that starting with \`-\` means that line was deleted.
+# A line that starts with neither \`+\` nor \`-\` is code given for context and better understanding. 
+# It is not part of the diff.
+# Summarize these changes without introducing the project. 
+# Keep in mind that text.content.length should be ≤ `2000`: \n{diff}"
+    prompt = mistral_prompt
     messages = [ChatMessage(role="user", content=prompt)]
     chat_response = client.chat(model=model, messages=messages)
     summary = chat_response.choices[0].message.content if chat_response.choices else "Summary not available"
