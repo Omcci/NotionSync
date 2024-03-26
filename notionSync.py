@@ -29,7 +29,9 @@ def summarize_commit_with_mistral(commit_message, diff, mistral_token):
     messages = [ChatMessage(role="user", content=prompt)]
     chat_response = client.chat(model=model, messages=messages)
     summary = chat_response.choices[0].message.content if chat_response.choices else "Summary not available"
-    return summary
+    token_count = len(summary.split())
+    summary_with_token_count = f"{summary}\n\nToken count: {token_count}"
+    return summary_with_token_count
 
 def fetch_repo_branches(github_token, org_name, repo_name):
     github_api_url = f"https://api.github.com/repos/{org_name}/{repo_name}/branches"
@@ -89,14 +91,14 @@ def add_commit_to_notion(commit, commit_message, notion_token, database_id, repo
     if not commit_diff:
             print(f"Could not fetch diff for commit {commit['sha']}. Skipping.")
             return    
-    summary = summarize_commit_with_mistral(commit_message, commit_diff, mistral_token)    
+    summary_with_token_count  = summarize_commit_with_mistral(commit_message, commit_diff, mistral_token)    
     notion_api_url = "https://api.notion.com/v1/pages"
     headers = {"Authorization": f"Bearer {notion_token}", "Content-Type": "application/json", "Notion-Version": "2022-06-28"}
     data = {
         "parent": {"database_id": database_id},
         "properties": {
             "Commit ID": {"rich_text": [{"text": {"content": commit["sha"]}}]},
-            "Name": {"title": [{"text": {"content": summary}}]},
+            "Name": {"title": [{"text": {"content": summary_with_token_count}}]},
             "Date": {"date": {"start": commit["commit"]["author"]["date"]}},
             "Repository": {"rich_text": [{"text": {"content": repo_name}}]},
             "Branch": {"rich_text": [{"text": {"content": branch_name}}]}
