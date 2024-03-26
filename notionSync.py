@@ -22,27 +22,10 @@ mistral_token = os.getenv('MISTRAL_TOKEN')
 
 #TODO : Improve the prompt + add the token used in total in a print 
 
-def summarize_commit_with_mistral(diff, mistral_token):
+def summarize_commit_with_mistral(commit_message, diff, mistral_token):
     model = "open-mistral-7b"
     client = MistralClient(api_key=mistral_token)
-#     prompt = f"You are an expert programmer, and you are trying to summarize a git diff.
-# Reminders about the git diff format:
-# For every file, there are a few metadata lines, like (for example):
-# \`\`\`
-# diff --git a/lib/index.js b/lib/index.js
-# index aadf691..bfef603 100644
-# --- a/lib/index.js
-# +++ b/lib/index.js
-# \`\`\`
-# This means that \`lib/index.js\` was modified in this commit. Note that this is only an example.
-# Then there is a specifier of the lines that were modified.
-# A line starting with \`+\` means it was added.
-# A line that starting with \`-\` means that line was deleted.
-# A line that starts with neither \`+\` nor \`-\` is code given for context and better understanding. 
-# It is not part of the diff.
-# Summarize these changes without introducing the project. 
-# Keep in mind that text.content.length should be ≤ `2000`: \n{diff}"
-    prompt = mistral_prompt
+    prompt = mistral_prompt.format(commit_message=commit_message, diff=diff)
     messages = [ChatMessage(role="user", content=prompt)]
     chat_response = client.chat(model=model, messages=messages)
     summary = chat_response.choices[0].message.content if chat_response.choices else "Summary not available"
@@ -100,12 +83,13 @@ def commit_exists_in_notion(commit_sha, notion_token, database_id):
     results = response.json().get("results", [])
     return len(results) > 0, results
 
-def add_commit_to_notion(commit, notion_token, database_id, repo_name, branch_name, mistral_token):
+def add_commit_to_notion(commit, commit_message, notion_token, database_id, repo_name, branch_name, mistral_token):
+    commit_message = commit["commit"]["message"]
     commit_diff = fetch_commit_diff(github_token, org_name, repo_name, commit["sha"])
     if not commit_diff:
             print(f"Could not fetch diff for commit {commit['sha']}. Skipping.")
             return    
-    summary = summarize_commit_with_mistral(commit_diff, mistral_token)    
+    summary = summarize_commit_with_mistral(commit_message, commit_diff, mistral_token)    
     notion_api_url = "https://api.notion.com/v1/pages"
     headers = {"Authorization": f"Bearer {notion_token}", "Content-Type": "application/json", "Notion-Version": "2022-06-28"}
     data = {
@@ -142,7 +126,8 @@ def main(github_token, org_name, repo_name, mistral_token):
             if exists:
                 print(f"Commit {commit_sha} existe déjà dans Notion. Skipping.")
             else:
-                add_commit_to_notion(commit, notion_token, database_id, repo_name, branch_name, mistral_token)
+                commit_message = commit['commit']['message']
+                add_commit_to_notion(commit, commit_message, notion_token, database_id, repo_name, branch_name, mistral_token)
 
             processed_commits.add(commit_sha)
 
