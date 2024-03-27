@@ -1,6 +1,8 @@
-![image](https://github.com/Omcci/NotionSync/assets/119880787/dc733a83-fba3-4984-aa3e-34851c67a05c)
 
 # NotionSync
+
+![NotionSync Overview](https://github.com/Omcci/NotionSync/assets/119880787/dc733a83-fba3-4984-aa3e-34851c67a05c)
+
 
 ## Overview
 NotionSync is a Python script specifically designed for developers who wish to automatically synchronize their GitHub commit data with a Notion database. 
