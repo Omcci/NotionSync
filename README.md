@@ -1,3 +1,5 @@
+![image](https://github.com/Omcci/NotionSync/assets/119880787/dc733a83-fba3-4984-aa3e-34851c67a05c)
+
 # NotionSync
 
 ## Overview
