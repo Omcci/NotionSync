@@ -13,7 +13,7 @@ To utilize NotionSync, ensure you have the following prerequisites:
 - A Notion Integration Token and the ID of the Notion database targeted for updates.
 - A Notion database with the following properties : `CommitID as Text`, `Repository as Text`, `Date as Date`, `Name as Title`, `Branch as Text`.
 Optional:
-- A `Mistral AI Token` if you wish to utilize AI to summarize commit messages and diffs. This token is not required for the basic functionality of NotionSync. However, if you're interested in leveraging AI to generate summaries of your commits, you will need to obtain a Mistral token. Without this token, NotionSync will simply use the original commit message for the `Commit Content`.
+- A <b>Mistral AI Token</b> if you wish to utilize AI to summarize commit messages and diffs. This token is not required for the basic functionality of NotionSync. However, if you're interested in leveraging AI to generate summaries of your commits, you will need to obtain a Mistral token. Without this token, NotionSync will simply use the original commit message for the <b>Commit Content</b>.
 
 
 ## Configuration
