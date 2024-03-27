@@ -20,8 +20,6 @@ mistral_token = os.getenv('MISTRAL_TOKEN')
 # start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
 # end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
 
-#TODO : Improve the prompt + add the token used in total in a print 
-
 def summarize_commit_with_mistral(commit_message, diff, mistral_token):
     model = "open-mistral-7b"
     client = MistralClient(api_key=mistral_token)
@@ -90,8 +88,13 @@ def add_commit_to_notion(commit, commit_message, notion_token, database_id, repo
     commit_diff = fetch_commit_diff(github_token, org_name, repo_name, commit["sha"])
     if not commit_diff:
             print(f"Could not fetch diff for commit {commit['sha']}. Skipping.")
-            return    
-    summary_with_token_count  = summarize_commit_with_mistral(commit_message, commit_diff, mistral_token)    
+            return
+
+    if mistral_token:
+        summary_with_token_count = summarize_commit_with_mistral(commit_message, commit_diff, mistral_token)
+    else:
+        summary_with_token_count = commit_message
+
     notion_api_url = "https://api.notion.com/v1/pages"
     headers = {"Authorization": f"Bearer {notion_token}", "Content-Type": "application/json", "Notion-Version": "2022-06-28"}
     data = {
