@@ -8,6 +8,8 @@ from prompts import mistral_prompt
 
 load_dotenv()
 
+# TODO: convert this file into a node file
+
 github_token = os.getenv('GITHUB_TOKEN')
 notion_token = os.getenv('NOTION_TOKEN')
 database_id = os.getenv('NOTION_DATABASE_ID')
@@ -21,9 +23,21 @@ mistral_token = os.getenv('MISTRAL_TOKEN')
 # end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
 
 def summarize_commit_with_mistral(commit_message, diff, mistral_token):
+    filtered_diff_lines = []
+    skip_current_file = False
+    for line in diff.split("\n"):
+        if line.startswith("diff --git") and ".svg" in line:
+            skip_current_file = True
+        elif line.startswith("diff --git"):
+            skip_current_file = False
+        if not skip_current_file:
+            filtered_diff_lines.append(line)
+
+    filtered_diff = "\n".join(filtered_diff_lines)
+    
     model = "open-mistral-7b"
     client = MistralClient(api_key=mistral_token)
-    prompt = mistral_prompt.format(commit_message=commit_message, diff=diff)
+    prompt = mistral_prompt.format(commit_message=commit_message, diff=filtered_diff)
     messages = [ChatMessage(role="user", content=prompt)]
     chat_response = client.chat(model=model, messages=messages)
     summary = chat_response.choices[0].message.content if chat_response.choices else "Summary not available"
