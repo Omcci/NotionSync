@@ -1,4 +1,6 @@
-class NotionSync {
+import { mistral_prompt } from "../prompts";
+
+export class NotionSync {
     constructor(githubToken, notionToken, databaseId, orgName, repoName, mistralToken) {
         this.githubToken = githubToken;
         this.notionToken = notionToken;
@@ -123,6 +125,54 @@ class NotionSync {
             console.error(error.message);
         }
     };
+
+    async summarizeCommitWithMistral(commitMessage, diff) {
+        const filteredDiffLines = [];
+        let skipCurrentFile = false;
+
+        diff.split("\n").forEach(line => {
+            if (line.startsWith("diff --git") && line.includes(".svg")) {
+                skipCurrentFile = true;
+            }
+            if (line.startsWith("diff --git") && !line.includes(".svg")) {
+                skipCurrentFile = false;
+            }
+            if (!skipCurrentFile) {
+                filteredDiffLines.push(line);
+            }
+        });
+
+        const filteredDiff = filteredDiffLines.join("\n");
+        const prompt = mistral_prompt(commitMessage, filteredDiff);
+        const url = 'https://api.mistral.ai/summarize';
+        const payload = {
+            model: "open-mistral-7b",
+            messages: [{role:"user", content: prompt}],
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.mistralToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(`Error making API request: ${response.statusText}`);
+            }
+            // return data;
+            const summary = data.choices && data.choices.length > 0 ? data.choices[0].message.content : "No summary available";
+            const tokenCount = Math.ceil(summary.length / 3);
+            const summaryWithTokenCount = `${summary}\n\nToken count : (${tokenCount} tokens)`;
+            return summaryWithTokenCount;
+        } catch (error) {
+            console.error('Error making API request:', error);
+            return null;
+        }
+    }
 
     async main() {
         const branchNames = await fetchRepoBranches(githubToken, orgName, repoName);
