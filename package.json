@@ -1,0 +1,21 @@
+{
+  "name": "notionsync",
+  "version": "1.0.0",
+  "description": "![NotionSync Overview](https://github.com/Omcci/NotionSync/assets/119880787/dc733a83-fba3-4984-aa3e-34851c67a05c)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Omcci/NotionSync.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Omcci/NotionSync/issues"
+  },
+  "homepage": "https://github.com/Omcci/NotionSync#readme"
+}
