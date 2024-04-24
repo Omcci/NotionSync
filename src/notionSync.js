@@ -1,193 +1,248 @@
-import { mistral_prompt } from "../prompts";
+import { mistral_prompt } from "../prompts.js";
 
 export class NotionSync {
-    constructor(githubToken, notionToken, databaseId, orgName, repoName, mistralToken) {
-        this.githubToken = githubToken;
-        this.notionToken = notionToken;
-        this.databaseId = databaseId;
-        this.orgName = orgName;
-        this.repoName = repoName;
-        this.mistralToken = mistralToken;
+  constructor(
+    githubToken,
+    notionToken,
+    databaseId,
+    orgName,
+    repoName,
+    mistralToken
+  ) {
+    this.githubToken = githubToken;
+    this.notionToken = notionToken;
+    this.databaseId = databaseId;
+    this.orgName = orgName;
+    this.repoName = repoName;
+    this.mistralToken = mistralToken;
+  }
+
+  async fetchRepoBranches(githubToken, orgName, repoName) {
+    const url = `https://api.github.com/repos/${orgName}/${repoName}/branches`;
+    try {
+      const response = await fetch(url, {
+        headers: { Authorization: `token ${githubToken}` },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          `Error fetching branches for ${repoName}: ${response.status}`
+        );
+      }
+      return data.map((branch) => branch.name);
+    } catch (error) {
+      console.error(error.message);
+      return [];
+    }
+  }
+
+  async fetchCommitsForUserInRepo(githubToken, orgName, repoName, branchName) {
+    const url = `https://api.github.com/repos/${orgName}/${repoName}/commits?sha=${branchName}&author=Omcci`;
+    try {
+      const response = await fetch(url, {
+        headers: { Authorization: `token ${githubToken}` },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          `Error retrieving commits for ${repoName} on branch ${branchName}: ${response.status}`
+        );
+      }
+      return data;
+    } catch (error) {
+      console.error(error.message);
+      return [];
+    }
+  }
+
+  async fetchCommitDiff(commitSha) {
+    const url = `https://api.github.com/repos/${this.orgName}/${this.repoName}/commits/${commitSha}`;
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `token ${this.githubToken}`,
+          Accept: "application/vnd.github.v3.diff",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Error retrieving commit diff for ${this.repoName} on commit ${commitSha}: ${response.status}`
+        );
+      }
+      return await response.text();
+    } catch (error) {
+      console.error(error.message);
+      return null;
+    }
+  }
+
+  async commitExistsInNotion(commitSha, notionToken, databaseId) {
+    const url = `https://api.notion.com/v1/databases/${databaseId}/query`;
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${notionToken}`,
+          "Content-Type": "application/json",
+          "Notion-Version": "2022-06-28",
+        },
+        body: JSON.stringify({
+          filter: { property: "Commit ID", text: { equals: commitSha } },
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          `Error querying Notion database: ${response.statusText}`
+        );
+      }
+      return [data.results.length > 0, data.results];
+    } catch (error) {
+      console.error(error.message);
+      return [false, []];
+    }
+  }
+
+  async addCommitToNotion(
+    commit,
+    commitMessage,
+    notionToken,
+    databaseId,
+    repoName,
+    branchName,
+    mistralToken
+  ) {
+    const commitDiff = await this.fetchCommitDiff(commit.sha);
+    if (!commitDiff) {
+      console.error(`Could not fetch diff for commit ${commit.sha}. Skipping.`);
+      return;
     }
 
-    async fetchRepoBranches() {
-        const url = `https://api.github.com/repos/${orgName}/${repoName}/branches`;
-        try {
-            const response = await fetch(url, {
-                headers: { 'Authorization': `token ${githubToken}` }
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(`Error fetching branches for ${repoName}: ${response.status}`);
-            }
-            return data.map(branch => branch.name);
-        } catch (error) {
-            console.error(error.message);
-            return [];
-        }
-    };
+    let summaryWithTokenCount = await this.summarizeCommitWithMistral(
+      commitMessage,
+      commitDiff
+    );
 
-    async fetchCommitsForUserInRepo() {
-        const url = `https://api.github.com/repos/${orgName}/${repoName}/commits?sha=${branchName}&author=Omcci`;
-        try {
-            const response = await fetch(url, {
-                headers: { 'Authorization': `token ${githubToken}` }
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(`Error retrieving commits for ${repoName} on branch ${branchName}: ${response.status}`);
-            }
-            return data;
-        } catch (error) {
-            console.error(error.message);
-            return [];
-        }
-    };
-
-    async fetchCommitDiff() {
-        const url = `https://api.github.com/repos/${orgName}/${repoName}/commits/${commitSha}`;
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    'Authorization': `token ${githubToken}`,
-                    'Accept': 'application/vnd.github.v3.diff'
-                }
-            });
-            if (!response.ok) {
-                throw new Error(`Error retrieving commit diff for ${repoName} on commit ${commitSha}: ${response.status}`);
-            }
-            return await response.text();
-        } catch (error) {
-            console.error(error.message);
-            return null;
-        }
-    };
-
-    async commitExistsInNotion() {
-        const url = `https://api.notion.com/v1/databases/${databaseId}/query`;
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${notionToken}`,
-                    'Content-Type': 'application/json',
-                    'Notion-Version': '2022-06-28'
-                },
-                body: JSON.stringify({
-                    filter: { "property": "Commit ID", "text": { "equals": commitSha } }
-                })
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(`Error querying Notion database: ${response.statusText}`);
-            }
-            return [data.results.length > 0, data.results];
-        } catch (error) {
-            console.error(error.message);
-            return [false, []];
-        }
-    };
-
-    async addCommitToNotion() {
-        const commitDiff = await fetchCommitDiff(githubToken, orgName, repoName, commit.sha);
-        if (!commitDiff) {
-            console.error(`Could not fetch diff for commit ${commit.sha}. Skipping.`);
-            return;
-        }
-
-        let summaryWithTokenCount = commitMessage;
-
-        const url = "https://api.notion.com/v1/pages";
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${notionToken}`,
-                    'Content-Type': 'application/json',
-                    'Notion-Version': '2022-06-28'
-                },
-                body: JSON.stringify({
-                    parent: { "database_id": databaseId },
-                    properties: {
-                        "Commit ID": { "rich_text": [{ "text": { "content": commit.sha } }] },
-                        "Name": { "title": [{ "text": { "content": summaryWithTokenCount } }] },
-                        "Date": { "date": { "start": commit.commit.author.date } },
-                        "Repository": { "rich_text": [{ "text": { "content": repoName } }] },
-                        "Branch": { "rich_text": [{ "text": { "content": branchName } }] }
-                    }
-                })
-            });
-            if (!response.ok) {
-                throw new Error(`Error adding commit to Notion: ${response.status}, Response: ${await response.text()}`);
-            }
-            console.log(`Commit added to Notion successfully: ${commit.sha}`);
-        } catch (error) {
-            console.error(error.message);
-        }
-    };
-
-    async summarizeCommitWithMistral(commitMessage, diff) {
-        const filteredDiffLines = [];
-        let skipCurrentFile = false;
-
-        diff.split("\n").forEach(line => {
-            if (line.startsWith("diff --git") && line.includes(".svg")) {
-                skipCurrentFile = true;
-            }
-            if (line.startsWith("diff --git") && !line.includes(".svg")) {
-                skipCurrentFile = false;
-            }
-            if (!skipCurrentFile) {
-                filteredDiffLines.push(line);
-            }
-        });
-
-        const filteredDiff = filteredDiffLines.join("\n");
-        const prompt = mistral_prompt(commitMessage, filteredDiff);
-        const url = 'https://api.mistral.ai/summarize';
-        const payload = {
-            model: "open-mistral-7b",
-            messages: [{role:"user", content: prompt}],
-        };
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.mistralToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(`Error making API request: ${response.statusText}`);
-            }
-            // return data;
-            const summary = data.choices && data.choices.length > 0 ? data.choices[0].message.content : "No summary available";
-            const tokenCount = Math.ceil(summary.length / 3);
-            const summaryWithTokenCount = `${summary}\n\nToken count : (${tokenCount} tokens)`;
-            return summaryWithTokenCount;
-        } catch (error) {
-            console.error('Error making API request:', error);
-            return null;
-        }
+    const url = "https://api.notion.com/v1/pages";
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${notionToken}`,
+          "Content-Type": "application/json",
+          "Notion-Version": "2022-06-28",
+        },
+        body: JSON.stringify({
+          parent: { database_id: databaseId },
+          properties: {
+            "Commit ID": { rich_text: [{ text: { content: commit.sha } }] },
+            Name: { title: [{ text: { content: summaryWithTokenCount } }] },
+            Date: { date: { start: commit.commit.author.date } },
+            Repository: { rich_text: [{ text: { content: repoName } }] },
+            Branch: { rich_text: [{ text: { content: branchName } }] },
+          },
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Error adding commit to Notion: ${
+            response.status
+          }, Response: ${await response.text()}`
+        );
+      }
+      console.log(`Commit added to Notion successfully: ${commit.sha}`);
+    } catch (error) {
+      console.error(error.message);
     }
+  }
 
-    async main() {
-        const branchNames = await fetchRepoBranches(githubToken, orgName, repoName);
-        for (let branchName of branchNames) {
-            const commits = await fetchCommitsForUserInRepo(githubToken, orgName, repoName, branchName);
-            for (let commit of commits) {
-                const commitSha = commit.sha;
-                const [exists, _] = await commitExistsInNotion(commitSha, notionToken, databaseId);
-                if (exists) {
-                    console.log(`Commit ${commitSha} already exists in Notion. Skipping.`);
-                    continue;
-                }
-                const commitMessage = commit.commit.message;
-                await addCommitToNotion(commit, commitMessage, notionToken, databaseId, repoName, branchName, mistralToken);
-            }
-        }
+  async summarizeCommitWithMistral(commitMessage, diff) {
+    const filteredDiffLines = [];
+    let skipCurrentFile = false;
+
+    diff.split("\n").forEach((line) => {
+      if (line.startsWith("diff --git")) {
+        skipCurrentFile = line.includes(".svg");
+      }
+      if (!skipCurrentFile) {
+        filteredDiffLines.push(line);
+      }
+    });
+
+    const filteredDiff = filteredDiffLines.join("\n");
+    const prompt = mistral_prompt(commitMessage, filteredDiff);
+    const url = "https://api.mistral.ai/summarize";
+    const payload = {
+      model: "open-mistral-7b",
+      messages: [{ role: "user", content: prompt }],
     };
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.mistralToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Error making API request: ${response.statusText}`);
+      }
+      // return data;
+      const summary =
+        data.choices && data.choices.length > 0 && data.choices[0].message
+          ? data.choices[0].message.content
+          : "No summary available";
+
+      const tokenCount = Math.ceil(summary.length / 3);
+      const summaryWithTokenCount = `${summary}\n\nToken count : (${tokenCount} tokens)`;
+      return summaryWithTokenCount;
+    } catch (error) {
+      console.error("Error making API request:", error);
+      return "Failed to generate summary"; // Default summary on fetch error
+    }
+  }
+
+  async main() {
+    console.log("Starting sync process...");
+    const branchNames = await this.fetchRepoBranches(
+      this.githubToken,
+      this.orgName,
+      this.repoName
+    );
+    for (let branchName of branchNames) {
+      const commits = await this.fetchCommitsForUserInRepo(
+        this.githubToken,
+        this.orgName,
+        this.repoName,
+        branchName
+      );
+      for (let commit of commits) {
+        const commitSha = commit.sha;
+        const [exists, _] = await this.commitExistsInNotion(
+          commitSha,
+          this.notionToken,
+          this.databaseId
+        );
+        if (exists) {
+          console.log(
+            `Commit ${commitSha} already exists in Notion. Skipping.`
+          );
+          continue;
+        }
+        const commitMessage = commit.commit.message;
+        await this.addCommitToNotion(
+          commit,
+          commitMessage,
+          this.notionToken,
+          this.databaseId,
+          this.repoName,
+          branchName,
+          this.mistralToken
+        );
+      }
+    }
+  }
 }
