@@ -1,5 +1,6 @@
-const NotionSync = require('./notionSync');
-require('dotenv').config();
+import { NotionSync } from './src/notionSync.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = async () => {
     const githubToken = process.env.GITHUB_TOKEN;
@@ -9,7 +10,7 @@ const app = async () => {
     const repoName = process.env.REPO_NAME;
     const mistralToken = process.env.MISTRAL_TOKEN;
     const notionSync = new NotionSync(githubToken, notionToken, databaseId, orgName, repoName, mistralToken);
-    await notionSync.sync();
+    await notionSync.main();
     console.log('Sync complete 🚀');
 }
 
