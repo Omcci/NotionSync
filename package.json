@@ -18,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/Omcci/NotionSync/issues"
   },
-  "homepage": "https://github.com/Omcci/NotionSync#readme"
+  "homepage": "https://github.com/Omcci/NotionSync#readme",
+  "dependencies": {
+    "@mistralai/mistralai": "^0.1.3",
+    "@notionhq/client": "^2.2.15",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2"
+  }
 }

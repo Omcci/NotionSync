@@ -1,4 +1,10 @@
+import fetch from "node-fetch";
+if (!globalThis.fetch) {
+  globalThis.fetch = fetch;
+}
 import { mistral_prompt } from "../prompts.js";
+import MistralClient from "@mistralai/mistralai";
+import { Client } from "@notionhq/client";
 
 export class NotionSync {
   constructor(
@@ -15,6 +21,8 @@ export class NotionSync {
     this.orgName = orgName;
     this.repoName = repoName;
     this.mistralToken = mistralToken;
+    this.client = new MistralClient(this.mistralToken);
+    this.notion = new Client({ auth: this.notionToken });
   }
 
   async fetchRepoBranches(githubToken, orgName, repoName) {
@@ -76,21 +84,31 @@ export class NotionSync {
     }
   }
 
-  async commitExistsInNotion(commitSha, notionToken, databaseId) {
-    const url = `https://api.notion.com/v1/databases/${databaseId}/query`;
+  async commitExistsInNotion(commitSha) {
+    const url = `https://api.notion.com/v1/databases/${this.databaseId}/query`;
+  //   const headers = {
+  //     "Authorization": `Bearer ${this.notionToken}`,
+  //     "Content-Type": "application/json",
+  //     "Notion-Version": "2022-06-28"
+  // };
+  // const body = JSON.stringify({
+  //     filter: {
+  //         property: "Commit ID",
+  //         text: {
+  //             equals: commitSha
+  //         }
+  //     }
+  // });
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${notionToken}`,
-          "Content-Type": "application/json",
-          "Notion-Version": "2022-06-28",
-        },
-        body: JSON.stringify({
-          filter: { property: "Commit ID", text: { equals: commitSha } },
-        }),
-      });
-      const data = await response.json();
+      const response = await this.notion.databases.query({
+        database_id: this.databaseId,
+        filter: {
+            property: 'Commit ID',
+            text: {
+                equals: commitSha
+            }
+        }
+    });
       if (!response.ok) {
         throw new Error(
           `Error querying Notion database: ${response.statusText}`
@@ -98,7 +116,7 @@ export class NotionSync {
       }
       return [data.results.length > 0, data.results];
     } catch (error) {
-      console.error(error.message);
+      console.error(`Error: ${error.message}`);
       return [false, []];
     }
   }
@@ -135,11 +153,11 @@ export class NotionSync {
         body: JSON.stringify({
           parent: { database_id: databaseId },
           properties: {
-            "Commit ID": { rich_text: [{ text: { content: commit.sha } }] },
-            Name: { title: [{ text: { content: summaryWithTokenCount } }] },
-            Date: { date: { start: commit.commit.author.date } },
-            Repository: { rich_text: [{ text: { content: repoName } }] },
-            Branch: { rich_text: [{ text: { content: branchName } }] },
+            "Commit ID": { "rich_text": [{ "text": { "content": commit.sha } }] },
+            "Name": { "title": [{ "text": { "content": summaryWithTokenCount } }] },
+            "Date": { "date": { "start": commit.commit.author.date } },
+            "Repository": { "rich_text": [{ "text": { "content": repoName } }] },
+            "Branch": { "rich_text": [{ "text": { "content": branchName } }] },
           },
         }),
       });
@@ -171,40 +189,30 @@ export class NotionSync {
 
     const filteredDiff = filteredDiffLines.join("\n");
     const prompt = mistral_prompt(commitMessage, filteredDiff);
-    const url = "https://api.mistral.ai/summarize";
+    // const url = "https://api.mistral.ai/summarize";
     const payload = {
       model: "open-mistral-7b",
       messages: [{ role: "user", content: prompt }],
     };
 
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.mistralToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      const chatResponse = await this.client.chat({
+        model: "open-mistral-7b",
+        messages: [{ role: "user", content: prompt }],
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(`Error making API request: ${response.statusText}`);
+
+      if (chatResponse.choices && chatResponse.choices.length > 0) {
+          const summary = chatResponse.choices[0].message.content;
+          const tokenCount = Math.ceil(summary.length / 3); // Assuming token count is calculated this way
+          return `${summary}\n\nToken count: ${tokenCount}`;
+      } else {
+          return "No summary available";
       }
-      // return data;
-      const summary =
-        data.choices && data.choices.length > 0 && data.choices[0].message
-          ? data.choices[0].message.content
-          : "No summary available";
-
-      const tokenCount = Math.ceil(summary.length / 3);
-      const summaryWithTokenCount = `${summary}\n\nToken count : (${tokenCount} tokens)`;
-      return summaryWithTokenCount;
-    } catch (error) {
+  } catch (error) {
       console.error("Error making API request:", error);
-      return "Failed to generate summary"; // Default summary on fetch error
-    }
+      return "Failed to generate summary";
   }
-
+}
   async main() {
     console.log("Starting sync process...");
     const branchNames = await this.fetchRepoBranches(
@@ -223,8 +231,6 @@ export class NotionSync {
         const commitSha = commit.sha;
         const [exists, _] = await this.commitExistsInNotion(
           commitSha,
-          this.notionToken,
-          this.databaseId
         );
         if (exists) {
           console.log(
