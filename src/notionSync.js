@@ -85,36 +85,17 @@ export class NotionSync {
   }
 
   async commitExistsInNotion(commitSha) {
-    const url = `https://api.notion.com/v1/databases/${this.databaseId}/query`;
-  //   const headers = {
-  //     "Authorization": `Bearer ${this.notionToken}`,
-  //     "Content-Type": "application/json",
-  //     "Notion-Version": "2022-06-28"
-  // };
-  // const body = JSON.stringify({
-  //     filter: {
-  //         property: "Commit ID",
-  //         text: {
-  //             equals: commitSha
-  //         }
-  //     }
-  // });
     try {
       const response = await this.notion.databases.query({
         database_id: this.databaseId,
         filter: {
-            property: 'Commit ID',
-            text: {
-                equals: commitSha
-            }
-        }
-    });
-      if (!response.ok) {
-        throw new Error(
-          `Error querying Notion database: ${response.statusText}`
-        );
-      }
-      return [data.results.length > 0, data.results];
+          property: "Commit ID",
+          rich_text: {
+            equals: commitSha,
+          },
+        },
+      });
+      return [response.results.length > 0, response.results];
     } catch (error) {
       console.error(`Error: ${error.message}`);
       return [false, []];
@@ -140,37 +121,60 @@ export class NotionSync {
       commitMessage,
       commitDiff
     );
-
-    const url = "https://api.notion.com/v1/pages";
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${notionToken}`,
-          "Content-Type": "application/json",
-          "Notion-Version": "2022-06-28",
-        },
-        body: JSON.stringify({
-          parent: { database_id: databaseId },
-          properties: {
-            "Commit ID": { "rich_text": [{ "text": { "content": commit.sha } }] },
-            "Name": { "title": [{ "text": { "content": summaryWithTokenCount } }] },
-            "Date": { "date": { "start": commit.commit.author.date } },
-            "Repository": { "rich_text": [{ "text": { "content": repoName } }] },
-            "Branch": { "rich_text": [{ "text": { "content": branchName } }] },
+      const response = await this.notion.pages.create({
+        parent: { database_id: this.databaseId },
+        properties: {
+          "Commit ID": {
+            rich_text: [
+              {
+                type: "text",
+                text: {
+                  content: commit.sha,
+                },
+              },
+            ],
           },
-        }),
+          Name: {
+            title: [
+              {
+                type: "text",
+                text: {
+                  content: summaryWithTokenCount,
+                },
+              },
+            ],
+          },
+          Date: {
+            date: {
+              start: commit.commit.author.date,
+            },
+          },
+          Repository: {
+            rich_text: [
+              {
+                type: "text",
+                text: {
+                  content: repoName,
+                },
+              },
+            ],
+          },
+          Branch: {
+            rich_text: [
+              {
+                type: "text",
+                text: {
+                  content: branchName,
+                },
+              },
+            ],
+          },
+        },
       });
-      if (!response.ok) {
-        throw new Error(
-          `Error adding commit to Notion: ${
-            response.status
-          }, Response: ${await response.text()}`
-        );
-      }
       console.log(`Commit added to Notion successfully: ${commit.sha}`);
     } catch (error) {
-      console.error(error.message);
+      console.error(`Failed to add commit to Notion: ${error.message}`);
     }
   }
 
@@ -189,11 +193,6 @@ export class NotionSync {
 
     const filteredDiff = filteredDiffLines.join("\n");
     const prompt = mistral_prompt(commitMessage, filteredDiff);
-    // const url = "https://api.mistral.ai/summarize";
-    const payload = {
-      model: "open-mistral-7b",
-      messages: [{ role: "user", content: prompt }],
-    };
 
     try {
       const chatResponse = await this.client.chat({
@@ -202,17 +201,17 @@ export class NotionSync {
       });
 
       if (chatResponse.choices && chatResponse.choices.length > 0) {
-          const summary = chatResponse.choices[0].message.content;
-          const tokenCount = Math.ceil(summary.length / 3); // Assuming token count is calculated this way
-          return `${summary}\n\nToken count: ${tokenCount}`;
+        const summary = chatResponse.choices[0].message.content;
+        const tokenCount = Math.ceil(summary.length / 3);
+        return `${summary}\n\nToken count: ${tokenCount}`;
       } else {
-          return "No summary available";
+        return "No summary available";
       }
-  } catch (error) {
+    } catch (error) {
       console.error("Error making API request:", error);
       return "Failed to generate summary";
+    }
   }
-}
   async main() {
     console.log("Starting sync process...");
     const branchNames = await this.fetchRepoBranches(
@@ -229,9 +228,7 @@ export class NotionSync {
       );
       for (let commit of commits) {
         const commitSha = commit.sha;
-        const [exists, _] = await this.commitExistsInNotion(
-          commitSha,
-        );
+        const [exists, _] = await this.commitExistsInNotion(commitSha);
         if (exists) {
           console.log(
             `Commit ${commitSha} already exists in Notion. Skipping.`
