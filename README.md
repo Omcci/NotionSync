@@ -5,7 +5,7 @@
 
 
 ## Overview
-NotionSync is a Python script specifically designed for developers who wish to automatically synchronize their GitHub commit data with a Notion database. 
+NotionSync is a Python/Javascript script specifically designed for developers who wish to automatically synchronize their GitHub commit data with a Notion database. 
 Currently, the script focuses on iterating through a specific repository within a specified organization on GitHub. 
 It populates a Notion database with details of the user's commits.
 
@@ -19,6 +19,10 @@ To utilize NotionSync, ensure you have the following prerequisites:
 Optional:
 - A <b>Mistral AI Token</b> if you wish to utilize AI to summarize commit messages and diffs. This token is not required for the basic functionality of NotionSync. However, if you're interested in leveraging AI to generate summaries of your commits, you will need to obtain a Mistral token. Without this token, NotionSync will simply use the original commit message for the <b>Commit Content</b>.
 
+## GitHub API Date Formatting
+For the GitHub API, the `since` and `until` parameters should be formatted in ISO 8601 format. This typically means including the full date and time in UTC, not just the date. The ISO 8601 date format looks like `YYYY-MM-DDTHH:MM:SSZ`, where `Z` denotes the UTC time zone.
+
+Example : "2024-04-24T00:00:00Z"
 
 ## Configuration
 1. Clone this repository to your local machine.
@@ -31,6 +35,8 @@ NOTION_DATABASE_ID=your_notion_database_id_here
 ORG_NAME=your_github_organization_name_here
 REPO_NAME=your_targeted_repository_name_here
 MISTRAL_TOKEN= your_mistral_token
+START_DATE=ISO8601FORMATDATE
+END_DATE=ISO8601FORMATDATE
 ```
 
 3. Use `pip install -r requirements.txt` to install the necessary Python packages.
