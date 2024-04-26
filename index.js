@@ -9,7 +9,9 @@ const app = async () => {
     const orgName = process.env.ORG_NAME;
     const repoName = process.env.REPO_NAME;
     const mistralToken = process.env.MISTRAL_TOKEN;
-    const notionSync = new NotionSync(githubToken, notionToken, databaseId, orgName, repoName, mistralToken);
+    const startDate = process.env.START_DATE;
+    const endDate = process.env.END_DATE;
+    const notionSync = new NotionSync(githubToken, notionToken, databaseId, orgName, repoName, mistralToken, startDate, endDate);
     await notionSync.main();
     console.log('Sync complete 🚀');
 }

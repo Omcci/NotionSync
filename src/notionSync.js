@@ -13,7 +13,9 @@ export class NotionSync {
     databaseId,
     orgName,
     repoName,
-    mistralToken
+    mistralToken,
+    startDate,
+    endDate
   ) {
     this.githubToken = githubToken;
     this.notionToken = notionToken;
@@ -21,6 +23,8 @@ export class NotionSync {
     this.orgName = orgName;
     this.repoName = repoName;
     this.mistralToken = mistralToken;
+    this.startDate = startDate;
+    this.endDate = endDate;
     this.client = new MistralClient(this.mistralToken);
     this.notion = new Client({ auth: this.notionToken });
   }
@@ -45,7 +49,7 @@ export class NotionSync {
   }
 
   async fetchCommitsForUserInRepo(githubToken, orgName, repoName, branchName) {
-    const url = `https://api.github.com/repos/${orgName}/${repoName}/commits?sha=${branchName}&author=Omcci`;
+    const url = `https://api.github.com/repos/${orgName}/${repoName}/commits?sha=${branchName}&author=Omcci&since=${this.startDate}&until=${this.endDate}`;
     try {
       const response = await fetch(url, {
         headers: { Authorization: `token ${githubToken}` },
