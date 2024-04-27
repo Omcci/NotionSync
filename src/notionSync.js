@@ -6,6 +6,8 @@ import { mistral_prompt } from "../prompts.js";
 import MistralClient from "@mistralai/mistralai";
 import { Client } from "@notionhq/client";
 
+//TODO: Add a front-end 
+
 export class NotionSync {
   constructor(
     githubToken,

@@ -2,6 +2,8 @@ import requests
 from dotenv import load_dotenv
 import os
 
+# TODO: Translate this into a .js file 
+
 load_dotenv()
 
 notion_token = os.getenv('NOTION_TOKEN')
