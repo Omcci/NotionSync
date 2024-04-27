@@ -4,3 +4,5 @@ NOTION_DATABASE_ID= your_notion_database_id
 ORG_NAME= your_org_name
 REPO_NAME= your_repo_name
 MISTRAL_TOKEN= your_mistral_token
+START_DATE=your_ISO8601FORMATDATE
+END_DATE=your_ISO8601FORMATDATE
