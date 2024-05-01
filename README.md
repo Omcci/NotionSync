@@ -56,6 +56,8 @@ END_DATE=ISO8601FORMATDATE
 
 ## Usage
 
+### Python Version
+
 Execute the script to start populating your specified user commits into your Notion database:
 
 `python notionSync.py`
@@ -63,3 +65,13 @@ Execute the script to start populating your specified user commits into your Not
 Execute the script to clean your database from duplicate if necessary:
 
 `python cleanNotionDB.py`
+
+### JavaScript Version
+
+Execute the Node.js application to start populating your specified user commits into your Notion database:
+
+`npm run start`
+
+Execute the script to clean your database from duplicate if necessary:
+
+`npm run clean`
