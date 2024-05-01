@@ -1,5 +1,5 @@
 import { Client } from "@notionhq/client";
-import { notionToken, databaseId } from "./index.js";
+import { notionToken, databaseId } from "../index.js";
 
 const notion = new Client({ auth: notionToken });
 

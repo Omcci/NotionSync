@@ -5,30 +5,23 @@ if (!globalThis.fetch) {
 import { mistral_prompt } from "../prompts.js";
 import MistralClient from "@mistralai/mistralai";
 import { Client } from "@notionhq/client";
+import {
+  githubToken,
+  notionToken,
+  mistralToken,
+  databaseId,
+  orgName,
+  repoName,
+  startDate,
+  endDate,
+} from "../config.js";
 
-//TODO: Add a front-end 
+//TODO: Add a front-end
 
 export class NotionSync {
-  constructor(
-    githubToken,
-    notionToken,
-    databaseId,
-    orgName,
-    repoName,
-    mistralToken,
-    startDate,
-    endDate
-  ) {
-    this.githubToken = githubToken;
-    this.notionToken = notionToken;
-    this.databaseId = databaseId;
-    this.orgName = orgName;
-    this.repoName = repoName;
-    this.mistralToken = mistralToken;
-    this.startDate = startDate;
-    this.endDate = endDate;
-    this.client = new MistralClient(this.mistralToken);
-    this.notion = new Client({ auth: this.notionToken });
+  constructor() {
+    this.client = new MistralClient(mistralToken);
+    this.notion = new Client({ auth: notionToken });
   }
 
   async fetchRepoBranches(githubToken, orgName, repoName) {
@@ -51,7 +44,7 @@ export class NotionSync {
   }
 
   async fetchCommitsForUserInRepo(githubToken, orgName, repoName, branchName) {
-    const url = `https://api.github.com/repos/${orgName}/${repoName}/commits?sha=${branchName}&author=Omcci&since=${this.startDate}&until=${this.endDate}`;
+    const url = `https://api.github.com/repos/${orgName}/${repoName}/commits?sha=${branchName}&author=Omcci&since=${startDate}&until=${endDate}`;
     try {
       const response = await fetch(url, {
         headers: { Authorization: `token ${githubToken}` },
@@ -70,17 +63,17 @@ export class NotionSync {
   }
 
   async fetchCommitDiff(commitSha) {
-    const url = `https://api.github.com/repos/${this.orgName}/${this.repoName}/commits/${commitSha}`;
+    const url = `https://api.github.com/repos/${orgName}/${repoName}/commits/${commitSha}`;
     try {
       const response = await fetch(url, {
         headers: {
-          Authorization: `token ${this.githubToken}`,
+          Authorization: `token ${githubToken}`,
           Accept: "application/vnd.github.v3.diff",
         },
       });
       if (!response.ok) {
         throw new Error(
-          `Error retrieving commit diff for ${this.repoName} on commit ${commitSha}: ${response.status}`
+          `Error retrieving commit diff for ${repoName} on commit ${commitSha}: ${response.status}`
         );
       }
       return await response.text();
@@ -93,7 +86,7 @@ export class NotionSync {
   async commitExistsInNotion(commitSha) {
     try {
       const response = await this.notion.databases.query({
-        database_id: this.databaseId,
+        database_id: databaseId,
         filter: {
           property: "Commit ID",
           rich_text: {
@@ -129,7 +122,7 @@ export class NotionSync {
     );
     try {
       const response = await this.notion.pages.create({
-        parent: { database_id: this.databaseId },
+        parent: { database_id: databaseId },
         properties: {
           "Commit ID": {
             rich_text: [
@@ -221,15 +214,15 @@ export class NotionSync {
   async main() {
     console.log("Starting sync process...");
     const branchNames = await this.fetchRepoBranches(
-      this.githubToken,
-      this.orgName,
-      this.repoName
+      githubToken,
+      orgName,
+      repoName
     );
     for (let branchName of branchNames) {
       const commits = await this.fetchCommitsForUserInRepo(
-        this.githubToken,
-        this.orgName,
-        this.repoName,
+        githubToken,
+        orgName,
+        repoName,
         branchName
       );
       for (let commit of commits) {
@@ -245,11 +238,11 @@ export class NotionSync {
         await this.addCommitToNotion(
           commit,
           commitMessage,
-          this.notionToken,
-          this.databaseId,
-          this.repoName,
+          notionToken,
+          databaseId,
+          repoName,
           branchName,
-          this.mistralToken
+          mistralToken
         );
       }
     }
