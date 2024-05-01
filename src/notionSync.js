@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 if (!globalThis.fetch) {
   globalThis.fetch = fetch;
 }
-import { mistral_prompt } from "../prompts.js";
+import { mistral_prompt } from "../utils/prompts.js";
 import MistralClient from "@mistralai/mistralai";
 import { Client } from "@notionhq/client";
 import {
@@ -14,7 +14,7 @@ import {
   repoName,
   startDate,
   endDate,
-} from "../config.js";
+} from "../utils/config.js";
 
 //TODO: Add a front-end
 
