@@ -56,24 +56,53 @@ const fetchAllCommitFromNotion = async () => {
 
 const deleteDuplicateCommits = async () => {
   const allCommits = await fetchAllCommitFromNotion();
-  const commitIds = allCommits.map((commit) => commit.commitId);
+  //   const commitIds = allCommits.map((commit) => commit.commitId);
 
   // Using an object to count occurrences
+  //   const counts = {};
+  //   commitIds.forEach((id) => {
+  //     counts[id] = (counts[id] || 0) + 1;
+  //   });
   const counts = {};
-  commitIds.forEach((id) => {
-    counts[id] = (counts[id] || 0) + 1;
+  allCommits.forEach(({ commitId, pageId }) => {
+    if (counts[commitId]) {
+      counts[commitId].count++;
+      counts[commitId].pages.push(pageId);
+    } else {
+      counts[commitId] = { count: 1, pages: [pageId] };
+    }
   });
 
   // Filter out commit IDs where count is more than 1 to find duplicates
-  const duplicateCommitIds = Object.keys(counts).filter((id) => counts[id] > 1);
-  console.log("Total commits:", commitIds.length);
-  console.log("Unique commits:", commitIds.length - duplicateCommitIds.length);
-  console.log("Duplicate commits:", duplicateCommitIds.length); // for (const commitId of duplicateCommitIds) {
+  const duplicateCommitIds = Object.keys(counts).filter(
+    (id) => counts[id].count > 1
+  );
+  //   console.log("Total commits:", commitIds.length);
+  //   console.log("Unique commits:", commitIds.length - duplicateCommitIds.length);
+  //   console.log("Duplicate commits:", duplicateCommitIds.length);
+  console.log("Total commits:", allCommits.length);
+  console.log("Unique commits:", Object.keys(counts).length);
+  console.log("Duplicate commits:", duplicateCommitIds.length);
+  // for (const commitId of duplicateCommitIds) {
   //     await notion.pages.update({
   //         page_id: commitId,
   //         archived: true,
   //     });
   // }
+
+  for (const commitId of duplicateCommitIds) {
+    const pages = counts[commitId].pages;
+    for (let i = 1; i < pages.length; i++) {
+      await notion.pages.update({
+        page_id: pages[i],
+        archived: true,
+      });
+    }
+  }
+  console.log(
+    "Deleted duplicate commits, number of commits deleted:",
+    duplicateCommitIds.length
+  );
 };
 
 await fetchAllCommitFromNotion();
