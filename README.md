@@ -1,30 +1,43 @@
-
 # NotionSync
 
 ![NotionSync Overview](https://github.com/Omcci/NotionSync/assets/119880787/dc733a83-fba3-4984-aa3e-34851c67a05c)
 
-
 ## Overview
-NotionSync is a Python/Javascript script specifically designed for developers who wish to automatically synchronize their GitHub commit data with a Notion database. 
-Currently, the script focuses on iterating through a specific repository within a specified organization on GitHub. 
+
+NotionSync is a Python/Javascript script specifically designed for developers who wish to automatically synchronize their GitHub commit data with a Notion database.
+Currently, the script focuses on iterating through a specific repository within a specified organization on GitHub.
 It populates a Notion database with details of the user's commits.
 
 ## Prerequisites
-To utilize NotionSync, ensure you have the following prerequisites:
-- Python 3.6 or higher installed on your system.
-- The `requests` library installed. Install it using `pip install requests`.
+
+### Common Prerequisites
+
 - A GitHub Personal Access Token with access to the specified repository.
 - A Notion Integration Token and the ID of the Notion database targeted for updates.
-- A Notion database with the following properties : `CommitID as Text`, `Repository as Text`, `Date as Date`, `Name as Title`, `Branch as Text`.
-Optional:
-- A <b>Mistral AI Token</b> if you wish to utilize AI to summarize commit messages and diffs. This token is not required for the basic functionality of NotionSync. However, if you're interested in leveraging AI to generate summaries of your commits, you will need to obtain a Mistral token. Without this token, NotionSync will simply use the original commit message for the <b>Commit Content</b>.
+- A Notion database configured with the following properties: `CommitID` as Text, `Repository` as Text, `Date` as Date, `Name` as Title, `Branch` as Text.
+
+### Python
+
+- Python 3.6 or higher installed on your system.
+- The `requests` library installed, which can be installed using `pip install requests`.
+
+### JavaScript/Node.js
+
+- Node.js 14.x or higher installed on your system.
+- Dependencies listed in `package.json` installed using `npm install` or `yarn install`.
+
+### Optional
+
+- A Mistral AI Token if you wish to utilize AI to summarize commit messages and diffs. This token enhances NotionSync by generating AI-powered summaries of your commits. If not provided, the script will default to using the raw commit message.
 
 ## GitHub API Date Formatting
+
 For the GitHub API, the `since` and `until` parameters should be formatted in ISO 8601 format. This typically means including the full date and time in UTC, not just the date. The ISO 8601 date format looks like `YYYY-MM-DDTHH:MM:SSZ`, where `Z` denotes the UTC time zone.
 
 Example : "2024-04-24T00:00:00Z"
 
 ## Configuration
+
 1. Clone this repository to your local machine.
 2. Create a `.env` file in the project's root directory, including the following variables (you can use the .env sample for help):
 
@@ -42,15 +55,11 @@ END_DATE=ISO8601FORMATDATE
 3. Use `pip install -r requirements.txt` to install the necessary Python packages.
 
 ## Usage
+
 Execute the script to start populating your specified user commits into your Notion database:
 
-``
-python notionSync.py
-``
+`python notionSync.py`
 
 Execute the script to clean your database from duplicate if necessary:
 
-``
-python cleanNotionDB.py
-``
-
+`python cleanNotionDB.py`
