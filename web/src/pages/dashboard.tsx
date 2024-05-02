@@ -1,5 +1,7 @@
 import Layout from "../components/Layout";
 
+//TODO : complete the setup of shadcn with this page:  https://ui.shadcn.com/docs/installation/next
+
 const Dashboard = () => {
   return (
     <Layout>
