@@ -6,8 +6,10 @@ class MyDocument extends Document {
     return (
       <Html lang="en">
         <Head></Head>
-        <Main />
-        <NextScript />
+        <body>
+          <Main />
+          <NextScript />
+        </body>
       </Html>
     );
   }
