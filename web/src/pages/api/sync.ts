@@ -15,7 +15,7 @@ export default async function handler(
       const result = await startSync();
       res
         .status(200)
-        .json({ message: "Sync started successfully", details: result });
+        .json({ message: "Sync completed successfully", details: result });
     } catch (error) {
       const errorMessage = (error as Error).message;
       res.status(500).json({ message: "Sync failed", details: errorMessage });
@@ -27,5 +27,5 @@ export default async function handler(
 }
 
 async function startSync(): Promise<string> {
-  return "Sync completed"; 
+  return "Sync completed";
 }
