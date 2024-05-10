@@ -2,6 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { Github, GithubIcon, Twitter } from "lucide-react";
+import Icon from "./Icon";
 
 const Footer: React.FC = () => {
   return (
@@ -27,14 +28,14 @@ const Footer: React.FC = () => {
           </div>
           <div className="py-2">
             <a href="https://github.com/Omcci" aria-label="GitHub">
-              <Github />
+              <Icon name="github" size={24} color="white" />
             </a>
             <a
               href="https://twitter.com/YourTwitter"
               aria-label="Twitter"
               className="ml-4"
             >
-              <Twitter />
+              <Icon name="twitter" size={24} color="#1DA1F2" />
             </a>
           </div>
         </div>
