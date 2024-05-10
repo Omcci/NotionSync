@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { NotionSync } from "../../../../api/src/notionSync";
+import { config } from "../../../../api/utils/config";
 
 type SyncResponse = {
   message: string;
@@ -11,8 +13,10 @@ export default async function handler(
   res: NextApiResponse<SyncResponse>
 ) {
   if (req.method === "POST") {
+    const notionSync = new NotionSync(config);
+
     try {
-      const result = await startSync();
+      const result = await notionSync.main();
       res
         .status(200)
         .json({ message: "Sync completed successfully", details: result });
@@ -26,6 +30,6 @@ export default async function handler(
   }
 }
 
-async function startSync(): Promise<string> {
-  return "Sync completed";
-}
+// async function startSync(): Promise<string> {
+//   return "Sync completed";
+// }
