@@ -19,9 +19,17 @@ import {
 //TODO: Add a front-end
 
 export class NotionSync {
-  constructor() {
-    this.client = new MistralClient(mistralToken);
-    this.notion = new Client({ auth: notionToken });
+  constructor(config) {
+    this.githubToken = config.githubToken;
+    this.notionToken = config.notionToken;
+    this.databaseId = config.databaseId;
+    this.orgName = config.orgName;
+    this.repoName = config.repoName;
+    this.mistralToken = config.mistralToken;
+    this.startDate = config.startDate;
+    this.endDate = config.endDate;
+    this.client = new MistralClient(this.mistralToken);
+    this.notion = new Client({ auth: this.notionToken });
   }
 
   async fetchRepoBranches(githubToken, orgName, repoName) {
@@ -246,5 +254,6 @@ export class NotionSync {
         );
       }
     }
+    return "Sync process completed"; // Return a completion message
   }
 }
