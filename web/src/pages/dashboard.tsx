@@ -7,10 +7,13 @@ const Dashboard = () => {
   const { toast } = useToast();
 
   const handleSync = async () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
     setLoading(true);
     setSyncStatus("Syncing...");
+
     try {
-      const response = await fetch("/api/sync", { method: "POST" });
+      const response = await fetch(`${apiUrl}/sync`, { method: "POST" });
       const data = await response.json();
       if (data.message) {
         toast({ title: "Success", description: data.message });

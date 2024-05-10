@@ -15,19 +15,28 @@ const BreadcrumbNav: React.FC = () => {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink href="/" className="text-white hover:text-gray-200">Home</BreadcrumbLink>
+          <BreadcrumbLink href="/" className="text-white hover:text-gray-200">
+            Home
+          </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator className="text-white">
           <Slash />
         </BreadcrumbSeparator>
         <BreadcrumbItem>
-          <BreadcrumbLink href="/dashboard" className="text-white hover:text-gray-200">Dashboard</BreadcrumbLink>
+          <BreadcrumbLink
+            href="/dashboard"
+            className="text-white hover:text-gray-200"
+          >
+            Dashboard
+          </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator className="text-white">
           <Slash />
         </BreadcrumbSeparator>
         <BreadcrumbItem>
-          <BreadcrumbPage className="text-white">Breadcrumb</BreadcrumbPage>
+          <BreadcrumbLink href="/testco" className="text-white">
+            Testconfig
+          </BreadcrumbLink>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
