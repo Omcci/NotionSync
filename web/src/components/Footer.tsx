@@ -1,12 +1,11 @@
 // components/Footer.tsx
 import React from "react";
 import Link from "next/link";
-import { Github, GithubIcon, Twitter } from "lucide-react";
 import Icon from "./Icon";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-gray-800 text-white text-center p-4">
+    <footer className="bg-gray-950 shadow-sm dark:bg-gray-950 dark:text-gray-50 text-white text-center p-4">
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           <div className="text-sm flex flex-col md:flex-row">
