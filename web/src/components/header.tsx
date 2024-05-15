@@ -16,6 +16,9 @@ export function Header() {
           <Link href="/dashboard" className="text-sm font-medium hover:underline text-white" >
             Dashboard
           </Link>
+          <Link href="/dashboardv0" className="text-sm font-medium hover:underline text-white" >
+            DashboardV0
+          </Link>
           <Link href="/testconfig" className="text-sm font-medium hover:underline text-white" >
             Testconfig
           </Link>
