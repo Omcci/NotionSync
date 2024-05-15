@@ -17,6 +17,7 @@ import { CircleAlertIcon } from "../../public/icon/CircleAlertIcon"
 import { NotebookIcon } from "../../public/icon/NotebookIcon"
 import { SettingsIcon } from "../../public/icon/SettingsIcon"
 import HeaderV0 from "@/components/HeaderV0"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const DashboardV0 = () => {
   return (
@@ -283,17 +284,10 @@ const DashboardV0 = () => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <img
-                        alt="Avatar"
-                        className="rounded-full"
-                        height={24}
-                        src="/placeholder.svg"
-                        style={{
-                          aspectRatio: "24/24",
-                          objectFit: "cover",
-                        }}
-                        width={24}
-                      />
+                      <Avatar>
+                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarFallback>CN</AvatarFallback>
+                      </Avatar>
                       <span>John Doe</span>
                     </div>
                   </td>
@@ -332,17 +326,10 @@ const DashboardV0 = () => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <img
-                        alt="Avatar"
-                        className="rounded-full"
-                        height={24}
-                        src="/placeholder.svg"
-                        style={{
-                          aspectRatio: "24/24",
-                          objectFit: "cover",
-                        }}
-                        width={24}
-                      />
+                      <Avatar>
+                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarFallback>CN</AvatarFallback>
+                      </Avatar>
                       <span>Jane Smith</span>
                     </div>
                   </td>
