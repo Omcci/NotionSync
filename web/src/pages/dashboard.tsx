@@ -2,30 +2,30 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
 const Dashboard = () => {
-  const [syncStatus, setSyncStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSync = async () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
     setLoading(true);
-    setSyncStatus("Syncing...");
-
     try {
       const response = await fetch(`${apiUrl}/sync`, { method: "POST" });
       const data = await response.json();
-      if (data.message) {
-        toast({ title: "Success", description: data.message });
+      if (response.ok) {
+        toast({ title: 'Success', description: data.message });
+      } else {
+        toast({
+          title: 'Error',
+          description: data.details || 'Sync failed. Please try again later.',
+          variant: 'destructive',
+        });
       }
-      setSyncStatus(data.message);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Sync failed. Please try again later.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Sync failed. Please try again later.',
+        variant: 'destructive',
       });
-      setSyncStatus("Sync failed. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ const Dashboard = () => {
             onClick={handleSync}
             className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
           >
-            Start Sync
+            {loading ? 'Syncing...' : 'Start Sync'}
           </button>
           <div id="syncStatus"></div>
         </div>
