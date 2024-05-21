@@ -18,29 +18,14 @@ import { NotebookIcon } from "../../public/icon/NotebookIcon"
 import { SettingsIcon } from "../../public/icon/SettingsIcon"
 import HeaderV0 from "@/components/HeaderV0"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import SyncStatus from "@/components/SyncStatus"
 
 const DashboardV0 = () => {
   return (
     <div className="flex flex-col h-screen">
       <HeaderV0 />
       <main className="flex-1 bg-gray-100 dark:bg-gray-800 p-6">
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-bold">Last Sync Status</h2>
-              <p className="text-gray-500 dark:text-gray-400">
-                Last successful sync:
-                <span className="font-medium">May 15, 2024 at 10:30 AM</span>
-              </p>
-            </div>
-            <div>
-              <p className="text-red-500 dark:text-red-400">
-                <CircleAlertIcon className="w-5 h-5 mr-2 inline" />
-                Error syncing branch 'feature/new-page'
-              </p>
-            </div>
-          </div>
-        </div>
+       <SyncStatus />
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold">Branch Selector</h2>
