@@ -11,7 +11,7 @@ export function NotebookIcon(props: React.SVGProps<SVGSVGElement>) {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        color="white"
+        color="black"
       >
         <path d="M2 6h4" />
         <path d="M2 10h4" />

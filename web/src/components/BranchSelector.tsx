@@ -6,9 +6,38 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 const BranchSelector = () => {
+  const branches = [
+    {
+      name: "main",
+      status: "Tracked",
+      actions: ["View", "Github", "Notebook"],
+    },
+    {
+      name: "develop",
+      status: "Tracked",
+      actions: ["View", "Github", "Notebook"],
+    },
+    {
+      name: "feature/new-page",
+      status: "Error",
+      actions: ["View", "Github", "Notebook"],
+    },
+    {
+      name: "bugfix/login",
+      status: "Tracked",
+      actions: ["View", "Github", "Notebook"],
+    },
+  ];
+
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
@@ -46,124 +75,46 @@ const BranchSelector = () => {
               <th className="px-4 py-2 text-left">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <tr className="border-b dark:border-gray-700">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <GitBranchIcon className="w-5 h-5" />
-                  <span>main</span>
-                </div>
-              </td>
-              <td className="px-4 py-3">
-                <Badge
-                  className="bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400"
-                  variant="outline"
-                >
-                  Tracked
-                </Badge>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Button size="icon" variant="ghost">
-                    <EyeIcon className="w-5 h-5" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <GithubIcon className="w-5 h-5" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <NotebookIcon className="w-5 h-5" />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b dark:border-gray-700">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <GitBranchIcon className="w-5 h-5" />
-                  <span>develop</span>
-                </div>
-              </td>
-              <td className="px-4 py-3">
-                <Badge
-                  className="bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400"
-                  variant="outline"
-                >
-                  Tracked
-                </Badge>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Button size="icon" variant="ghost">
-                    <EyeIcon className="w-5 h-5" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <GithubIcon className="w-5 h-5" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <NotebookIcon className="w-5 h-5" />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b dark:border-gray-700">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <GitBranchIcon className="w-5 h-5" />
-                  <span>feature/new-page</span>
-                </div>
-              </td>
-              <td className="px-4 py-3">
-                <Badge
-                  className="bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400"
-                  variant="outline"
-                >
-                  Error
-                </Badge>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Button size="icon" variant="ghost">
-                    <EyeIcon className="w-5 h-5" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <GithubIcon className="w-5 h-5" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <NotebookIcon className="w-5 h-5" />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-            <tr className="border-b dark:border-gray-700">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <GitBranchIcon className="w-5 h-5" />
-                  <span>bugfix/login</span>
-                </div>
-              </td>
-              <td className="px-4 py-3">
-                <Badge
-                  className="bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400"
-                  variant="outline"
-                >
-                  Tracked
-                </Badge>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Button size="icon" variant="ghost">
-                    <EyeIcon className="w-5 h-5" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <GithubIcon className="w-5 h-5" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <NotebookIcon className="w-5 h-5" />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
+
+          {branches.map((branch) => (
+            <tbody>
+              <tr className="border-b dark:border-gray-700">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <GitBranchIcon className="w-5 h-5" />
+                    <span>{branch.name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <Badge
+                    className={
+                      branch.status === "Tracked"
+                        ? "bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400"
+                        : "bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400"
+                    }
+                    variant="outline"
+                  >
+                    {branch.status}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    {branch.actions.map((action) => (
+                      <Button size="icon" variant="ghost">
+                        {action === "View" && <EyeIcon className="w-5 h-5" />}
+                        {action === "Github" && (
+                          <GithubIcon className="w-5 h-5" />
+                        )}
+                        {action === "Notebook" && (
+                          <NotebookIcon className="w-5 h-5" />
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          ))}
         </table>
       </div>
     </div>
