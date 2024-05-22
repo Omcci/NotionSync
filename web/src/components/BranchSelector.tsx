@@ -76,8 +76,8 @@ const BranchSelector = () => {
             </tr>
           </thead>
 
-          {branches.map((branch) => (
-            <tbody>
+          {branches.map((branch, idx) => (
+            <tbody key={idx} >
               <tr className="border-b dark:border-gray-700">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -99,8 +99,8 @@ const BranchSelector = () => {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    {branch.actions.map((action) => (
-                      <Button size="icon" variant="ghost">
+                    {branch.actions.map((action, idx) => (
+                      <Button size="icon" variant="ghost" key={idx}>
                         {action === "View" && <EyeIcon className="w-5 h-5" />}
                         {action === "Github" && (
                           <GithubIcon className="w-5 h-5" />
