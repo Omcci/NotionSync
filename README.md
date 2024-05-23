@@ -1,6 +1,11 @@
-# NotionSync
+<table>
+  <tr>
+    <td><img src="https://github.com/Omcci/NotionSync/assets/119880787/ed46dda5-2e5d-4ae1-ba81-0d48a14ba369" alt="NotionSyncLogoWhite" width="40" /></td>
+    <td><h1>NotionSync</h1></td>
+  </tr>
+</table>
 
-![NotionSync Overview](https://github.com/Omcci/NotionSync/assets/119880787/dc733a83-fba3-4984-aa3e-34851c67a05c)
+![Capture d'écran 2024-05-23 104133](https://github.com/Omcci/NotionSync/assets/119880787/f4e06fbf-69c8-4eec-a29f-4987c0a8f25f)
 
 ## Overview
 
