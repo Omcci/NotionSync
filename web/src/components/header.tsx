@@ -14,8 +14,6 @@ export function Header() {
           href="/"
           className="flex items-center gap-2 text-lg font-semibold"
         >
-          {/* <NotebookIcon className="w-6 h-6" />
-           */}
           <img
             src="/NotionSyncLogoWhite.png"
             alt="NotionSync"
