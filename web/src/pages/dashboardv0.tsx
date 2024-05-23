@@ -7,7 +7,7 @@ import ConfigSettings from "@/components/config-settings/ConfigSettings";
 
 const DashboardV0 = () => {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col">
       <HeaderV0 />
       <main className="flex-1 bg-gray-100 dark:bg-gray-800 p-6">
         <SyncStatus />
