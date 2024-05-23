@@ -2,7 +2,7 @@ import React from "react";
 import HeaderV0 from "@/components/HeaderV0";
 import SyncStatus from "@/components/SyncStatus";
 import BranchSelector from "@/components/BranchSelector";
-import CommitLog from "@/components/CommitLog";
+import CommitLog from "@/components/commit-log/CommitLog";
 import ConfigSettings from "@/components/config-settings/ConfigSettings";
 
 const DashboardV0 = () => {
