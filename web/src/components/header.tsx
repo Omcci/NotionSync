@@ -7,7 +7,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold" >
           {/* <NotebookIcon className="w-6 h-6" />
            */}
-           <img src="/logo.png" alt="NotionSync" className="w-20" />
+           <img src="/NotionSyncLogoWhite.png" alt="NotionSync" className="w-8" />
           <span className="text-white">NotionSync</span>
         </Link>
         <nav className="hidden md:flex items-center gap-4">
