@@ -15,7 +15,6 @@ const SelectComponent = ({ ...props }) => {
       </SelectTrigger>
       <SelectContent>
         {branches.map((branch, idx) => {
-          
           return (
             <SelectItem key={idx} value={branch.name}>
               {branch.label}
