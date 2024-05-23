@@ -42,10 +42,6 @@ class MyDocument extends Document {
             content="Notion, Sync, Markdown, Notion API, Notion Sync, Notion Markdown"
           />
           <meta name="author" content="Notion Sync" />
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0"
-          />
           <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
           <meta
             name="google-site-verification"
