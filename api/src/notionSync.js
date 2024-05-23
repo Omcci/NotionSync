@@ -8,26 +8,24 @@ import { Client } from "@notionhq/client";
 import {
   githubToken,
   notionToken,
-  mistralToken,
   databaseId,
   orgName,
   repoName,
+  mistralToken,
   startDate,
   endDate,
 } from "../utils/config.js";
 
-//TODO: Add a front-end
-
 export class NotionSync {
-  constructor(config) {
-    this.githubToken = config.githubToken;
-    this.notionToken = config.notionToken;
-    this.databaseId = config.databaseId;
-    this.orgName = config.orgName;
-    this.repoName = config.repoName;
-    this.mistralToken = config.mistralToken;
-    this.startDate = config.startDate;
-    this.endDate = config.endDate;
+  constructor() {
+    this.githubToken = githubToken;
+    this.notionToken = notionToken;
+    this.databaseId = databaseId;
+    this.orgName = orgName;
+    this.repoName = repoName;
+    this.mistralToken = mistralToken;
+    this.startDate = startDate;
+    this.endDate = endDate;
     this.client = new MistralClient(this.mistralToken);
     this.notion = new Client({ auth: this.notionToken });
   }
