@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
+// TODO: Try to run api from sync button
+
 const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -12,19 +14,19 @@ const Dashboard = () => {
       const response = await fetch(`${apiUrl}/sync`, { method: "POST" });
       const data = await response.json();
       if (response.ok) {
-        toast({ title: 'Success', description: data.message });
+        toast({ title: "Success", description: data.message });
       } else {
         toast({
-          title: 'Error',
-          description: data.details || 'Sync failed. Please try again later.',
-          variant: 'destructive',
+          title: "Error",
+          description: data.details || "Sync failed. Please try again later.",
+          variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Sync failed. Please try again later.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Sync failed. Please try again later.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -44,7 +46,7 @@ const Dashboard = () => {
             onClick={handleSync}
             className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
           >
-            {loading ? 'Syncing...' : 'Start Sync'}
+            {loading ? "Syncing..." : "Start Sync"}
           </button>
           <div id="syncStatus"></div>
         </div>
