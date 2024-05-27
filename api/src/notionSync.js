@@ -30,8 +30,26 @@ export class NotionSync {
     this.notion = new Client({ auth: this.notionToken });
   }
 
+  async fetchUserRepos(username) {
+    const url = `https://api.github.com/users/${username}/repos`;
+    try {
+      const response = await fetch(url, {
+        headers: { Authorization: `token ${this.githubToken}` },
+      });
+      if (!response.ok) {
+        throw new Error(`Error fetching repositories: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.map((repo) => repo.name); // Return the names of the repositories
+    } catch (error) {
+      console.error(error.message);
+      return [];
+    }
+  }
+
   async fetchRepoBranches(githubToken, orgName, repoName) {
     const url = `https://api.github.com/repos/${orgName}/${repoName}/branches`;
+    console.log(`Fetching branches for ${repoName}...`, url, githubToken);
     try {
       const response = await fetch(url, {
         headers: { Authorization: `token ${githubToken}` },
@@ -51,6 +69,7 @@ export class NotionSync {
 
   async fetchCommitsForUserInRepo(githubToken, orgName, repoName, branchName) {
     const url = `https://api.github.com/repos/${orgName}/${repoName}/commits?sha=${branchName}&author=Omcci&since=${startDate}&until=${endDate}`;
+    console.log(`Fetching commits for ${repoName} on branch ${branchName}...`, url);
     try {
       const response = await fetch(url, {
         headers: { Authorization: `token ${githubToken}` },
