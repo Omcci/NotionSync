@@ -5,7 +5,9 @@ import { Button } from "./ui/button";
 import { Toggle } from "./ui/toggle";
 import { useToast } from "./ui/use-toast";
 import { useEffect, useState } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+// import { signIn, signOut, useSession } from "next-auth/react";
+//TODO : add session with github oauth
+//TODO : display user friendly message of sync status
 
 const HeaderV0 = () => {
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,7 @@ const HeaderV0 = () => {
 
   const fetchUserRepos = async (username: string) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const url = `${apiUrl}/api/repos?username=${username}`; // Change to your backend API endpoint
+    const url = `${apiUrl}/api/repos?username=${username}`;
 
     try {
       const response = await fetch(url);
@@ -51,8 +53,12 @@ const HeaderV0 = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/sync`, {
+      const response = await fetch(`${apiUrl}/api/sync?action=sync`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username }),
       });
       const data = await response.json();
       if (response.ok) {
