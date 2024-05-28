@@ -1,35 +1,79 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 import { NotionSync } from "../../../../api/src/notionSync";
-import { config } from "../../../../api/utils/config";
-
-type SyncResponse = {
-  message: string;
-  details?: string;
-  error?: string;
-};
+const notionSync = new NotionSync();
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<SyncResponse>
+  res: NextApiResponse
 ) {
-  if (req.method === "POST") {
-    const notionSync = new NotionSync(config);
+  const { method } = req;
+  const { action } = req.query;
+  const { username, orgName, repoName, branchName, commit, commitMessage } =
+    req.body;
 
-    try {
-      const result = await notionSync.main();
-      res
-        .status(200)
-        .json({ message: "Sync completed successfully", details: result });
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      res.status(500).json({ message: "Sync failed", details: errorMessage });
+  try {
+    switch (method) {
+      case "GET":
+        if (
+          action === "fetchRepoBranches" &&
+          typeof orgName === "string" &&
+          typeof repoName === "string"
+        ) {
+          const branches = await notionSync.fetchRepoBranches(
+            orgName,
+            repoName
+          );
+          res.status(200).json({ branches });
+        } else if (
+          action === "fetchCommitsForUserInRepo" &&
+          typeof orgName === "string" &&
+          typeof repoName === "string" &&
+          typeof branchName === "string"
+        ) {
+          const commits = await notionSync.fetchCommitsForUserInRepo(
+            orgName,
+            repoName,
+            branchName
+          );
+          res.status(200).json({ commits });
+        } else {
+          res.status(400).json({ error: "Invalid query parameters" });
+        }
+        break;
+      case "POST":
+        if (action === "addCommitToNotion") {
+          if (
+            typeof commit === "string" &&
+            typeof commitMessage === "string" &&
+            typeof branchName === "string"
+          ) {
+            await notionSync.addCommitToNotion(
+              commit,
+              commitMessage,
+              branchName
+            );
+            res
+              .status(200)
+              .json({ message: "Commit added to Notion successfully" });
+          } else {
+            res.status(400).json({ error: "Invalid request body" });
+          }
+        } else if (action === "sync") {
+          if (typeof username === "string") {
+            const result = await notionSync.main();
+            res.status(200).json({ message: result });
+          } else {
+            res.status(400).json({ error: "Username is required for sync" });
+          }
+        } else {
+          res.status(400).json({ error: "Invalid action" });
+        }
+        break;
+      default:
+        res.setHeader("Allow", ["GET", "POST"]);
+        res.status(405).end(`Method ${method} Not Allowed`);
     }
-  } else {
-    res.setHeader("Allow", ["POST"]);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 }
-
-// async function startSync(): Promise<string> {
-//   return "Sync completed";
-// }
