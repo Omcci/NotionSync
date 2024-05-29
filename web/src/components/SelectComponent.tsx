@@ -6,17 +6,38 @@ import {
   SelectValue,
 } from "./ui/select";
 
-const SelectComponent = ({ options= [], placeholder, value, onChange }) => {
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface SelectComponentProps {
+  options: SelectOption[];
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const SelectComponent = ({
+  options = [],
+  placeholder,
+  value,
+  onChange,
+}: SelectComponentProps) => {
+  const selectedOption = options.find((option) => option.value === value);
+
   return (
-    <Select defaultValue={value}  onValueChange={onChange}>
+    <Select defaultValue={value} onValueChange={onChange}>
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder={placeholder} />
+        <SelectValue>
+          {selectedOption ? selectedOption.label : placeholder}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {options.map((option, idx) => {
           return (
-            <SelectItem key={idx} value={option}>
-              {option}
+            <SelectItem key={idx} value={option.value}>
+              {option.label}
             </SelectItem>
           );
         })}
