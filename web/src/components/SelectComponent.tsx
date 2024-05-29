@@ -29,7 +29,7 @@ const SelectComponent = ({
   return (
     <Select defaultValue={value} onValueChange={onChange}>
       <SelectTrigger className="w-[180px]">
-        <SelectValue>
+        <SelectValue placeholder={placeholder}>
           {selectedOption ? selectedOption.label : placeholder}
         </SelectValue>
       </SelectTrigger>

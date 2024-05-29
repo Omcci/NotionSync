@@ -1,7 +1,9 @@
 import { FolderSyncIcon } from "../../public/icon/FolderSyncIcon";
 import { GithubIcon } from "../../public/icon/GithubIcon";
 import { RepeatIcon } from "../../public/icon/RepeatIcon";
+import SelectComponent from "./SelectComponent";
 import { Button } from "./ui/button";
+import { Select } from "./ui/select";
 import { Toggle } from "./ui/toggle";
 import { useToast } from "./ui/use-toast";
 import { useEffect, useState } from "react";
@@ -80,6 +82,12 @@ const HeaderV0 = () => {
       setLoading(false);
     }
   };
+
+  const repoOptions = repos.map((repo) => ({
+    value: repo,
+    label: repo,
+  }));
+
   return (
     <header className="py-4 px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -89,18 +97,12 @@ const HeaderV0 = () => {
         </Button>
       </div>
       <div className="flex items-center gap-4">
-        <select
+        <SelectComponent
+          placeholder="Select a repository"
+          options={repoOptions}
           value={selectedRepo}
-          onChange={(e) => setSelectedRepo(e.target.value)}
-          disabled={!repos.length}
-        >
-          <option value="">Select a repository</option>
-          {repos.map((repo) => (
-            <option key={repo} value={repo}>
-              {repo}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setSelectedRepo(value)}
+        />
         <Button
           variant="ghost"
           onClick={handleSync}
@@ -110,6 +112,8 @@ const HeaderV0 = () => {
           {loading ? "Syncing..." : "Start Sync"}
         </Button>
         <Toggle aria-label="Automatic Sync">
+          {" "}
+          {/* TODO : add automatic sync //  */}
           <RepeatIcon className="w-5 h-5" />
         </Toggle>
       </div>
