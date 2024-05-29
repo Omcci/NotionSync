@@ -1,4 +1,3 @@
-import { branches } from "./BranchSelector";
 import {
   Select,
   SelectContent,
@@ -7,17 +6,17 @@ import {
   SelectValue,
 } from "./ui/select";
 
-const SelectComponent = ({ ...props }) => {
+const SelectComponent = ({ options= [], placeholder, value, onChange }) => {
   return (
-    <Select defaultValue="all">
+    <Select defaultValue={value}  onValueChange={onChange}>
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder={props.placeholder} />
+        <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {branches.map((branch, idx) => {
+        {options.map((option, idx) => {
           return (
-            <SelectItem key={idx} value={branch.name}>
-              {branch.label}
+            <SelectItem key={idx} value={option}>
+              {option}
             </SelectItem>
           );
         })}
