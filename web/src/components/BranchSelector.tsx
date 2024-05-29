@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { EyeIcon } from "../../public/icon/EyeIcon";
 import { GitBranchIcon } from "../../public/icon/GitBranchIcon";
 import { GithubIcon } from "../../public/icon/GithubIcon";
@@ -42,12 +43,24 @@ export const branches = [
 ];
 
 const BranchSelector = () => {
+
+  const [selectedBranch, setSelectedBranch] = useState("");
+
+  const branchOptions = branches.map((branch) => ({
+    value: branch.name,
+    label: branch.label,
+  }));
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold">Branch Selector</h2>
         <div className="flex items-center gap-4">
-          <SelectComponent />
+          <SelectComponent
+          placeholder="Select a branch"
+          options={branchOptions}
+          value={selectedBranch}
+          onChange={setSelectedBranch}
+           />
           <div className="flex items-center gap-2">
             <Checkbox defaultChecked id="track-branch" />
             <Label
