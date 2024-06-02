@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { NotionSync } from "./src/notionSync.js";
+import { githubToken, orgName } from "./utils/config.js";
 
 const app = express();
 const port = process.env.PORT || 4001;
@@ -27,13 +28,17 @@ app.get("/api/repos", async (req, res) => {
 });
 
 app.get("/api/branches", async (req, res) => {
-  const { repoId } = req.query;
-  if (!repoId) {
-    return res.status(400).json({ error: "Repo ID is required" });
+  const { repoName } = req.query;
+  if (!repoName) {
+    return res.status(400).json({ error: "Repository name is required" });
   }
 
   try {
-    const branches = await notionSync.fetchRepoBranches(repoId);
+    const branches = await notionSync.fetchRepoBranches(
+      githubToken,
+      orgName,
+      repoName
+    );
     console.log("API is sending branches:", branches);
 
     res.status(200).json({ branches });
