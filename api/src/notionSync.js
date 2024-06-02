@@ -40,7 +40,10 @@ export class NotionSync {
         throw new Error(`Error fetching repositories: ${response.status}`);
       }
       const data = await response.json();
-      return data.map((repo) => repo.name);
+      return repos.map((repo) => ({
+        name: repo.name,
+        id: repo.id,
+      }));
     } catch (error) {
       console.error(error.message);
       return [];
@@ -49,7 +52,6 @@ export class NotionSync {
 
   async fetchRepoBranches(githubToken, orgName, repoName) {
     const url = `https://api.github.com/repos/${orgName}/${repoName}/branches`;
-    console.log(`Fetching branches for ${repoName}...`, url, githubToken);
     try {
       const response = await fetch(url, {
         headers: { Authorization: `token ${githubToken}` },
@@ -69,7 +71,7 @@ export class NotionSync {
 
   async fetchCommitsForUserInRepo(githubToken, orgName, repoName, branchName) {
     const url = `https://api.github.com/repos/${orgName}/${repoName}/commits?sha=${branchName}&author=Omcci&since=${startDate}&until=${endDate}`;
-    console.log(`Fetching commits for ${repoName} on branch ${branchName}...`, url);
+
     try {
       const response = await fetch(url, {
         headers: { Authorization: `token ${githubToken}` },
