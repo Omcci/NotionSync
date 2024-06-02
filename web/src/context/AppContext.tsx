@@ -7,15 +7,15 @@ interface Repo {
 interface AppContextType {
   repos: Repo[];
   setRepos: (repos: Repo[]) => void;
-  selectedRepoId: string;
-  setSelectedRepoId: (id: string) => void;
+  selectedRepo: Repo | null;
+  setSelectedRepo: (repo: Repo | null) => void;
 }
 
 const initialState: AppContextType = {
   repos: [],
   setRepos: () => {},
-  selectedRepoId: "",
-  setSelectedRepoId: () => {},
+  selectedRepo: null,
+  setSelectedRepo: () => {},
 };
 
 const AppContext = createContext<AppContextType>(initialState);
@@ -26,9 +26,9 @@ interface AppProviderProps {
 
 export const AppProvider = ({ children }: AppProviderProps) => {
   const [repos, setRepos] = useState<Repo[]>([]);
-  const [selectedRepoId, setSelectedRepoId] = useState<string>("");
+  const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
 
-  const value = { repos, setRepos, selectedRepoId, setSelectedRepoId };
+  const value = { repos, setRepos, selectedRepo, setSelectedRepo };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
