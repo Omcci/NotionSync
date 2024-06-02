@@ -40,7 +40,7 @@ export class NotionSync {
         throw new Error(`Error fetching repositories: ${response.status}`);
       }
       const data = await response.json();
-      return data.map((repo) => repo.name); // Return the names of the repositories
+      return data.map((repo) => repo.name);
     } catch (error) {
       console.error(error.message);
       return [];
@@ -236,7 +236,7 @@ export class NotionSync {
       return "Failed to generate summary";
     }
   }
-  async main() {
+  async sync() {
     console.log("Starting sync process...");
     const branchNames = await this.fetchRepoBranches(
       githubToken,
