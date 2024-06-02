@@ -1,3 +1,4 @@
+import { useAppContext } from "@/context/AppContext";
 import { FolderSyncIcon } from "../../public/icon/FolderSyncIcon";
 import { GithubIcon } from "../../public/icon/GithubIcon";
 import { RepeatIcon } from "../../public/icon/RepeatIcon";
@@ -12,11 +13,10 @@ import { useEffect, useState } from "react";
 //TODO : display user friendly message of sync status
 
 const HeaderV0 = () => {
+  const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   // const { data: session } = useSession();
-  const [repos, setRepos] = useState<string[]>([]);
-  const [selectedRepo, setSelectedRepo] = useState<string>("");
   const username = process.env.NEXT_PUBLIC_USERNAME;
 
   useEffect(() => {
@@ -82,12 +82,15 @@ const HeaderV0 = () => {
       setLoading(false);
     }
   };
+  const handleRepoSelect = (repoId: string) => {
+    const repo = repos.find((r) => r.id === repoId);
+    repo ? setSelectedRepo(repo) : setSelectedRepo(null);
+  };
 
   const repoOptions = repos.map((repo) => ({
-    value: repo,
-    label: repo,
+    value: repo.id,
+    label: repo.name,
   }));
-
   return (
     <header className="py-4 px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -100,13 +103,13 @@ const HeaderV0 = () => {
         <SelectComponent
           placeholder="Select a repository"
           options={repoOptions}
-          value={selectedRepo}
-          onChange={(value) => setSelectedRepo(value)}
+          value={selectedRepo ? selectedRepo.id : ""}
+          onChange={(id) => handleRepoSelect(id)}
         />
         <Button
           variant="ghost"
           onClick={handleSync}
-          disabled={!selectedRepo || loading}
+          disabled={!setSelectedRepo || loading}
         >
           <FolderSyncIcon className="w-5 h-5 mr-2" />
           {loading ? "Syncing..." : "Start Sync"}
