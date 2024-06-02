@@ -17,10 +17,10 @@ const HeaderV0 = () => {
   // const { data: session } = useSession();
   const [repos, setRepos] = useState<string[]>([]);
   const [selectedRepo, setSelectedRepo] = useState<string>("");
-  const username = process.env.USERNAME || "Omcci";
+  const username = process.env.NEXT_PUBLIC_USERNAME;
 
   useEffect(() => {
-    fetchUserRepos(username);
+    if (username) fetchUserRepos(username);
   }, [username]);
 
   const fetchUserRepos = async (username: string) => {
@@ -33,7 +33,7 @@ const HeaderV0 = () => {
         throw new Error(`Error fetching repositories: ${response.status}`);
       }
       const data = await response.json();
-      if (response.ok) {
+      if (data.repos) {
         setRepos(data.repos);
       } else {
         toast({
@@ -55,7 +55,7 @@ const HeaderV0 = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/api/sync?action=sync`, {
+      const response = await fetch(`${apiUrl}/api/sync`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
