@@ -1,8 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
+interface Repo {
+  id: string;
+  name: string;
+}
 interface AppContextType {
-  repos: string[];
-  setRepos: (repos: string[]) => void;
+  repos: Repo[];
+  setRepos: (repos: Repo[]) => void;
   selectedRepoId: string;
   setSelectedRepoId: (id: string) => void;
 }
@@ -20,17 +24,11 @@ interface AppProviderProps {
   children: ReactNode;
 }
 
-export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
-  const [repos, setRepos] = useState<string[]>([]);
+export const AppProvider = ({ children }: AppProviderProps) => {
+  const [repos, setRepos] = useState<Repo[]>([]);
   const [selectedRepoId, setSelectedRepoId] = useState<string>("");
 
-  const value = {
-    repos,
-    setRepos,
-    selectedRepoId,
-    setSelectedRepoId,
-  };
-
+  const value = { repos, setRepos, selectedRepoId, setSelectedRepoId };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
