@@ -60,7 +60,7 @@ export default async function handler(
           }
         } else if (action === "sync") {
           if (typeof username === "string") {
-            const result = await notionSync.main();
+            const result = await notionSync.sync();
             res.status(200).json({ message: result });
           } else {
             res.status(400).json({ error: "Username is required for sync" });
