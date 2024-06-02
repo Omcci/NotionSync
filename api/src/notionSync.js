@@ -39,7 +39,7 @@ export class NotionSync {
       if (!response.ok) {
         throw new Error(`Error fetching repositories: ${response.status}`);
       }
-      const data = await response.json();
+      const repos = await response.json();
       return repos.map((repo) => ({
         name: repo.name,
         id: repo.id,
