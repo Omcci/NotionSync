@@ -1,7 +1,7 @@
 import { useAppContext } from "@/context/AppContext";
 import { CircleAlertIcon } from "../../public/icon/CircleAlertIcon";
 import { useEffect } from "react";
-import { formatDate } from "date-fns";
+import { format } from "date-fns";
 
 const SyncStatus = () => {
   const { syncStatus, setSyncStatus } = useAppContext();
@@ -36,7 +36,10 @@ const SyncStatus = () => {
   };
 
   const formattedDate = syncStatus
-    ? `${formatDate(new Date(syncStatus.lastSyncDate!), "dd-MM-yyyy HH:mm:ss")} ${getEmojiTime(new Date(syncStatus.lastSyncDate!))}`
+    ? `${format(
+        new Date(syncStatus.lastSyncDate!),
+        "dd-MM-yyyy HH:mm:ss"
+      )} ${getEmojiTime(new Date(syncStatus.lastSyncDate!))}`
     : "Loading ...";
 
   return (
@@ -46,17 +49,17 @@ const SyncStatus = () => {
           <h2 className="text-lg font-bold">Last Sync Status</h2>
           <p className="text-gray-500 dark:text-gray-400">
             Last successful sync: {""}
-            <span className="font-medium">{formattedDate}</span>
+            <span className="font-bold">{formattedDate}</span>
           </p>
         </div>
-        {/* {syncStatus!.errorBranch && (
+        {syncStatus && syncStatus.errorBranch && (
           <div>
             <p className="text-red-500 dark:text-red-400">
               <CircleAlertIcon className="w-5 h-5 mr-2 inline" />
               {syncStatus!.statusMessage}
             </p>
           </div>
-        )} */}
+        )}
       </div>
     </div>
   );
