@@ -65,9 +65,10 @@ app.post("/api/sync", async (req, res) => {
     res.status(200).json({ message: syncResult });
   } catch (error) {
     console.error("Error during sync:", error.message);
+    const branchName = error.branchName || "unknown";
     syncStatus = {
       lastSyncDate: new Date(),
-      errorBranch: error.branchName,
+      errorBranch: branchName,
       statusMessage: `Error syncing branch '${error.branchName}': ${error.message}`,
     };
     res.status(500).json({ error: error.message });
@@ -76,6 +77,7 @@ app.post("/api/sync", async (req, res) => {
 
 app.get("/api/syncStatus", (req, res) => {
   res.status(200).json(syncStatus);
+  // console.log("API is sending sync status:", syncStatus);
 });
 
 app.listen(port, () => {

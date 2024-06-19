@@ -85,8 +85,10 @@ export class NotionSync {
       }
       return data;
     } catch (error) {
-      console.error(error.message);
-      return [];
+      console.error(
+        `Error retrieving commits for ${repoName} on branch ${branchName}: ${error.message}`
+      );
+      throw new Error(`branchName:${branchName}|${error.message}`);
     }
   }
 
@@ -247,33 +249,38 @@ export class NotionSync {
       repoName
     );
     for (let branchName of branchNames) {
-      const commits = await this.fetchCommitsForUserInRepo(
-        githubToken,
-        orgName,
-        repoName,
-        branchName
-      );
-      for (let commit of commits) {
-        const commitSha = commit.sha;
-        const [exists, _] = await this.commitExistsInNotion(commitSha);
-        if (exists) {
-          console.log(
-            `Commit ${commitSha} already exists in Notion. Skipping.`
-          );
-          continue;
-        }
-        const commitMessage = commit.commit.message;
-        await this.addCommitToNotion(
-          commit,
-          commitMessage,
-          notionToken,
-          databaseId,
+      try {
+        const commits = await this.fetchCommitsForUserInRepo(
+          githubToken,
+          orgName,
           repoName,
-          branchName,
-          mistralToken
+          branchName
         );
+        for (let commit of commits) {
+          const commitSha = commit.sha;
+          const [exists, _] = await this.commitExistsInNotion(commitSha);
+          if (exists) {
+            console.log(
+              `Commit ${commitSha} already exists in Notion. Skipping.`
+            );
+            continue;
+          }
+          const commitMessage = commit.commit.message;
+          await this.addCommitToNotion(
+            commit,
+            commitMessage,
+            notionToken,
+            databaseId,
+            repoName,
+            branchName,
+            mistralToken
+          );
+        }
+      } catch (err) {
+        err.branchName = branchName;
+        throw err;
       }
     }
-    return "Sync process completed"; // Return a completion message
+    return "Sync process completed";
   }
 }

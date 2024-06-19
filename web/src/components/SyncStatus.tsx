@@ -56,7 +56,7 @@ const SyncStatus = () => {
           <div>
             <p className="text-red-500 dark:text-red-400">
               <CircleAlertIcon className="w-5 h-5 mr-2 inline" />
-              {syncStatus!.statusMessage}
+              {syncStatus.statusMessage}
             </p>
           </div>
         )}
