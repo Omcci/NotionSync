@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 //TODO : display user friendly message of sync status
 
 const HeaderV0 = () => {
-  const { repos, setRepos, selectedRepo, setSelectedRepo, setOrg } = useAppContext();
+  const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   // const { data: session } = useSession();
@@ -86,10 +86,8 @@ const HeaderV0 = () => {
     const repo = repos.find((r) => r.id === repoId);
     if (repo) {
       setSelectedRepo(repo);
-      setOrg(repo.org);
     } else {
       setSelectedRepo(null);
-      setOrg("");
     }
   };
 

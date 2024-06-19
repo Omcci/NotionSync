@@ -18,7 +18,7 @@ interface Branch {
 }
 
 const BranchSelector = () => {
-  const { selectedRepo, org } = useAppContext();
+  const { selectedRepo } = useAppContext();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("");
   // TODO : Add branches state to context

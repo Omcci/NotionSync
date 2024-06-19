@@ -10,8 +10,6 @@ interface AppContextType {
   setRepos: (repos: Repo[]) => void;
   selectedRepo: Repo | null;
   setSelectedRepo: (repo: Repo | null) => void;
-  org: string;
-  setOrg: (org: string) => void;
 }
 
 const initialState: AppContextType = {
@@ -19,8 +17,6 @@ const initialState: AppContextType = {
   setRepos: () => {},
   selectedRepo: null,
   setSelectedRepo: () => {},
-  org: "",
-  setOrg: () => {},
 };
 
 const AppContext = createContext<AppContextType>(initialState);
@@ -32,9 +28,8 @@ interface AppProviderProps {
 export const AppProvider = ({ children }: AppProviderProps) => {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
-  const [org, setOrg] = useState<string>("");
 
-  const value = { repos, setRepos, selectedRepo, setSelectedRepo, org, setOrg};
+  const value = { repos, setRepos, selectedRepo, setSelectedRepo };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
