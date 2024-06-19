@@ -58,7 +58,7 @@ app.post("/api/sync", async (req, res) => {
   try {
     const syncResult = await notionSync.sync();
     syncStatus = {
-      lastSyncDate: new Date().toLocaleString(),
+      lastSyncDate: new Date(),
       errorBranch: null,
       statusMessage: "Sync completed successfully",
     };
@@ -66,7 +66,7 @@ app.post("/api/sync", async (req, res) => {
   } catch (error) {
     console.error("Error during sync:", error.message);
     syncStatus = {
-      lastSyncDate: new Date().toLocaleString(),
+      lastSyncDate: new Date(),
       errorBranch: error.branchName,
       statusMessage: `Error syncing branch '${error.branchName}': ${error.message}`,
     };
