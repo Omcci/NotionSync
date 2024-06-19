@@ -14,11 +14,11 @@ interface Branch {
   name: string;
   label?: string;
   status: string;
-  actions: Array<{ name: string; icon: JSX.Element }>;
+  actions: Array<{ name: string; icon: JSX.Element; url: string }>;
 }
 
 const BranchSelector = () => {
-  const { selectedRepo } = useAppContext();
+  const { selectedRepo, org } = useAppContext();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("");
   // TODO : Add branches state to context
@@ -42,15 +42,36 @@ const BranchSelector = () => {
       }
       console.log("Fetched branches:", data.branches || []);
       const detailedBranches = (data.branches || []).map(
-        (branchName: string) => ({
-          name: branchName,
-          status: branchName === "main" ? "Tracked" : "Untracked",
-          actions: [
-            { name: "View", icon: <EyeIcon /> },
-            { name: "Github", icon: <GithubIcon /> },
-            { name: "Notebook", icon: <NotebookIcon /> },
-          ],
-        })
+        (branchName: string) => {
+          const isMainBranch = branchName === "main";
+          return {
+            name: branchName,
+            status: isMainBranch ? "Tracked" : "Untracked",
+            actions: [
+              {
+                name: "View",
+                icon: <EyeIcon />,
+                url: `https://github.com/${selectedRepo!.org}/${
+                  selectedRepo!.name
+                }/tree/${branchName}`,
+              },
+              {
+                name: "Github",
+                icon: <GithubIcon />,
+                url: `https://github.com/${selectedRepo!.org}/${
+                  selectedRepo!.name
+                }`,
+              },
+              {
+                name: "Notebook",
+                icon: <NotebookIcon />,
+                url: `https://notebook.example.com/${
+                  selectedRepo!.name
+                }/${branchName}`,
+              },
+            ],
+          };
+        }
       );
 
       setBranches(detailedBranches);
@@ -119,7 +140,12 @@ const BranchSelector = () => {
                 </td>
                 <td className="px-4 py-3 flex items-center gap-2">
                   {branch.actions.map((action, actionIdx) => (
-                    <Button key={actionIdx} size="icon" variant="ghost">
+                    <Button
+                      key={actionIdx}
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => window.open(action.url, "_blank")}
+                    >
                       {action.icon}
                     </Button>
                   ))}
