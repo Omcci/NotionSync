@@ -43,6 +43,7 @@ export class NotionSync {
       return repos.map((repo) => ({
         name: repo.name,
         id: repo.id,
+        org: repo.owner.login,
       }));
     } catch (error) {
       console.error(error.message);
