@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { NotionSync } from "./src/notionSync.js";
-import { githubToken, orgName } from "./utils/config.js";
+import { githubToken, orgName, notionToken, repoName } from "./utils/config.js";
 
 const app = express();
 const port = process.env.PORT || 4001;
@@ -78,6 +78,15 @@ app.post("/api/sync", async (req, res) => {
 app.get("/api/syncStatus", (req, res) => {
   res.status(200).json(syncStatus);
   // console.log("API is sending sync status:", syncStatus);
+});
+
+app.get("/api/config", (req, res) => {
+  res.json({
+    githubToken,
+    notionToken,
+    repoName,
+    orgName,
+  });
 });
 
 app.listen(port, () => {
