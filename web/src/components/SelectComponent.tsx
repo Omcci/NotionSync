@@ -16,6 +16,7 @@ interface SelectComponentProps {
   placeholder: string;
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
 const SelectComponent = ({
@@ -23,12 +24,13 @@ const SelectComponent = ({
   placeholder,
   value,
   onChange,
+  disabled,
 }: SelectComponentProps) => {
   const selectedOption = options.find((option) => option.value === value);
 
   return (
-    <Select defaultValue={value} onValueChange={onChange}>
-      <SelectTrigger className="w-[180px]">
+    <Select defaultValue={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger className="w-[180px]" disabled={disabled}>
         <SelectValue placeholder={placeholder}>
           {selectedOption ? selectedOption.label : placeholder}
         </SelectValue>
