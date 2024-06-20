@@ -21,6 +21,28 @@ const BranchSelector = () => {
   const { selectedRepo } = useAppContext();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("");
+  const [trackedBranch, setTrackedBranch] = useState<Set<string>>(new Set());
+
+  const handleTrackChange = (branchName: string, isChecked: boolean) => {
+    setTrackedBranch((prevTrackedBranch) => {
+      const updatedTrackedBranch = new Set(prevTrackedBranch);
+
+      if (isChecked) {
+        updatedTrackedBranch.add(branchName);
+      } else {
+        updatedTrackedBranch.delete(branchName);
+      }
+      setBranches((prevBranches) =>
+        prevBranches.map((branch) =>
+          branch.name === branchName
+            ? { ...branch, status: isChecked ? "Tracked" : "Untracked" }
+            : branch
+        )
+      );
+      return updatedTrackedBranch;
+    });
+  };
+
   // TODO : Add branches state to context
   useEffect(() => {
     if (selectedRepo) {
@@ -43,10 +65,9 @@ const BranchSelector = () => {
       console.log("Fetched branches:", data.branches || []);
       const detailedBranches = (data.branches || []).map(
         (branchName: string) => {
-          const isMainBranch = branchName === "main";
           return {
             name: branchName,
-            status: isMainBranch ? "Tracked" : "Untracked",
+            status: trackedBranch.has(branchName) ? "Tracked" : "Untracked",
             actions: [
               {
                 name: "View",
@@ -62,13 +83,6 @@ const BranchSelector = () => {
                   selectedRepo!.name
                 }`,
               },
-              {
-                name: "Notebook",
-                icon: <NotebookIcon />,
-                url: `https://notebook.example.com/${
-                  selectedRepo!.name
-                }/${branchName}`,
-              },
             ],
           };
         }
@@ -79,9 +93,7 @@ const BranchSelector = () => {
       console.error("Failed to fetch branches:", error.message);
     }
   };
-  const handleBranchSelect = (branchName: any) => {
-    setSelectedBranch(branchName);
-  };
+  const handleBranchSelect = (branchName: any) => {};
 
   const branchOptions = branches.map((branch) => ({
     value: branch.name,
@@ -96,17 +108,31 @@ const BranchSelector = () => {
             placeholder="Select a branch"
             options={branchOptions}
             value={selectedBranch}
-            onChange={handleBranchSelect}
+            onChange={(value) => handleBranchSelect(value)}
+            disabled={branches.length === 0}
           />
-          <div className="flex items-center gap-2">
-            <Checkbox defaultChecked id="track-branch" />
-            <Label
-              className="text-sm font-medium leading-none"
-              htmlFor="track-branch"
-            >
-              Track Branch
-            </Label>
-          </div>
+          {selectedBranch && (
+            <div className="flex items-center gap-2">
+              {/* TODO: search to implement a chakra checkbox */}
+              <input
+                id="track-branch"
+                type="checkbox"
+                checked={trackedBranch.has(selectedBranch)}
+                onChange={(e) => {
+                  handleTrackChange(
+                    selectedBranch,
+                    (e.target as HTMLInputElement).checked
+                  );
+                }}
+              />
+              <Label
+                className="text-sm font-medium leading-none"
+                htmlFor="track-branch"
+              >
+                Track Branch
+              </Label>
+            </div>
+          )}
         </div>
       </div>
       <div className="overflow-x-auto">
