@@ -3,8 +3,14 @@ import { NotionSync } from "../../../../api/src/notionSync";
 
 const notionSync = new NotionSync();
 
+type Repo = {
+  id: string;
+  name: string;
+  org: string;
+};
+
 type ReposResponse = {
-  repos?: string[];
+  repos?: Repo[];
   error?: string;
 };
 
