@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 
 const configSchema = z.object({
   repository: z.string().min(1, "Repository is required"),
@@ -20,6 +21,7 @@ const ConfigSettingsForm = () => {
   const { config, setConfig } = useConfigContext();
   const methods = useForm<ConfigSchema>({
     resolver: zodResolver(configSchema),
+    defaultValues: config,
   });
 
   const { control, handleSubmit, reset } = methods;
@@ -36,6 +38,9 @@ const ConfigSettingsForm = () => {
     reset(data);
   };
 
+  useEffect(() => {
+    reset(config);
+  }, [config, reset]);
   console.log(config);
 
   return (
@@ -73,12 +78,15 @@ const ConfigSettingsForm = () => {
         <FormField
           control={control}
           name="githubToken"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem className="space-y-2">
               <FormLabel htmlFor="githubToken">GitHub Token</FormLabel>
               <FormControl>
                 <Input {...field} id="githubToken" type="password" />
               </FormControl>
+              {fieldState.error && (
+                <p className="text-red-500">{fieldState.error.message}</p>
+              )}
             </FormItem>
           )}
         />
