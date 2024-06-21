@@ -25,7 +25,7 @@ jobs:
         run: npm install
 
       - name: Run Prettier
-        run: npm run prettier:check
+        run: npm run prettier:write
 
       - name: Commit changes
         run: |
