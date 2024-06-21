@@ -8,6 +8,7 @@ import { Select } from "./ui/select";
 import { Toggle } from "./ui/toggle";
 import { useToast } from "./ui/use-toast";
 import { useEffect, useState } from "react";
+import { useConfigContext } from "@/context/ConfigContext";
 // import { signIn, signOut, useSession } from "next-auth/react";
 //TODO : add session with github oauth
 //TODO : display user friendly message of sync status
@@ -16,6 +17,7 @@ const HeaderV0 = () => {
   const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { updateFormValues } = useConfigContext();
   // const { data: session } = useSession();
   const username = process.env.NEXT_PUBLIC_USERNAME;
 
@@ -86,6 +88,7 @@ const HeaderV0 = () => {
     const repo = repos.find((r) => r.id === repoId);
     if (repo) {
       setSelectedRepo(repo);
+      updateFormValues(repo.name, repo.org);
     } else {
       setSelectedRepo(null);
     }
