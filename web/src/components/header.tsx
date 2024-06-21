@@ -1,12 +1,12 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 export function Header() {
   const links = [
-    { href: "/", label: "Home" },
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/dashboardv0", label: "DashboardV0" },
-    { href: "/testconfig", label: "Testconfig" },
-  ];
+    { href: '/', label: 'Home' },
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/dashboardv0', label: 'DashboardV0' },
+    { href: '/testconfig', label: 'Testconfig' },
+  ]
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-gray-950 shadow-sm dark:bg-gray-950 dark:text-gray-50">
       <div className="flex items-center gap-4">
@@ -31,5 +31,5 @@ export function Header() {
       </div>
       <div className="flex items-center gap-4" />
     </header>
-  );
+  )
 }

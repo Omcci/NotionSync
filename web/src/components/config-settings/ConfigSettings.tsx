@@ -1,6 +1,6 @@
-import { SettingsIcon } from "../../../public/icon/SettingsIcon";
-import { Button } from "../ui/button";
-import ConfigSettingsForm from "./ConfigSettingsForm";
+import { SettingsIcon } from '../../../public/icon/SettingsIcon'
+import { Button } from '../ui/button'
+import ConfigSettingsForm from './ConfigSettingsForm'
 
 const ConfigSettings = () => {
   return (
@@ -16,7 +16,7 @@ const ConfigSettings = () => {
       </div>
       <ConfigSettingsForm />
     </div>
-  );
-};
+  )
+}
 
-export default ConfigSettings;
+export default ConfigSettings

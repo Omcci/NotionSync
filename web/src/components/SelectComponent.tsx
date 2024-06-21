@@ -4,19 +4,19 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from './ui/select'
 
 interface SelectOption {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 interface SelectComponentProps {
-  options: SelectOption[];
-  placeholder: string;
-  value: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
+  options: SelectOption[]
+  placeholder: string
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
 }
 
 const SelectComponent = ({
@@ -26,7 +26,7 @@ const SelectComponent = ({
   onChange,
   disabled,
 }: SelectComponentProps) => {
-  const selectedOption = options.find((option) => option.value === value);
+  const selectedOption = options.find((option) => option.value === value)
 
   return (
     <Select defaultValue={value} onValueChange={onChange} disabled={disabled}>
@@ -41,11 +41,11 @@ const SelectComponent = ({
             <SelectItem key={idx} value={option.value}>
               {option.label}
             </SelectItem>
-          );
+          )
         })}
       </SelectContent>
     </Select>
-  );
-};
+  )
+}
 
-export default SelectComponent;
+export default SelectComponent

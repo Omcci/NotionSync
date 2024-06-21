@@ -1,6 +1,6 @@
 // components/BreadcrumbNav.tsx
-import React from "react";
-import { Slash } from "lucide-react";
+import React from 'react'
+import { Slash } from 'lucide-react'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,7 +8,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from '@/components/ui/breadcrumb'
 
 const BreadcrumbNav: React.FC = () => {
   return (
@@ -40,7 +40,7 @@ const BreadcrumbNav: React.FC = () => {
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
-  );
-};
+  )
+}
 
-export default BreadcrumbNav;
+export default BreadcrumbNav

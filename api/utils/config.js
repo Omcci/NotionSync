@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
-dotenv.config();
+import dotenv from 'dotenv'
+dotenv.config()
 
 const config = {
   githubToken: process.env.GITHUB_TOKEN,
@@ -10,7 +10,7 @@ const config = {
   mistralToken: process.env.MISTRAL_TOKEN,
   startDate: process.env.START_DATE,
   endDate: process.env.END_DATE,
-};
+}
 
 export const {
   githubToken,
@@ -21,4 +21,4 @@ export const {
   mistralToken,
   startDate,
   endDate,
-} = config;
+} = config

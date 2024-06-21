@@ -1,7 +1,7 @@
 // components/Footer.tsx
-import React from "react";
-import Link from "next/link";
-import Icon from "./Icon";
+import React from 'react'
+import Link from 'next/link'
+import Icon from './Icon'
 
 const Footer: React.FC = () => {
   return (
@@ -43,7 +43,7 @@ const Footer: React.FC = () => {
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer;
+export default Footer

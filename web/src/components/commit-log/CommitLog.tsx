@@ -1,55 +1,55 @@
-import { CalendarDaysIcon } from "../../../public/icon/CalendarDaysIcon";
-import { EyeIcon } from "../../../public/icon/EyeIcon";
-import { GitBranchIcon } from "../../../public/icon/GitBranchIcon";
-import { GitCommitVerticalIcon } from "../../../public/icon/GitCommitVerticalIcon";
-import { GithubIcon } from "../../../public/icon/GithubIcon";
-import { NotebookIcon } from "../../../public/icon/NotebookIcon";
-import { UserIcon } from "../../../public/icon/UserIcon";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import CommitLogFilters from "./CommitLogFilters";
+import { CalendarDaysIcon } from '../../../public/icon/CalendarDaysIcon'
+import { EyeIcon } from '../../../public/icon/EyeIcon'
+import { GitBranchIcon } from '../../../public/icon/GitBranchIcon'
+import { GitCommitVerticalIcon } from '../../../public/icon/GitCommitVerticalIcon'
+import { GithubIcon } from '../../../public/icon/GithubIcon'
+import { NotebookIcon } from '../../../public/icon/NotebookIcon'
+import { UserIcon } from '../../../public/icon/UserIcon'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
+import CommitLogFilters from './CommitLogFilters'
 
 export type Filter = {
-  name: string;
-  icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
-};
+  name: string
+  icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>
+}
 
 const filters: Filter[] = [
   {
-    name: "Branch",
+    name: 'Branch',
     icon: GitBranchIcon,
   },
   {
-    name: "Author",
+    name: 'Author',
     icon: UserIcon,
   },
   {
-    name: "Date Range",
+    name: 'Date Range',
     icon: CalendarDaysIcon,
   },
-];
+]
 
 const CommitLog = () => {
-  const theader = ["Commit", "Branch", "Author", "Date", "Status", "Actions"];
+  const theader = ['Commit', 'Branch', 'Author', 'Date', 'Status', 'Actions']
   const lines = [
     {
-      commit: "Implement new feature",
-      branch: "feature/new-page",
-      author: "John Doe",
-      date: "May 15, 2024",
-      status: "Failed",
-      actions: ["View", "Github", "Notebook"],
+      commit: 'Implement new feature',
+      branch: 'feature/new-page',
+      author: 'John Doe',
+      date: 'May 15, 2024',
+      status: 'Failed',
+      actions: ['View', 'Github', 'Notebook'],
     },
     {
-      commit: "Fix bug in login flow",
-      branch: "bugfix/login",
-      author: "Jane Smith",
-      date: "May 14, 2024",
-      status: "",
-      actions: ["View", "Github", "Notebook"],
+      commit: 'Fix bug in login flow',
+      branch: 'bugfix/login',
+      author: 'Jane Smith',
+      date: 'May 14, 2024',
+      status: '',
+      actions: ['View', 'Github', 'Notebook'],
     },
-  ];
+  ]
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
@@ -108,15 +108,15 @@ const CommitLog = () => {
                     {line.actions.map((action) => {
                       return (
                         <Button key={action} size="icon" variant="ghost">
-                          {action === "View" && <EyeIcon className="w-5 h-5" />}
-                          {action === "Github" && (
+                          {action === 'View' && <EyeIcon className="w-5 h-5" />}
+                          {action === 'Github' && (
                             <GithubIcon className="w-5 h-5" />
                           )}
-                          {action === "Notebook" && (
+                          {action === 'Notebook' && (
                             <NotebookIcon className="w-5 h-5" />
                           )}
                         </Button>
-                      );
+                      )
                     })}
                   </div>
                 </td>
@@ -126,7 +126,7 @@ const CommitLog = () => {
         </table>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CommitLog;
+export default CommitLog

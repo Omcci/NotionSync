@@ -1,9 +1,9 @@
-import React from "react";
-import HeaderV0 from "@/components/HeaderV0";
-import SyncStatus from "@/components/SyncStatus";
-import BranchSelector from "@/components/BranchSelector";
-import CommitLog from "@/components/commit-log/CommitLog";
-import ConfigSettings from "@/components/config-settings/ConfigSettings";
+import React from 'react'
+import HeaderV0 from '@/components/HeaderV0'
+import SyncStatus from '@/components/SyncStatus'
+import BranchSelector from '@/components/BranchSelector'
+import CommitLog from '@/components/commit-log/CommitLog'
+import ConfigSettings from '@/components/config-settings/ConfigSettings'
 
 const DashboardV0 = () => {
   return (
@@ -16,7 +16,7 @@ const DashboardV0 = () => {
         <CommitLog />
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default DashboardV0;
+export default DashboardV0

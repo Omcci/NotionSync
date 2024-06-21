@@ -1,55 +1,55 @@
-import { useConfigContext } from "@/context/ConfigContext";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
-import { Button } from "../ui/button";
-import { FormProvider, useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useConfigContext } from '@/context/ConfigContext'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form'
+import { Button } from '../ui/button'
+import { FormProvider, useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
 
-const githubTokenPattern = /^ghp_[A-Za-z0-9]{36}$/;
-const notionTokenPattern = /^secret_[A-Za-z0-9]{41}$/;
+const githubTokenPattern = /^ghp_[A-Za-z0-9]{36}$/
+const notionTokenPattern = /^secret_[A-Za-z0-9]{41}$/
 
 const configSchema = z.object({
-  repository: z.string().min(1, "Repository is required"),
-  organization: z.string().min(1, "Organization is required"),
+  repository: z.string().min(1, 'Repository is required'),
+  organization: z.string().min(1, 'Organization is required'),
   githubToken: z
     .string()
-    .regex(githubTokenPattern, "Invalid Github Token format")
-    .min(1, "GitHub Token is required"),
+    .regex(githubTokenPattern, 'Invalid Github Token format')
+    .min(1, 'GitHub Token is required'),
   notionToken: z
     .string()
-    .regex(notionTokenPattern, "Invalid Notion Token format")
-    .min(1, "Notion Token is required"),
-});
+    .regex(notionTokenPattern, 'Invalid Notion Token format')
+    .min(1, 'Notion Token is required'),
+})
 
-type ConfigSchema = z.infer<typeof configSchema>;
+type ConfigSchema = z.infer<typeof configSchema>
 
 const ConfigSettingsForm = () => {
-  const { config, setConfig } = useConfigContext();
+  const { config, setConfig } = useConfigContext()
   const methods = useForm<ConfigSchema>({
     resolver: zodResolver(configSchema),
     defaultValues: config,
-  });
+  })
 
-  const { control, handleSubmit, reset } = methods;
+  const { control, handleSubmit, reset } = methods
 
   const onSubmit = async (data: ConfigSchema) => {
-    setConfig(data);
-    await fetch("/api/config", {
-      method: "POST",
+    setConfig(data)
+    await fetch('/api/config', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
-    });
-    reset(data);
-  };
+    })
+    reset(data)
+  }
 
   useEffect(() => {
-    reset(config);
-  }, [config, reset]);
+    reset(config)
+  }, [config, reset])
   // console.log(config);
 
   return (
@@ -127,7 +127,7 @@ const ConfigSettingsForm = () => {
         </div>
       </form>
     </FormProvider>
-  );
-};
+  )
+}
 
-export default ConfigSettingsForm;
+export default ConfigSettingsForm

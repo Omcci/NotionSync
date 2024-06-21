@@ -1,29 +1,29 @@
-import Document, { Html, Head, Main, NextScript } from "next/document";
-import React from "react";
+import Document, { Html, Head, Main, NextScript } from 'next/document'
+import React from 'react'
 
 const links = [
   {
-    rel: "shortcut icon",
-    href: "/NotionSyncLogoDark.png",
+    rel: 'shortcut icon',
+    href: '/NotionSyncLogoDark.png',
   },
   {
-    rel: "icon",
-    type: "image/png",
-    sizes: "32x32",
-    href: "/NotionSyncLogoDark.png",
+    rel: 'icon',
+    type: 'image/png',
+    sizes: '32x32',
+    href: '/NotionSyncLogoDark.png',
   },
   {
-    rel: "icon",
-    type: "image/png",
-    sizes: "16x16",
-    href: "/NotionSyncLogoDark.png",
+    rel: 'icon',
+    type: 'image/png',
+    sizes: '16x16',
+    href: '/NotionSyncLogoDark.png',
   },
   {
-    rel: "icon",
-    sizes: "180x180",
-    href: "/NotionSyncLogoDark.png",
+    rel: 'icon',
+    sizes: '180x180',
+    href: '/NotionSyncLogoDark.png',
   },
-];
+]
 
 class MyDocument extends Document {
   render() {
@@ -57,8 +57,8 @@ class MyDocument extends Document {
           <NextScript />
         </body>
       </Html>
-    );
+    )
   }
 }
 
-export default MyDocument;
+export default MyDocument

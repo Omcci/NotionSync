@@ -1,103 +1,103 @@
-import { useAppContext } from "@/context/AppContext";
-import { FolderSyncIcon } from "../../public/icon/FolderSyncIcon";
-import { GithubIcon } from "../../public/icon/GithubIcon";
-import { RepeatIcon } from "../../public/icon/RepeatIcon";
-import SelectComponent from "./SelectComponent";
-import { Button } from "./ui/button";
-import { Select } from "./ui/select";
-import { Toggle } from "./ui/toggle";
-import { useToast } from "./ui/use-toast";
-import { useEffect, useState } from "react";
-import { useConfigContext } from "@/context/ConfigContext";
+import { useAppContext } from '@/context/AppContext'
+import { FolderSyncIcon } from '../../public/icon/FolderSyncIcon'
+import { GithubIcon } from '../../public/icon/GithubIcon'
+import { RepeatIcon } from '../../public/icon/RepeatIcon'
+import SelectComponent from './SelectComponent'
+import { Button } from './ui/button'
+import { Select } from './ui/select'
+import { Toggle } from './ui/toggle'
+import { useToast } from './ui/use-toast'
+import { useEffect, useState } from 'react'
+import { useConfigContext } from '@/context/ConfigContext'
 // import { signIn, signOut, useSession } from "next-auth/react";
 //TODO : add session with github oauth
 //TODO : display user friendly message of sync status
 
 const HeaderV0 = () => {
-  const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext();
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const { updateFormValues } = useConfigContext();
+  const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext()
+  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
+  const { updateFormValues } = useConfigContext()
   // const { data: session } = useSession();
-  const username = process.env.NEXT_PUBLIC_USERNAME;
+  const username = process.env.NEXT_PUBLIC_USERNAME
 
   useEffect(() => {
-    if (username) fetchUserRepos(username);
-  }, [username]);
+    if (username) fetchUserRepos(username)
+  }, [username])
 
   const fetchUserRepos = async (username: string) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const url = `${apiUrl}/api/repos?username=${username}`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    const url = `${apiUrl}/api/repos?username=${username}`
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url)
       if (!response.ok) {
-        throw new Error(`Error fetching repositories: ${response.status}`);
+        throw new Error(`Error fetching repositories: ${response.status}`)
       }
-      const data = await response.json();
+      const data = await response.json()
       if (data.repos) {
-        setRepos(data.repos);
+        setRepos(data.repos)
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to fetch repositories.",
-          variant: "destructive",
-        });
+          title: 'Error',
+          description: data.error || 'Failed to fetch repositories.',
+          variant: 'destructive',
+        })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch repositories.",
-        variant: "destructive",
-      });
+        title: 'Error',
+        description: 'Failed to fetch repositories.',
+        variant: 'destructive',
+      })
     }
-  };
+  }
 
   const handleSync = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    setLoading(true);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    setLoading(true)
     try {
       const response = await fetch(`${apiUrl}/api/sync`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username }),
-      });
-      const data = await response.json();
+      })
+      const data = await response.json()
       if (response.ok) {
-        toast({ title: "Success", description: data.message });
+        toast({ title: 'Success', description: data.message })
       } else {
         toast({
-          title: "Error",
-          description: data.details || "Sync failed. Please try again later.",
-          variant: "destructive",
-        });
+          title: 'Error',
+          description: data.details || 'Sync failed. Please try again later.',
+          variant: 'destructive',
+        })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Sync failed. Please try again later.",
-        variant: "destructive",
-      });
+        title: 'Error',
+        description: 'Sync failed. Please try again later.',
+        variant: 'destructive',
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
   const handleRepoSelect = (repoId: string) => {
-    const repo = repos.find((r) => r.id === repoId);
+    const repo = repos.find((r) => r.id === repoId)
     if (repo) {
-      setSelectedRepo(repo);
-      updateFormValues(repo.name, repo.org);
+      setSelectedRepo(repo)
+      updateFormValues(repo.name, repo.org)
     } else {
-      setSelectedRepo(null);
+      setSelectedRepo(null)
     }
-  };
+  }
 
   const repoOptions = repos.map((repo) => ({
     value: repo.id,
     label: repo.name,
-  }));
+  }))
   return (
     <header className="py-4 px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -110,7 +110,7 @@ const HeaderV0 = () => {
         <SelectComponent
           placeholder="Select a repository"
           options={repoOptions}
-          value={selectedRepo ? selectedRepo.id : ""}
+          value={selectedRepo ? selectedRepo.id : ''}
           onChange={(id) => handleRepoSelect(id)}
         />
         <Button
@@ -119,15 +119,15 @@ const HeaderV0 = () => {
           disabled={!selectedRepo || loading}
         >
           <FolderSyncIcon className="w-5 h-5 mr-2" />
-          {loading ? "Syncing..." : "Start Sync"}
+          {loading ? 'Syncing...' : 'Start Sync'}
         </Button>
         <Toggle aria-label="Automatic Sync">
-          {" "}
+          {' '}
           {/* TODO : add automatic sync //  */}
           <RepeatIcon className="w-5 h-5" />
         </Toggle>
       </div>
     </header>
-  );
-};
-export default HeaderV0;
+  )
+}
+export default HeaderV0

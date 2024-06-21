@@ -1,24 +1,24 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode } from 'react'
 
 interface Repo {
-  id: string;
-  name: string;
-  org: string;
+  id: string
+  name: string
+  org: string
 }
 
 interface SyncStatus {
-  lastSyncDate: string | null;
-  errorBranch: string | null;
-  statusMessage: string | null;
+  lastSyncDate: string | null
+  errorBranch: string | null
+  statusMessage: string | null
 }
 
 interface AppContextType {
-  repos: Repo[];
-  setRepos: (repos: Repo[]) => void;
-  selectedRepo: Repo | null;
-  setSelectedRepo: (repo: Repo | null) => void;
-  syncStatus: SyncStatus | null;
-  setSyncStatus: (status: SyncStatus | null) => void;
+  repos: Repo[]
+  setRepos: (repos: Repo[]) => void
+  selectedRepo: Repo | null
+  setSelectedRepo: (repo: Repo | null) => void
+  syncStatus: SyncStatus | null
+  setSyncStatus: (status: SyncStatus | null) => void
 }
 
 const initialState: AppContextType = {
@@ -28,18 +28,18 @@ const initialState: AppContextType = {
   setSelectedRepo: () => {},
   syncStatus: null,
   setSyncStatus: () => {},
-};
+}
 
-const AppContext = createContext<AppContextType>(initialState);
+const AppContext = createContext<AppContextType>(initialState)
 
 interface AppProviderProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export const AppProvider = ({ children }: AppProviderProps) => {
-  const [repos, setRepos] = useState<Repo[]>([]);
-  const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [repos, setRepos] = useState<Repo[]>([])
+  const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null)
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
 
   const value = {
     repos,
@@ -48,8 +48,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     setSelectedRepo,
     syncStatus,
     setSyncStatus,
-  };
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
+  }
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+}
 
-export const useAppContext = () => useContext(AppContext);
+export const useAppContext = () => useContext(AppContext)

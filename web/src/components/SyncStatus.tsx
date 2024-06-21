@@ -1,46 +1,46 @@
-import { useAppContext } from "@/context/AppContext";
-import { CircleAlertIcon } from "../../public/icon/CircleAlertIcon";
-import { useEffect } from "react";
-import { format } from "date-fns";
+import { useAppContext } from '@/context/AppContext'
+import { CircleAlertIcon } from '../../public/icon/CircleAlertIcon'
+import { useEffect } from 'react'
+import { format } from 'date-fns'
 
 const SyncStatus = () => {
-  const { syncStatus, setSyncStatus } = useAppContext();
+  const { syncStatus, setSyncStatus } = useAppContext()
   const fetchSyncStatus = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const url = `${apiUrl}/api/syncStatus`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    const url = `${apiUrl}/api/syncStatus`
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url)
       if (!response.ok) {
-        throw new Error(`Error fetching sync status: ${response.status}`);
+        throw new Error(`Error fetching sync status: ${response.status}`)
       }
-      const data = await response.json();
-      setSyncStatus(data);
+      const data = await response.json()
+      setSyncStatus(data)
     } catch (error) {
-      console.error("Failed to fetch sync status:", error);
+      console.error('Failed to fetch sync status:', error)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchSyncStatus();
+    fetchSyncStatus()
     const interval = setInterval(() => {
-      fetchSyncStatus();
-    }, 60000);
+      fetchSyncStatus()
+    }, 60000)
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(interval)
+  }, [])
 
   const getEmojiTime = (date: Date) => {
-    const hours = date.getHours();
-    return hours >= 6 && hours < 18 ? "🌞" : "🌜";
-  };
+    const hours = date.getHours()
+    return hours >= 6 && hours < 18 ? '🌞' : '🌜'
+  }
 
   const formattedDate = syncStatus
     ? `${format(
         new Date(syncStatus.lastSyncDate!),
-        "MMMM do, yyyy h:mm:ss a"
+        'MMMM do, yyyy h:mm:ss a',
       )} ${getEmojiTime(new Date(syncStatus.lastSyncDate!))}`
-    : "Loading ...";
+    : 'Loading ...'
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
@@ -48,7 +48,7 @@ const SyncStatus = () => {
         <div>
           <h2 className="text-lg font-bold">Last Sync Status</h2>
           <p className="text-gray-500 dark:text-gray-400">
-            Last successful sync: {""}
+            Last successful sync: {''}
             <span className="font-bold">{formattedDate}</span>
           </p>
         </div>
@@ -62,7 +62,7 @@ const SyncStatus = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SyncStatus;
+export default SyncStatus

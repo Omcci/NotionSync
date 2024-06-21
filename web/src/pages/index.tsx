@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 const Home = () => {
   return (
@@ -7,7 +7,7 @@ const Home = () => {
         <p className="mb-6 text-4xl font-bold">Welcome to NotionSync</p>
         <div className="flex justify-between items-center border-b border-gray-300 py-4">
           <span>
-            Get started by going to{" "}
+            Get started by going to{' '}
             <code>
               <Link href="/dashboard">dashboard</Link>
             </code>
@@ -26,7 +26,7 @@ const Home = () => {
         </a>
       </section>
     </main>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

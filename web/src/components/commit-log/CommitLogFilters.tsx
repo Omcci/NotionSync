@@ -5,15 +5,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Input } from "../ui/input";
-import { FilterIcon } from "../../../public/icon/FilterIcon";
-import { Button } from "../ui/button";
-import { Filter } from "./CommitLog";
+} from '../ui/dropdown-menu'
+import { Input } from '../ui/input'
+import { FilterIcon } from '../../../public/icon/FilterIcon'
+import { Button } from '../ui/button'
+import { Filter } from './CommitLog'
 
 type CommitLogFiltersProps = {
-  filters: Filter[];
-};
+  filters: Filter[]
+}
 
 const CommitLogFilters = ({ filters }: CommitLogFiltersProps) => {
   return (
@@ -42,7 +42,7 @@ const CommitLogFilters = ({ filters }: CommitLogFiltersProps) => {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  );
-};
+  )
+}
 
-export default CommitLogFilters;
+export default CommitLogFilters

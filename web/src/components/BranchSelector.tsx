@@ -1,106 +1,106 @@
-import { use, useEffect, useState } from "react";
-import { EyeIcon } from "../../public/icon/EyeIcon";
-import { GitBranchIcon } from "../../public/icon/GitBranchIcon";
-import { GithubIcon } from "../../public/icon/GithubIcon";
-import { NotebookIcon } from "../../public/icon/NotebookIcon";
-import SelectComponent from "./SelectComponent";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
-import { Label } from "./ui/label";
-import { useAppContext } from "@/context/AppContext";
+import { use, useEffect, useState } from 'react'
+import { EyeIcon } from '../../public/icon/EyeIcon'
+import { GitBranchIcon } from '../../public/icon/GitBranchIcon'
+import { GithubIcon } from '../../public/icon/GithubIcon'
+import { NotebookIcon } from '../../public/icon/NotebookIcon'
+import SelectComponent from './SelectComponent'
+import { Badge } from './ui/badge'
+import { Button } from './ui/button'
+import { Checkbox } from './ui/checkbox'
+import { Label } from './ui/label'
+import { useAppContext } from '@/context/AppContext'
 
 interface Branch {
-  name: string;
-  label?: string;
-  status: string;
-  actions: Array<{ name: string; icon: JSX.Element; url: string }>;
+  name: string
+  label?: string
+  status: string
+  actions: Array<{ name: string; icon: JSX.Element; url: string }>
 }
 
 const BranchSelector = () => {
-  const { selectedRepo } = useAppContext();
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [selectedBranch, setSelectedBranch] = useState("");
-  const [trackedBranch, setTrackedBranch] = useState<Set<string>>(new Set());
+  const { selectedRepo } = useAppContext()
+  const [branches, setBranches] = useState<Branch[]>([])
+  const [selectedBranch, setSelectedBranch] = useState('')
+  const [trackedBranch, setTrackedBranch] = useState<Set<string>>(new Set())
 
   const handleTrackChange = (branchName: string, isChecked: boolean) => {
     setTrackedBranch((prevTrackedBranch) => {
-      const updatedTrackedBranch = new Set(prevTrackedBranch);
+      const updatedTrackedBranch = new Set(prevTrackedBranch)
 
       if (isChecked) {
-        updatedTrackedBranch.add(branchName);
+        updatedTrackedBranch.add(branchName)
       } else {
-        updatedTrackedBranch.delete(branchName);
+        updatedTrackedBranch.delete(branchName)
       }
       setBranches((prevBranches) =>
         prevBranches.map((branch) =>
           branch.name === branchName
-            ? { ...branch, status: isChecked ? "Tracked" : "Untracked" }
-            : branch
-        )
-      );
-      return updatedTrackedBranch;
-    });
-  };
+            ? { ...branch, status: isChecked ? 'Tracked' : 'Untracked' }
+            : branch,
+        ),
+      )
+      return updatedTrackedBranch
+    })
+  }
 
   // TODO : Add branches state to context
   useEffect(() => {
     if (selectedRepo) {
-      fetchBranches(selectedRepo.name);
+      fetchBranches(selectedRepo.name)
     }
-  }, [selectedRepo]);
+  }, [selectedRepo])
 
   const fetchBranches = async (repoName: string) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
     const url = `${apiUrl}/api/branches?repoName=${encodeURIComponent(
-      repoName
-    )}`;
+      repoName,
+    )}`
 
     try {
-      const response = await fetch(url);
-      const data = await response.json();
+      const response = await fetch(url)
+      const data = await response.json()
       if (!response.ok) {
-        throw new Error(`Error fetching branches: ${response.status}`);
+        throw new Error(`Error fetching branches: ${response.status}`)
       }
       // console.log("Fetched branches:", data.branches || []);
       const detailedBranches = (data.branches || []).map(
         (branchName: string) => {
           return {
             name: branchName,
-            status: trackedBranch.has(branchName) ? "Tracked" : "Untracked",
+            status: trackedBranch.has(branchName) ? 'Tracked' : 'Untracked',
             actions: [
               {
-                name: "View",
+                name: 'View',
                 icon: <EyeIcon />,
                 url: `https://github.com/${selectedRepo!.org}/${
                   selectedRepo!.name
                 }/tree/${branchName}`,
               },
               {
-                name: "Github",
+                name: 'Github',
                 icon: <GithubIcon />,
                 url: `https://github.com/${selectedRepo!.org}/${
                   selectedRepo!.name
                 }`,
               },
             ],
-          };
-        }
-      );
+          }
+        },
+      )
 
-      setBranches(detailedBranches);
+      setBranches(detailedBranches)
     } catch (error: any) {
-      console.error("Failed to fetch branches:", error.message);
+      console.error('Failed to fetch branches:', error.message)
     }
-  };
+  }
   const handleBranchSelect = (branchName: any) => {
-    setSelectedBranch(branchName);
-  };
+    setSelectedBranch(branchName)
+  }
 
   const branchOptions = branches.map((branch) => ({
     value: branch.name,
     label: branch.label || branch.name,
-  }));
+  }))
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
@@ -123,8 +123,8 @@ const BranchSelector = () => {
                 onChange={(e) => {
                   handleTrackChange(
                     selectedBranch,
-                    (e.target as HTMLInputElement).checked
-                  );
+                    (e.target as HTMLInputElement).checked,
+                  )
                 }}
               />
               <Label
@@ -157,9 +157,9 @@ const BranchSelector = () => {
                 <td className="px-4 py-3">
                   <Badge
                     className={`bg-${
-                      branch.status === "Tracked"
-                        ? "green-100 text-green-500 dark:bg-green-900 dark:text-green-400"
-                        : "red-100 text-red-500 dark:bg-red-900 dark:text-red-400"
+                      branch.status === 'Tracked'
+                        ? 'green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                        : 'red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
                     }`}
                     variant="outline"
                   >
@@ -172,7 +172,7 @@ const BranchSelector = () => {
                       key={actionIdx}
                       size="icon"
                       variant="ghost"
-                      onClick={() => window.open(action.url, "_blank")}
+                      onClick={() => window.open(action.url, '_blank')}
                     >
                       {action.icon}
                     </Button>
@@ -184,7 +184,7 @@ const BranchSelector = () => {
         </table>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default BranchSelector;
+export default BranchSelector
