@@ -1,0 +1,12 @@
+{
+  "name": "notionsync",
+  "version": "1.0.0",
+  "description": "<table>\r   <tr>\r     <td><img src=\"https://github.com/Omcci/NotionSync/assets/119880787/ed46dda5-2e5d-4ae1-ba81-0d48a14ba369\" alt=\"NotionSyncLogoWhite\" width=\"40\" /></td>\r     <td><h1>NotionSync</h1></td>\r   </tr>\r </table>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
