@@ -38,7 +38,7 @@ const SyncStatus = () => {
   const formattedDate = syncStatus
     ? `${format(
         new Date(syncStatus.lastSyncDate!),
-        "dd-MM-yyyy HH:mm:ss"
+        "MMMM do, yyyy h:mm:ss a"
       )} ${getEmojiTime(new Date(syncStatus.lastSyncDate!))}`
     : "Loading ...";
 
