@@ -8,11 +8,20 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 
+const githubTokenPattern = /^ghp_[A-Za-z0-9]{36}$/;
+const notionTokenPattern = /^secret_[A-Za-z0-9]{41}$/;
+
 const configSchema = z.object({
   repository: z.string().min(1, "Repository is required"),
   organization: z.string().min(1, "Organization is required"),
-  githubToken: z.string().min(1, "GitHub Token is required"),
-  notionToken: z.string().min(1, "Notion Token is required"),
+  githubToken: z
+    .string()
+    .regex(githubTokenPattern, "Invalid Github Token format")
+    .min(1, "GitHub Token is required"),
+  notionToken: z
+    .string()
+    .regex(notionTokenPattern, "Invalid Notion Token format")
+    .min(1, "Notion Token is required"),
 });
 
 type ConfigSchema = z.infer<typeof configSchema>;
@@ -41,7 +50,7 @@ const ConfigSettingsForm = () => {
   useEffect(() => {
     reset(config);
   }, [config, reset]);
-  console.log(config);
+  // console.log(config);
 
   return (
     <FormProvider {...methods}>
