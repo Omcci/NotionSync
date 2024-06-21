@@ -6,6 +6,12 @@ import React, {
   ReactNode,
 } from "react";
 
+interface Repo {
+  id: string;
+  name: string;
+  org: string;
+}
+
 interface ConfigSettings {
   repository: string;
   organization: string;
@@ -18,6 +24,7 @@ interface ConfigContextType {
   setConfig: (config: ConfigSettings) => void;
   fetchConfig: () => void;
   updateFormValues: (repo: string, org: string) => void;
+  fetchUserRepos: (username: string) => Promise<Repo[]>;
 }
 
 const initialConfig: ConfigSettings = {
@@ -32,6 +39,7 @@ const ConfigContext = createContext<ConfigContextType>({
   setConfig: () => {},
   fetchConfig: () => {},
   updateFormValues: () => {},
+  fetchUserRepos: async () => [],
 });
 
 export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
@@ -44,6 +52,12 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
     const data = await response.json();
     setConfig(data);
   };
+
+  const fetchUserRepos = async (username: string) => {
+    const response = await fetch(`/api/repos?username=${username}`);
+    const data = await response.json();
+    return data.repos || [];
+  }
 
   useEffect(() => {
     fetchConfig();
@@ -59,7 +73,7 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <ConfigContext.Provider
-      value={{ config, setConfig, fetchConfig, updateFormValues }}
+      value={{ config, setConfig, fetchConfig, updateFormValues, fetchUserRepos }}
     >
       {children}
     </ConfigContext.Provider>
