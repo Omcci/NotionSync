@@ -62,7 +62,7 @@ const BranchSelector = () => {
       if (!response.ok) {
         throw new Error(`Error fetching branches: ${response.status}`);
       }
-      console.log("Fetched branches:", data.branches || []);
+      // console.log("Fetched branches:", data.branches || []);
       const detailedBranches = (data.branches || []).map(
         (branchName: string) => {
           return {
