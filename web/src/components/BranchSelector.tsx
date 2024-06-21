@@ -93,7 +93,9 @@ const BranchSelector = () => {
       console.error("Failed to fetch branches:", error.message);
     }
   };
-  const handleBranchSelect = (branchName: any) => {};
+  const handleBranchSelect = (branchName: any) => {
+    setSelectedBranch(branchName);
+  };
 
   const branchOptions = branches.map((branch) => ({
     value: branch.name,
