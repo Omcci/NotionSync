@@ -123,8 +123,8 @@ const CommitLog = () => {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <Avatar>
-                      <AvatarImage src=" https://github.com/shadcn.png" />
-                      <AvatarFallback>CN</AvatarFallback>
+                      <AvatarImage src={commit.avatar_url} />
+                      <AvatarFallback>{commit.author[0]}</AvatarFallback>
                     </Avatar>
                     <span>{commit.author}</span>
                   </div>
