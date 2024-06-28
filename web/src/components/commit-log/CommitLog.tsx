@@ -16,6 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useAppContext } from '@/context/AppContext'
 
 export type Filter = {
   name: string
@@ -41,11 +42,16 @@ const CommitLog = () => {
   const [commits, setCommits] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const { selectedRepo } = useAppContext()
+  console.log('Selected Repo:', selectedRepo)
   useEffect(() => {
+    if (!selectedRepo) return 
+
     const fetchCommits = async () => {
       try {
-        const orgName = process.env.NEXT_PUBLIC_ORG_NAME
-        const repoName = process.env.NEXT_PUBLIC_REPO_NAME
+        const orgName = selectedRepo?.org
+        const repoName = selectedRepo?.name
         console.log(`Repo Owner: ${orgName}`)
         console.log(`Repo Name: ${repoName}`)
         const apiUrl = 'http://localhost:3000'
@@ -64,7 +70,7 @@ const CommitLog = () => {
     }
 
     fetchCommits()
-  }, [])
+  }, [selectedRepo])
 
   const theader = ['Commit', 'Branch', 'Author', 'Date', 'Status', 'Actions']
   const lines = [
