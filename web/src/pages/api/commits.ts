@@ -50,14 +50,12 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     // const commits = await response.json()
     const formattedCommits = commits.map((commit: any) => ({
       commit: commit.commit.message,
-      branch: commit.commit.tree.sha,
+      branch: commit.sha,
       author: commit.commit.author.name,
       date: commit.commit.author.date,
       status: '',
       actions: ['View', 'Github', 'Notebook'],
-      avatar_url: commit.author
-        ? commit.author.avatar_url
-        : 'https://github.com/identicons/default.png',
+      avatar_url: commit.committer ? commit.committer.avatar_url : 'https://github.com/identicons/default.png', // Include the avatar URL
     }))
 
     res.status(200).json(formattedCommits)
