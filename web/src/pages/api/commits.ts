@@ -1,12 +1,18 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const { repoName, orgName, token } = req.query as {
+  const { repoName, orgName } = req.query as {
     repoName: string
     orgName: string
-    token: string
   }
+
+  console.log(`Fetching commits for ${orgName}/${repoName}`)
+
   const url = `https://api.github.com/repos/${orgName}/${repoName}/commits`
+  const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN
+
+  console.log(`GitHub API URL: ${url}`)
+  console.log(`GitHub Token: ${token ? 'Present' : 'Not Present'}`)
 
   try {
     const response = await fetch(url, {
@@ -15,11 +21,33 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       },
     })
 
+    console.log(`Status: ${response.status}`)
+    console.log(`Headers: ${JSON.stringify(response.headers)}`)
+
+    // Read the raw response text
+    const rawResponse = await response.text()
+
     if (!response.ok) {
       throw new Error(`Error fetching commits: ${response.status}`)
     }
 
-    const commits = await response.json()
+    if (!response.ok) {
+      throw new Error(
+        `Error fetching commits: ${response.status} - ${rawResponse}`,
+      )
+    }
+
+    // Attempt to parse the response as JSON
+    let commits
+    try {
+      commits = JSON.parse(rawResponse)
+    } catch (parseError) {
+      throw new Error(`Failed to parse JSON response: ${parseError.message}`)
+    }
+
+    console.log(`Commits: ${JSON.stringify(commits)}`)
+
+    // const commits = await response.json()
     const formattedCommits = commits.map((commit: any) => ({
       commit: commit.commit.message,
       branch: commit.commit.tree.sha,
@@ -27,6 +55,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       date: commit.commit.author.date,
       status: '',
       actions: ['View', 'Github', 'Notebook'],
+      avatar_url: commit.author
+        ? commit.author.avatar_url
+        : 'https://github.com/identicons/default.png',
     }))
 
     res.status(200).json(formattedCommits)
