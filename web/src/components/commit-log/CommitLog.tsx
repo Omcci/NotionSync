@@ -10,6 +10,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import CommitLogFilters from './CommitLogFilters'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export type Filter = {
   name: string
@@ -111,7 +117,20 @@ const CommitLog = () => {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <GitCommitVerticalIcon className="w-5 h-5" />
-                    <span className="font-medium">{commit.commit}</span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <span className="font-medium truncate max-w-xs">
+                            {commit.commit.length > 20
+                              ? `${commit.commit.substring(0, 20)}...`
+                              : commit.commit}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent className="tooltip-multiline">
+                          <span>{commit.commit}</span>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </td>
                 <td className="px-4 py-3">
