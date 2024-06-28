@@ -70,7 +70,14 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.tooltip-multiline {
+  white-space: pre-wrap;
+  max-width: 200px;
+  word-wrap: break-word;
 }
