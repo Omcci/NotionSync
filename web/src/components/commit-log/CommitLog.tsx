@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { CalendarDaysIcon } from '../../../public/icon/CalendarDaysIcon'
 import { EyeIcon } from '../../../public/icon/EyeIcon'
 import { GitBranchIcon } from '../../../public/icon/GitBranchIcon'
@@ -31,6 +32,34 @@ const filters: Filter[] = [
 ]
 
 const CommitLog = () => {
+  const [commits, setCommits] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    const fetchCommits = async () => {
+      try {
+        const orgName = process.env.NEXT_PUBLIC_ORG_NAME
+        const repoName = process.env.NEXT_PUBLIC_REPO_NAME
+        console.log(`Repo Owner: ${orgName}`)
+        console.log(`Repo Name: ${repoName}`)
+        const apiUrl = 'http://localhost:3000'
+        const response = await fetch(
+          `${apiUrl}/api/commits?orgName=${orgName}&repoName=${repoName}`,
+        )
+        console.log('response', response)
+        const data = await response.json()
+        console.log('DATATA', data)
+        setCommits(data)
+        setLoading(false)
+      } catch (error: any) {
+        setError(error.message)
+        setLoading(false)
+      }
+    }
+
+    fetchCommits()
+  }, [])
+
   const theader = ['Commit', 'Branch', 'Author', 'Date', 'Status', 'Actions']
   const lines = [
     {
@@ -51,6 +80,14 @@ const CommitLog = () => {
     },
   ]
 
+  if (loading) {
+    return <p>Loading...</p>
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>
+  }
+
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
@@ -69,18 +106,18 @@ const CommitLog = () => {
             </tr>
           </thead>
           <tbody>
-            {lines.map((line) => (
-              <tr key={line.commit} className="border-b dark:border-gray-700">
+            {commits.map((commit) => (
+              <tr key={commit.sha} className="border-b dark:border-gray-700">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <GitCommitVerticalIcon className="w-5 h-5" />
-                    <span className="font-medium">{line.commit}</span>
+                    <span className="font-medium">{commit.commit}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <GitBranchIcon className="w-5 h-5" />
-                    <span>{line.branch}</span>
+                    <span>{commit.branch}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3">
@@ -89,23 +126,25 @@ const CommitLog = () => {
                       <AvatarImage src=" https://github.com/shadcn.png" />
                       <AvatarFallback>CN</AvatarFallback>
                     </Avatar>
-                    <span>{line.author}</span>
+                    <span>{commit.author}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3">{line.date}</td>
                 <td className="px-4 py-3">
-                  {line.status && (
+                  {new Date(commit.date).toLocaleString()}
+                </td>
+                <td className="px-4 py-3">
+                  {commit.status && (
                     <Badge
                       className="bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400"
                       variant="outline"
                     >
-                      {line.status}
+                      {commit.status}
                     </Badge>
                   )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    {line.actions.map((action) => {
+                    {commit.actions.map((action) => {
                       return (
                         <Button key={action} size="icon" variant="ghost">
                           {action === 'View' && <EyeIcon className="w-5 h-5" />}
