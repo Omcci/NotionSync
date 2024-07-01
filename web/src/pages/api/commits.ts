@@ -42,7 +42,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       commits = JSON.parse(rawResponse)
     } catch (parseError) {
-      throw new Error(`Failed to parse JSON response: ${parseError.message}`)
+      throw new Error(`Failed to parse JSON response: ${(parseError as Error).message}`)
     }
 
     console.log(`Commits: ${JSON.stringify(commits)}`)
@@ -50,7 +50,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     // const commits = await response.json()
     const formattedCommits = commits.map((commit: any) => ({
       commit: commit.commit.message,
-      branch: commit.sha,
+      branch: commit.commit.tree.sha,
       author: commit.commit.author.name,
       date: commit.commit.author.date,
       status: '',
