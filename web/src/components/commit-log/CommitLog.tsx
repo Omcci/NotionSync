@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useAppContext } from '@/context/AppContext'
-import { Commit } from '../../../types/types'
+import { Action, Commit } from '../../../types/types'
 
 export type Filter = {
   name: string
@@ -170,17 +170,15 @@ const CommitLog = () => {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    {commit.actions.map((action: string) => {
+                  {commit.actions.map((action:any) => {
                       return (
-                        <Button key={action} size="icon" variant="ghost">
-                          {action === 'View' && <EyeIcon className="w-5 h-5" />}
-                          {action === 'Github' && (
-                            <GithubIcon className="w-5 h-5" />
-                          )}
-                          {action === 'Notebook' && (
-                            <NotebookIcon className="w-5 h-5" />
-                          )}
-                        </Button>
+                        <a key={action.name} href={action.url} target="_blank" rel="noopener noreferrer">
+                          <Button size="icon" variant="ghost">
+                            {action.name === 'View' && <EyeIcon className="w-5 h-5" />}
+                            {action.name === 'Github' && <GithubIcon className="w-5 h-5" />}
+                            {action.name === 'Notebook' && <NotebookIcon className="w-5 h-5" />}
+                          </Button>
+                        </a>
                       )
                     })}
                   </div>
