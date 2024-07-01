@@ -17,4 +17,8 @@ export type Commit = {
     orgName: string;
   };
 
+  export type Action = {
+    name: string;
+    url: string;
+  };
   
