@@ -73,7 +73,7 @@ const CommitLog = () => {
     fetchCommits()
   }, [selectedRepo])
 
-  const theader = ['Commit', 'Branch', 'Author', 'Date', 'Status', 'Actions']
+  const theader = ['Commit', 'Sha', 'Author', 'Date', 'Status', 'Actions']
   const lines = [
     {
       commit: 'Implement new feature',
