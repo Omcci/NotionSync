@@ -62,7 +62,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         status: status,
         actions: [
           { name: 'View', url: `${url}/${commit.sha}` },
-          // { name: 'Github', url: commit.html_url },
+          { name: 'Github', url: commit.html_url },
           // { name: 'Notebook', url: `http://yourapp.com/notebook/${commit.sha}` },
         ] as Action[],
         avatar_url: commit.committer
