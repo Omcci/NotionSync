@@ -23,6 +23,16 @@ export type Filter = {
   icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>
 }
 
+export type Commit = {
+  commit: string
+  branch: string
+  author: string
+  date: string
+  status: string
+  actions: string[]
+  avatar_url: string
+}
+
 const filters: Filter[] = [
   {
     name: 'Branch',
@@ -39,14 +49,14 @@ const filters: Filter[] = [
 ]
 
 const CommitLog = () => {
-  const [commits, setCommits] = useState<any[]>([])
+  const [commits, setCommits] = useState<Commit[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const { selectedRepo } = useAppContext()
   console.log('Selected Repo:', selectedRepo)
   useEffect(() => {
-    if (!selectedRepo) return 
+    if (!selectedRepo) return
 
     const fetchCommits = async () => {
       try {
@@ -119,7 +129,7 @@ const CommitLog = () => {
           </thead>
           <tbody>
             {commits.map((commit) => (
-              <tr key={commit.sha} className="border-b dark:border-gray-700">
+              <tr key={commit.branch} className="border-b dark:border-gray-700">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <GitCommitVerticalIcon className="w-5 h-5" />
@@ -169,7 +179,7 @@ const CommitLog = () => {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    {commit.actions.map((action) => {
+                    {commit.actions.map((action: string) => {
                       return (
                         <Button key={action} size="icon" variant="ghost">
                           {action === 'View' && <EyeIcon className="w-5 h-5" />}
