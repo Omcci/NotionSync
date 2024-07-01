@@ -52,7 +52,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     // const commits = await response.json()
     const formattedCommits = commits.map((commit: any) => {
-      const status = commit.commit.verification && commit.commit.verification.verified ? 'Verified' : 'Unverified'
+      const status =
+        commit.commit.verification && commit.commit.verification.verified
+          ? 'Verified'
+          : 'Unverified'
 
       return {
         commit: commit.commit.message,

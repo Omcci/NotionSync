@@ -170,13 +170,24 @@ const CommitLog = () => {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                  {commit.actions.map((action:any) => {
+                    {commit.actions.map((action: any) => {
                       return (
-                        <a key={action.name} href={action.url} target="_blank" rel="noopener noreferrer">
+                        <a
+                          key={action.name}
+                          href={action.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <Button size="icon" variant="ghost">
-                            {action.name === 'View' && <EyeIcon className="w-5 h-5" />}
-                            {action.name === 'Github' && <GithubIcon className="w-5 h-5" />}
-                            {action.name === 'Notebook' && <NotebookIcon className="w-5 h-5" />}
+                            {action.name === 'View' && (
+                              <EyeIcon className="w-5 h-5" />
+                            )}
+                            {action.name === 'Github' && (
+                              <GithubIcon className="w-5 h-5" />
+                            )}
+                            {action.name === 'Notebook' && (
+                              <NotebookIcon className="w-5 h-5" />
+                            )}
                           </Button>
                         </a>
                       )
