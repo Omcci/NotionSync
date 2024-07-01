@@ -17,20 +17,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useAppContext } from '@/context/AppContext'
+import { Commit } from '../../../types/types'
 
 export type Filter = {
   name: string
   icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>
-}
-
-export type Commit = {
-  commit: string
-  branch: string
-  author: string
-  date: string
-  status: string
-  actions: string[]
-  avatar_url: string
 }
 
 const filters: Filter[] = [
