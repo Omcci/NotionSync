@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
+import { Action } from '../../../types/types'
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { repoName, orgName } = req.query as {
@@ -59,7 +60,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         author: commit.commit.author.name,
         date: commit.commit.author.date,
         status: status,
-        actions: ['View', 'Github', 'Notebook'],
+        actions: [
+          { name: 'View', url: `${url}/${commit.sha}` },
+          // { name: 'Github', url: commit.html_url },
+          // { name: 'Notebook', url: `http://yourapp.com/notebook/${commit.sha}` },
+        ] as Action[],
         avatar_url: commit.committer
           ? commit.committer.avatar_url
           : 'https://github.com/identicons/default.png', // Include the avatar URL
