@@ -42,21 +42,29 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       commits = JSON.parse(rawResponse)
     } catch (parseError) {
-      throw new Error(`Failed to parse JSON response: ${(parseError as Error).message}`)
+      throw new Error(
+        `Failed to parse JSON response: ${(parseError as Error).message}`,
+      )
     }
 
     console.log(`Commits: ${JSON.stringify(commits)}`)
 
     // const commits = await response.json()
-    const formattedCommits = commits.map((commit: any) => ({
-      commit: commit.commit.message,
-      branch: commit.commit.tree.sha,
-      author: commit.commit.author.name,
-      date: commit.commit.author.date,
-      status: '',
-      actions: ['View', 'Github', 'Notebook'],
-      avatar_url: commit.committer ? commit.committer.avatar_url : 'https://github.com/identicons/default.png', // Include the avatar URL
-    }))
+    const formattedCommits = commits.map((commit: any) => {
+      const status = commit.commit.verification && commit.commit.verification.verified ? 'Verified' : 'Unverified'
+
+      return {
+        commit: commit.commit.message,
+        branch: commit.commit.tree.sha,
+        author: commit.commit.author.name,
+        date: commit.commit.author.date,
+        status: status,
+        actions: ['View', 'Github', 'Notebook'],
+        avatar_url: commit.committer
+          ? commit.committer.avatar_url
+          : 'https://github.com/identicons/default.png', // Include the avatar URL
+      }
+    })
 
     res.status(200).json(formattedCommits)
   } catch (error: any) {
