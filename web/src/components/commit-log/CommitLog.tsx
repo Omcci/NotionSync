@@ -43,6 +43,7 @@ const CommitLog = () => {
   const [commits, setCommits] = useState<Commit[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchInput, setSearchInput] = useState<string>('');
 
   const { selectedRepo } = useAppContext()
   console.log('Selected Repo:', selectedRepo)
@@ -105,7 +106,7 @@ const CommitLog = () => {
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold">Commit Log</h2>
-        <CommitLogFilters filters={filters} />
+        <CommitLogFilters filters={filters} searchInput={searchInput} setSearchInput={setSearchInput} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full table-auto">

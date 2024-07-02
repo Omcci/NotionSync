@@ -12,16 +12,20 @@ import { Button } from '../ui/button'
 import { Filter } from './CommitLog'
 
 type CommitLogFiltersProps = {
-  filters: Filter[]
+  filters: Filter[],
+  searchInput: string,
+  setSearchInput: (value: string) => void,
 }
 
-const CommitLogFilters = ({ filters }: CommitLogFiltersProps) => {
+const CommitLogFilters = ({ filters, searchInput, setSearchInput }: CommitLogFiltersProps) => {
   return (
     <div className="flex items-center gap-4">
       <Input
         className="bg-gray-100 dark:bg-gray-800 rounded-md px-3 py-2 text-sm"
         placeholder="Search commits..."
         type="search"
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
