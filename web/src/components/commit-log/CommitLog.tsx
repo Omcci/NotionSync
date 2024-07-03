@@ -18,6 +18,7 @@ import {
 import { useAppContext } from '@/context/AppContext'
 import { Action, Commit } from '../../../types/types'
 import Link from 'next/link'
+import ErrorMessage from '../ErrorMessage'
 
 export type Filter = {
   name: string
@@ -175,12 +176,20 @@ const CommitLog = () => {
                 </td>
                 <td className="px-4 py-3">
                   {commit.status && (
-                    <Badge
-                      className="bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400"
-                      variant="outline"
-                    >
-                      {commit.status}
-                    </Badge>
+                    <div>
+                      <Badge
+                        className="bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400"
+                        variant="outline"
+                      >
+                        {commit.status}
+                      </Badge>
+                      <Badge
+                        className={`ml-2 ${commit.pullRequestStatus === 'Open PR' ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-900 dark:text-gray-400'}`}
+                        variant="outline"
+                      >
+                        {commit.pullRequestStatus}
+                      </Badge>
+                    </div>
                   )}
                 </td>
                 <td className="px-4 py-3">
