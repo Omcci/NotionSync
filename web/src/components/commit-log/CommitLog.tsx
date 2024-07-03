@@ -99,7 +99,14 @@ const CommitLog = () => {
   }
 
   if (error) {
-    return <p>Error: {error}</p>
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Commit Log</h2>
+        </div>
+        <ErrorMessage message={error} />
+      </div>
+    )
   }
 
   return (
