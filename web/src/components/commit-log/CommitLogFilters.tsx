@@ -12,12 +12,16 @@ import { Button } from '../ui/button'
 import { Filter } from './CommitLog'
 
 type CommitLogFiltersProps = {
-  filters: Filter[],
-  searchInput: string,
-  setSearchInput: (value: string) => void,
+  filters: Filter[]
+  searchInput: string
+  setSearchInput: (value: string) => void
 }
 
-const CommitLogFilters = ({ filters, searchInput, setSearchInput }: CommitLogFiltersProps) => {
+const CommitLogFilters = ({
+  filters,
+  searchInput,
+  setSearchInput,
+}: CommitLogFiltersProps) => {
   return (
     <div className="flex items-center gap-4">
       <Input
