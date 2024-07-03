@@ -4,7 +4,6 @@ import { EyeIcon } from '../../../public/icon/EyeIcon'
 import { GitBranchIcon } from '../../../public/icon/GitBranchIcon'
 import { GitCommitVerticalIcon } from '../../../public/icon/GitCommitVerticalIcon'
 import { GithubIcon } from '../../../public/icon/GithubIcon'
-import { NotebookIcon } from '../../../public/icon/NotebookIcon'
 import { UserIcon } from '../../../public/icon/UserIcon'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Badge } from '../ui/badge'
@@ -88,9 +87,16 @@ const CommitLog = () => {
 
   const theader = ['Commit', 'Sha', 'Author', 'Date', 'Status', 'Actions']
 
-  // if (loading) {
-  //   return <p>Loading...</p>
-  // }
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Commit Log</h2>
+        </div>
+        <p>Please select a repository to show the commits.</p>
+      </div>
+    )
+  }
 
   if (error) {
     return <p>Error: {error}</p>
