@@ -9,6 +9,7 @@ import { Button } from './ui/button'
 import { Checkbox } from './ui/checkbox'
 import { Label } from './ui/label'
 import { useAppContext } from '@/context/AppContext'
+import ErrorMessage from './ErrorMessage'
 
 interface Branch {
   name: string
@@ -22,6 +23,8 @@ const BranchSelector = () => {
   const [branches, setBranches] = useState<Branch[]>([])
   const [selectedBranch, setSelectedBranch] = useState('')
   const [trackedBranch, setTrackedBranch] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const handleTrackChange = (branchName: string, isChecked: boolean) => {
     setTrackedBranch((prevTrackedBranch) => {
@@ -51,6 +54,8 @@ const BranchSelector = () => {
   }, [selectedRepo])
 
   const fetchBranches = async (repoName: string) => {
+    setLoading(true)
+    setError(null)
     const apiUrl = process.env.NEXT_PUBLIC_API_URL
     const url = `${apiUrl}/api/branches?repoName=${encodeURIComponent(
       repoName,
@@ -62,7 +67,6 @@ const BranchSelector = () => {
       if (!response.ok) {
         throw new Error(`Error fetching branches: ${response.status}`)
       }
-      // console.log("Fetched branches:", data.branches || []);
       const detailedBranches = (data.branches || []).map(
         (branchName: string) => {
           return {
@@ -90,7 +94,9 @@ const BranchSelector = () => {
 
       setBranches(detailedBranches)
     } catch (error: any) {
-      console.error('Failed to fetch branches:', error.message)
+      setError(error.message)
+    } finally {
+      setLoading(false)
     }
   }
   const handleBranchSelect = (branchName: any) => {
@@ -101,6 +107,29 @@ const BranchSelector = () => {
     value: branch.name,
     label: branch.label || branch.name,
   }))
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Branch Selector</h2>
+        </div>
+        <p>Please select a repository to show the branches</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Branch Selector</h2>
+        </div>
+        <ErrorMessage message={error} />
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
