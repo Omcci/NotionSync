@@ -106,7 +106,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   const commitsUrl = `https://api.github.com/repos/${orgName}/${repoName}/commits?page=${page}&per_page=${per_page}`
   const pullRequestsUrl = `https://api.github.com/repos/${orgName}/${repoName}/pulls?state=open`
-  const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN
+  const token = process.env.GITHUB_TOKEN
 
   console.log(`GitHub API URL: ${commitsUrl}`)
   console.log(`GitHub Token: ${token ? 'Present' : 'Not Present'}`)
@@ -151,7 +151,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       )
     }
 
-    console.log(`Commits: ${JSON.stringify(commits)}`)
+    // console.log(`Commits: ${JSON.stringify(commits)}`)
 
     const formattedCommits = commits.map((commit: any) => {
       const status =
