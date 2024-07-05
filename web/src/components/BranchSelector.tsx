@@ -49,17 +49,15 @@ const BranchSelector = () => {
   // TODO : Add branches state to context
   useEffect(() => {
     if (selectedRepo) {
-      fetchBranches(selectedRepo.name)
+      fetchBranches(selectedRepo.name, selectedRepo.org)
     }
   }, [selectedRepo])
 
-  const fetchBranches = async (repoName: string) => {
+  const fetchBranches = async (repoName: string, orgName: string) => {
     setLoading(true)
     setError(null)
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    const url = `${apiUrl}/api/branches?repoName=${encodeURIComponent(
-      repoName,
-    )}`
+    const apiUrl = 'http://localhost:3000'
+    const url = `${apiUrl}/api/branches?repoName=${encodeURIComponent(repoName)}&orgName=${encodeURIComponent(orgName)}`
 
     try {
       const response = await fetch(url)
@@ -144,7 +142,6 @@ const BranchSelector = () => {
           />
           {selectedBranch && (
             <div className="flex items-center gap-2">
-              {/* TODO: search to implement a chakra checkbox */}
               <input
                 id="track-branch"
                 type="checkbox"
