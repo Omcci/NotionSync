@@ -33,27 +33,6 @@ app.get('/api/repos', async (req, res) => {
   }
 })
 
-app.get('/api/branches', async (req, res) => {
-  const { repoName } = req.query
-  if (!repoName) {
-    return res.status(400).json({ error: 'Repository name is required' })
-  }
-
-  try {
-    const branches = await notionSync.fetchRepoBranches(
-      githubToken,
-      orgName,
-      repoName,
-    )
-    console.log('API is sending branches:', branches)
-
-    res.status(200).json({ branches })
-  } catch (error) {
-    console.error('Error fetching branches:', error.message)
-    res.status(500).json({ error: error.message })
-  }
-})
-
 app.post('/api/sync', async (req, res) => {
   try {
     const syncResult = await notionSync.sync()
