@@ -60,12 +60,12 @@ END_DATE=ISO8601FORMATDATE
 ## Usage
 
 ### Next.js Version
+
 To start the application using Next.js, run the development server:
 
 ```
 npm run dev
 ```
-
 
 ### Python Version
 
