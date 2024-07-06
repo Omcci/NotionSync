@@ -13,12 +13,12 @@ NotionSync is a powerful tool for developers to integrate GitHub commit data wit
 
 ## Prerequisites
 
-| Category            | Details                                                                                                                |
-|---------------------|------------------------------------------------------------------------------------------------------------------------|
-| **Common**          | - A GitHub Personal Access Token with access to the specified repository.<br>- A Notion Integration Token and the ID of the Notion database targeted for updates.<br>- A Notion database configured with the following properties: CommitID as Text, Repository as Text, Date as Date, Name as Title, Branch as Text. |
-| **Python**          | - Python 3.6 or higher installed on your system.<br>- The requests library installed, which can be installed using `pip install requests`.  |
-| **JavaScript/Node.js** | - Node.js 14.x or higher installed on your system.<br>- Dependencies listed in `package.json` installed using `npm install` or `yarn install`.  |
-| **Optional**        | - A Mistral AI Token if you wish to utilize AI to summarize commit messages and diffs. This token enhances NotionSync by generating AI-powered summaries of your commits. If not provided, the script will default to using the raw commit message.  |
+| Category               | Details                                                                                                                                                                                                                                                                                                               |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Common**             | - A GitHub Personal Access Token with access to the specified repository.<br>- A Notion Integration Token and the ID of the Notion database targeted for updates.<br>- A Notion database configured with the following properties: CommitID as Text, Repository as Text, Date as Date, Name as Title, Branch as Text. |
+| **Python**             | - Python 3.6 or higher installed on your system.<br>- The requests library installed, which can be installed using `pip install requests`.                                                                                                                                                                            |
+| **JavaScript/Node.js** | - Node.js 14.x or higher installed on your system.<br>- Dependencies listed in `package.json` installed using `npm install` or `yarn install`.                                                                                                                                                                        |
+| **Optional**           | - A Mistral AI Token if you wish to utilize AI to summarize commit messages and diffs. This token enhances NotionSync by generating AI-powered summaries of your commits. If not provided, the script will default to using the raw commit message.                                                                   |
 
 ## GitHub API Date Formatting
 
