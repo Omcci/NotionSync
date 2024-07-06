@@ -59,22 +59,38 @@ END_DATE=ISO8601FORMATDATE
 
 ## Usage
 
+### Next.js Version
+To start the application using Next.js, run the development server:
+
+```
+npm run dev
+```
+
+
 ### Python Version
 
 Execute the script to start populating your specified user commits into your Notion database:
 
-`python notionSync.py`
+```
+python notionSync.py
+```
 
 Execute the script to clean your database from duplicate if necessary:
 
-`python cleanNotionDB.py`
+```
+python cleanNotionDB.py
+```
 
 ### JavaScript Version
 
 Execute the Node.js application to start populating your specified user commits into your Notion database:
 
-`npm run start`
+```
+npm run start
+```
 
 Execute the script to clean your database from duplicate if necessary:
 
-`npm run clean`
+```
+npm run clean
+```
