@@ -9,9 +9,7 @@
 
 ## Overview
 
-NotionSync is a Python/Javascript script specifically designed for developers who wish to automatically synchronize their GitHub commit data with a Notion database.
-Currently, the script focuses on iterating through a specific repository within a specified organization on GitHub.
-It populates a Notion database with details of the user's commits.
+NotionSync is a powerful tool for developers to integrate GitHub commit data with Notion and more. Initially designed to sync a specific repository within a GitHub organization, it now offers branch management, advanced commit log filtering, real-time synchronization, and notifications. Users can easily configure GitHub and Notion settings through a user-friendly interface, making it an essential tool for managing and visualizing development workflows across platforms.
 
 ## Prerequisites
 
