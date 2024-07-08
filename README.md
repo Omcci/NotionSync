@@ -9,31 +9,16 @@
 
 ## Overview
 
-NotionSync is a Python/Javascript script specifically designed for developers who wish to automatically synchronize their GitHub commit data with a Notion database.
-Currently, the script focuses on iterating through a specific repository within a specified organization on GitHub.
-It populates a Notion database with details of the user's commits.
+NotionSync is a powerful tool for developers to integrate GitHub commit data with Notion and more. Initially designed to sync a specific repository within a GitHub organization, it now offers branch management, advanced commit log filtering, real-time synchronization, and notifications. Users can easily configure GitHub and Notion settings through a user-friendly interface, making it an essential tool for managing and visualizing development workflows across platforms.
 
 ## Prerequisites
 
-### Common Prerequisites
-
-- A GitHub Personal Access Token with access to the specified repository.
-- A Notion Integration Token and the ID of the Notion database targeted for updates.
-- A Notion database configured with the following properties: `CommitID` as Text, `Repository` as Text, `Date` as Date, `Name` as Title, `Branch` as Text.
-
-### Python
-
-- Python 3.6 or higher installed on your system.
-- The `requests` library installed, which can be installed using `pip install requests`.
-
-### JavaScript/Node.js
-
-- Node.js 14.x or higher installed on your system.
-- Dependencies listed in `package.json` installed using `npm install` or `yarn install`.
-
-### Optional
-
-- A Mistral AI Token if you wish to utilize AI to summarize commit messages and diffs. This token enhances NotionSync by generating AI-powered summaries of your commits. If not provided, the script will default to using the raw commit message.
+| Category               | Details                                                                                                                                                                                                                                                                                                               |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Common**             | - A GitHub Personal Access Token with access to the specified repository.<br>- A Notion Integration Token and the ID of the Notion database targeted for updates.<br>- A Notion database configured with the following properties: CommitID as Text, Repository as Text, Date as Date, Name as Title, Branch as Text. |
+| **Python**             | - Python 3.6 or higher installed on your system.<br>- The requests library installed, which can be installed using `pip install requests`.                                                                                                                                                                            |
+| **JavaScript/Node.js** | - Node.js 14.x or higher installed on your system.<br>- Dependencies listed in `package.json` installed using `npm install` or `yarn install`.                                                                                                                                                                        |
+| **Optional**           | - A Mistral AI Token if you wish to utilize AI to summarize commit messages and diffs. This token enhances NotionSync by generating AI-powered summaries of your commits. If not provided, the script will default to using the raw commit message.                                                                   |
 
 ## GitHub API Date Formatting
 
@@ -61,22 +46,38 @@ END_DATE=ISO8601FORMATDATE
 
 ## Usage
 
+### Next.js Version
+
+To start the application using Next.js, run the development server:
+
+```
+npm run dev
+```
+
 ### Python Version
 
 Execute the script to start populating your specified user commits into your Notion database:
 
-`python notionSync.py`
+```
+python notionSync.py
+```
 
 Execute the script to clean your database from duplicate if necessary:
 
-`python cleanNotionDB.py`
+```
+python cleanNotionDB.py
+```
 
 ### JavaScript Version
 
 Execute the Node.js application to start populating your specified user commits into your Notion database:
 
-`npm run start`
+```
+npm run start
+```
 
 Execute the script to clean your database from duplicate if necessary:
 
-`npm run clean`
+```
+npm run clean
+```
