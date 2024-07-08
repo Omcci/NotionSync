@@ -23,8 +23,8 @@ const HeaderV0 = () => {
   console.log('PROCESSENVusername:', username)
 
   useEffect(() => {
-    if (username) fetchUserRepos(username) 
-      console.log('username:', username)
+    if (username) fetchUserRepos(username)
+    console.log('username:', username)
   }, [username])
 
   const fetchUserRepos = async (username: string) => {
