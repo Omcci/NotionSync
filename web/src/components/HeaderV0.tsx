@@ -20,14 +20,17 @@ const HeaderV0 = () => {
   const { updateFormValues } = useConfigContext()
   // const { data: session } = useSession();
   const username = process.env.NEXT_PUBLIC_USERNAME
+  console.log('PROCESSENVusername:', username)
 
   useEffect(() => {
-    if (username) fetchUserRepos(username)
+    if (username) fetchUserRepos(username) 
+      console.log('username:', username)
   }, [username])
 
   const fetchUserRepos = async (username: string) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    const url = `${apiUrl}/api/repos?username=${username}`
+    const apiUrl = 'http://localhost:3000'
+    const url = `${apiUrl}/api/repos?username=${encodeURIComponent(username)}`
+    console.log('URL:', url)
 
     try {
       const response = await fetch(url)
