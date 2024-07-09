@@ -21,3 +21,9 @@ export type Action = {
   name: string
   url: string
 }
+
+export type SyncStatus = {
+  lastSyncDate: Date | null
+  errorBranch: string | null
+  statusMessage: string
+}
