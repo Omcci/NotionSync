@@ -1,4 +1,28 @@
+// src/pages/api/branches.ts
 import { NextApiRequest, NextApiResponse } from 'next'
+
+export const fetchRepoBranches = async (
+  githubToken: string,
+  orgName: string,
+  repoName: string,
+) => {
+  const url = `https://api.github.com/repos/${orgName}/${repoName}/branches`
+  try {
+    const response = await fetch(url, {
+      headers: { Authorization: `token ${githubToken}` },
+    })
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(
+        `Error fetching branches for ${repoName}: ${response.status}`,
+      )
+    }
+    return data.map((branch: any) => branch.name)
+  } catch (error: any) {
+    console.error(error.message)
+    return []
+  }
+}
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { repoName, orgName } = req.query as {
@@ -10,29 +34,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res
       .status(400)
       .json({ error: 'Missing repoName or orgName parameter' })
-  }
-
-  const fetchRepoBranches = async (
-    githubToken: string,
-    orgName: string,
-    repoName: string,
-  ) => {
-    const url = `https://api.github.com/repos/${orgName}/${repoName}/branches`
-    try {
-      const response = await fetch(url, {
-        headers: { Authorization: `token ${githubToken}` },
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(
-          `Error fetching branches for ${repoName}: ${response.status}`,
-        )
-      }
-      return data.map((branch: any) => branch.name)
-    } catch (error: any) {
-      console.error(error.message)
-      return []
-    }
   }
 
   const token = process.env.GITHUB_TOKEN
