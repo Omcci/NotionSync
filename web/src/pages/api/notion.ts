@@ -1,8 +1,10 @@
 import { Client } from '@notionhq/client'
 import { mistral_prompt } from './prompt'
+import MistralClient from '@mistralai/mistralai'
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN })
 const mistralToken = process.env.MISTRAL_TOKEN
+const client = new MistralClient(mistralToken)
 
 export const addCommitToNotion = async (
   commit: string,
@@ -103,6 +105,28 @@ const fetchCommitDiff = async (commitSha: string) => {
   }
 }
 
+export const commitExistsInNotion = async (
+  notion: Client,
+  databaseId: string,
+  commitSha: string,
+) => {
+  try {
+    const response = await notion.databases.query({
+      database_id: databaseId,
+      filter: {
+        property: 'Commit ID',
+        rich_text: {
+          equals: commitSha,
+        },
+      },
+    })
+    return response.results.length > 0
+  } catch (error) {
+    console.error(`Error: ${(error as Error).message}`)
+    return false
+  }
+}
+
 const summarizeCommitWithMistral = async (
   commitMessage: string,
   diff: string,
@@ -123,19 +147,12 @@ const summarizeCommitWithMistral = async (
   const prompt = mistral_prompt(commitMessage, filteredDiff)
 
   try {
-    const response = await fetch('https://api.mistral.com/v1/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${mistralToken}`,
-      },
-      body: JSON.stringify({
-        model: 'open-mistral-7b',
-        messages: [{ role: 'user', content: prompt }],
-      }),
+    const chatResponse = await client.chat({
+      model: 'open-mistral-7b',
+      messages: [{ role: 'user', content: prompt }],
     })
 
-    const chatResponse = await response.json()
+    console.log('Mistral response:', chatResponse)
 
     if (chatResponse.choices && chatResponse.choices.length > 0) {
       const summary = chatResponse.choices[0].message.content
