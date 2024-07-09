@@ -24,8 +24,8 @@ const HeaderV0 = () => {
   const username = process.env.NEXT_PUBLIC_USERNAME
 
   useEffect(() => {
-    if (username) fetchUserRepos(username) 
-      console.log('username:', username)
+    if (username) fetchUserRepos(username)
+    console.log('username:', username)
   }, [username])
 
   const fetchUserRepos = async (username: string) => {
