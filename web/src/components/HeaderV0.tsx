@@ -13,7 +13,7 @@ import { useConfigContext } from '@/context/ConfigContext'
 //TODO : add session with github oauth
 //TODO : display user friendly message of sync status
 
-const apiUrl = 'http://localhost:3000'
+const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
 const HeaderV0 = () => {
   const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext()

@@ -56,7 +56,7 @@ const BranchSelector = () => {
   const fetchBranches = async (repoName: string, orgName: string) => {
     setLoading(true)
     setError(null)
-    const apiUrl = 'http://localhost:3000'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
     const url = `${apiUrl}/api/branches?repoName=${encodeURIComponent(repoName)}&orgName=${encodeURIComponent(orgName)}`
 
     try {

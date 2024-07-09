@@ -58,7 +58,7 @@ const CommitLog = () => {
       const repoName = selectedRepo?.name
       console.log(`Repo Owner: ${orgName}`)
       console.log(`Repo Name: ${repoName}`)
-      const apiUrl = 'http://localhost:3000'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
       const response = await fetch(
         `${apiUrl}/api/commits?orgName=${orgName}&repoName=${repoName}&page=${page}&per_page=${commitsPerPage}`,
       )
