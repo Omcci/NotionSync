@@ -4,6 +4,8 @@ import Error from 'next/error'
 import { fetchRepoBranches } from './branches'
 import { fetchCommitsForUserInRepo } from './commits'
 import { addCommitToNotion, commitExistsInNotion } from './notion'
+import { SyncStatus } from '../../../types/types'
+
 
 const githubToken = process.env.GITHUB_TOKEN
 const notionToken = process.env.NOTION_TOKEN
@@ -15,6 +17,12 @@ const startDate = process.env.START_DATE
 const endDate = process.env.END_DATE
 
 const notion = new Client({ auth: notionToken })
+
+let syncStatus:SyncStatus   = {
+  lastSyncDate: null,
+  errorBranch: null,
+  statusMessage: 'No sync performed yet',
+}
 
 async function sync() {
   console.log('Starting sync process...')
@@ -59,11 +67,21 @@ async function sync() {
     } catch (error: any) {
       const errorMessage = error.message
       console.error(`Error syncing branch ${branch}: ${errorMessage}`)
+      syncStatus = {
+        lastSyncDate: new Date(),
+        errorBranch: branch,
+        statusMessage: `Error syncing branch '${branch}': ${errorMessage}`,
+      }
       throw new Error({
         branchName: branch,
         message: errorMessage,
         statusCode: 500,
       } as any)
+    }
+    syncStatus = {
+      lastSyncDate: new Date(),
+      errorBranch: '',
+      statusMessage: 'Sync process completed',
     }
   }
   return 'Sync process completed'
