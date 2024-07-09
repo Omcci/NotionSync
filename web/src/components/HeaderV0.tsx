@@ -13,6 +13,8 @@ import { useConfigContext } from '@/context/ConfigContext'
 //TODO : add session with github oauth
 //TODO : display user friendly message of sync status
 
+const apiUrl = 'http://localhost:3000'
+
 const HeaderV0 = () => {
   const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext()
   const [loading, setLoading] = useState(false)
@@ -20,7 +22,6 @@ const HeaderV0 = () => {
   const { updateFormValues } = useConfigContext()
   // const { data: session } = useSession();
   const username = process.env.NEXT_PUBLIC_USERNAME
-  console.log('PROCESSENVusername:', username)
 
   useEffect(() => {
     if (username) fetchUserRepos(username) 
@@ -28,7 +29,6 @@ const HeaderV0 = () => {
   }, [username])
 
   const fetchUserRepos = async (username: string) => {
-    const apiUrl = 'http://localhost:3000'
     const url = `${apiUrl}/api/repos?username=${encodeURIComponent(username)}`
     console.log('URL:', url)
 
@@ -57,10 +57,9 @@ const HeaderV0 = () => {
   }
 
   const handleSync = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
     setLoading(true)
     try {
-      const response = await fetch(`${apiUrl}/api/sync`, {
+      const response = await fetch('/api/sync?action=sync', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,6 +70,7 @@ const HeaderV0 = () => {
       if (response.ok) {
         toast({ title: 'Success', description: data.message })
       } else {
+        console.log('Error:', data)
         toast({
           title: 'Error',
           description: data.details || 'Sync failed. Please try again later.',
