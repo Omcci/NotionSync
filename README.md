@@ -46,14 +46,13 @@ END_DATE=ISO8601FORMATDATE
 
 ## Usage
 
-| Task                                                  | Command                         |
-|-------------------------------------------------------|---------------------------------|
-| **🔶 Next.js Version**                                |                                 |
-| Start the development server                          | `npm run dev`                   |
-| **🔷 Python Version**                                 |                                 |
-| Populate user commits into Notion database            | `python notionSync.py`          |
-| Clean the database from duplicates                    | `python cleanNotionDB.py`       |
-| **🔶 JavaScript Version**                             |                                 |
-| Populate user commits into Notion database            | `npm run start`                 |
-| Clean the database from duplicates                    | `npm run clean`                 |
-
+| Task                                       | Command                   |
+| ------------------------------------------ | ------------------------- |
+| **🔶 Next.js Version**                     |                           |
+| Start the development server               | `npm run dev`             |
+| **🔷 Python Version**                      |                           |
+| Populate user commits into Notion database | `python notionSync.py`    |
+| Clean the database from duplicates         | `python cleanNotionDB.py` |
+| **🔶 JavaScript Version**                  |                           |
+| Populate user commits into Notion database | `npm run start`           |
+| Clean the database from duplicates         | `npm run clean`           |
