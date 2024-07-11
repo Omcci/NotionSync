@@ -23,7 +23,7 @@ const Home = () => {
           </span>
         </div>
       </header>
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
+      <section className="max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
         <Card className="flex flex-col">
           <Image src="/neural.jpg" alt="Workflow Image" width={400} height={200} className="rounded-t-lg w-full h-32 object-cover" />
           <CardHeader>
