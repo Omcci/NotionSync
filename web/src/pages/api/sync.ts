@@ -6,7 +6,6 @@ import { fetchCommitsForUserInRepo } from './commits'
 import { addCommitToNotion, commitExistsInNotion } from './notion'
 import { SyncStatus } from '../../../types/types'
 
-
 const githubToken = process.env.GITHUB_TOKEN
 const notionToken = process.env.NOTION_TOKEN
 const databaseId = process.env.NOTION_DATABASE_ID
@@ -18,7 +17,7 @@ const endDate = process.env.END_DATE
 
 const notion = new Client({ auth: notionToken })
 
-let syncStatus:SyncStatus   = {
+let syncStatus: SyncStatus = {
   lastSyncDate: null,
   errorBranch: null,
   statusMessage: 'No sync performed yet',
