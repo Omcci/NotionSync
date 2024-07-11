@@ -23,10 +23,13 @@ let syncStatus: SyncStatus = {
   statusMessage: 'No sync performed yet',
 }
 
-async function sync() {
+async function sync( signal: AbortSignal) {
   console.log('Starting sync process...')
   const branches = await fetchRepoBranches(githubToken!, orgName!, repoName!)
   for (const branch of branches) {
+    if (signal.aborted) {
+      throw new Error('Sync process was aborted' as any);
+    }
     try {
       console.log(`Syncing branch: ${branch}`)
 
@@ -43,6 +46,9 @@ async function sync() {
       console.log(`Fetched ${commits.length} commits for branch: ${branch}`)
 
       for (const commit of commits) {
+        if (signal.aborted) {
+          throw new Error('Sync process was aborted' as any);
+        }
         const commitSha = commit.sha
         if (await commitExistsInNotion(notion, databaseId!, commitSha)) {
           console.log(`Commit ${commitSha} already exists in Notion. Skipping.`)
@@ -102,7 +108,11 @@ export default async function handler(
         break
       case 'POST':
         if (action === 'sync') {
-          const result = await sync()
+          const controller = new AbortController();
+          const signal = controller.signal;
+          (global as any).syncController = controller;
+
+          const result = await sync(signal)
           res.status(200).json({ message: result })
         } else {
           res.status(400).json({ error: 'Invalid action' })

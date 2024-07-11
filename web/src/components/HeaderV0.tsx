@@ -7,8 +7,9 @@ import { Button } from './ui/button'
 import { Select } from './ui/select'
 import { Toggle } from './ui/toggle'
 import { useToast } from './ui/use-toast'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useConfigContext } from '@/context/ConfigContext'
+import { StopCircleIcon } from 'lucide-react'
 // import { signIn, signOut, useSession } from "next-auth/react";
 //TODO : add session with github oauth
 //TODO : display user friendly message of sync status
@@ -22,6 +23,10 @@ const HeaderV0 = () => {
   const { updateFormValues } = useConfigContext()
   // const { data: session } = useSession();
   const username = process.env.NEXT_PUBLIC_USERNAME
+
+  // const [isSyncing, setIsSyncing] = useState(false);
+  const syncAbortController = useRef<AbortController | null>(null);
+
 
   useEffect(() => {
     if (username) fetchUserRepos(username)
@@ -58,6 +63,8 @@ const HeaderV0 = () => {
 
   const handleSync = async () => {
     setLoading(true)
+    // setIsSyncing(true)
+    syncAbortController.current = new AbortController();
     try {
       const response = await fetch('/api/sync?action=sync', {
         method: 'POST',
@@ -65,6 +72,7 @@ const HeaderV0 = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username }),
+        signal: syncAbortController.current.signal,
       })
       const data = await response.json()
       if (response.ok) {
@@ -85,8 +93,17 @@ const HeaderV0 = () => {
       })
     } finally {
       setLoading(false)
+      // setIsSyncing(false)
+      syncAbortController.current = null;
     }
   }
+  const handleStopSync = () => {  
+    if (syncAbortController.current) {
+      syncAbortController.current.abort();
+      // setIsSyncing(false);
+    }
+  };
+
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
     if (repo) {
@@ -124,6 +141,16 @@ const HeaderV0 = () => {
           <FolderSyncIcon className="w-5 h-5 mr-2" />
           {loading ? 'Syncing...' : 'Start Sync'}
         </Button>
+        {loading && (
+          <Button
+            variant="ghost"
+            onClick={handleStopSync}
+            disabled={!loading}
+          >
+            <StopCircleIcon className="w-5 h-5 mr-2" />
+            Stop Sync
+          </Button>
+        )}
         <Toggle aria-label="Automatic Sync">
           {' '}
           {/* TODO : add automatic sync //  */}
