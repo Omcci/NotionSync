@@ -1,5 +1,11 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -25,7 +31,13 @@ const Home = () => {
       </header>
       <section className="max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
         <Card className="flex flex-col">
-          <Image src="/neural.jpg" alt="Workflow Image" width={400} height={200} className="rounded-t-lg w-full h-32 object-cover" />
+          <Image
+            src="/neural.jpg"
+            alt="Workflow Image"
+            width={400}
+            height={200}
+            className="rounded-t-lg w-full h-32 object-cover"
+          />
           <CardHeader>
             <CardTitle>Automate Your Workflow</CardTitle>
             <CardDescription>
@@ -34,26 +46,39 @@ const Home = () => {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600 dark:text-gray-300">
-              No more manual updates. Ensure your Notion workspace is always up-to-date with the latest changes from your repositories.
+              No more manual updates. Ensure your Notion workspace is always
+              up-to-date with the latest changes from your repositories.
             </p>
           </CardContent>
         </Card>
         <Card className="flex flex-col">
-          <Image src="/collab.jpg" alt="Collaboration Image" width={400} height={200} className="rounded-t-lg w-full h-32 object-cover" />
+          <Image
+            src="/collab.jpg"
+            alt="Collaboration Image"
+            width={400}
+            height={200}
+            className="rounded-t-lg w-full h-32 object-cover"
+          />
           <CardHeader>
             <CardTitle>Enhance Collaboration</CardTitle>
-            <CardDescription>
-              Keep your team on the same page.
-            </CardDescription>
+            <CardDescription>Keep your team on the same page.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-gray-600 dark:text-gray-300">
-              Share real-time updates with your team and enhance collaboration by integrating commit messages and branch updates directly into your Notion pages.
+              Share real-time updates with your team and enhance collaboration
+              by integrating commit messages and branch updates directly into
+              your Notion pages.
             </p>
           </CardContent>
         </Card>
         <Card className="flex flex-col">
-          <Image src="/gh.webp" alt="Repository Image" width={400} height={200} className="rounded-t-lg w-full h-32 object-cover" />
+          <Image
+            src="/gh.webp"
+            alt="Repository Image"
+            width={400}
+            height={200}
+            className="rounded-t-lg w-full h-32 object-cover"
+          />
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
               GitHub Repository &rarr;
