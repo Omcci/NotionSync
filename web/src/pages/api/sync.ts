@@ -55,14 +55,14 @@ async function sync() {
         )
 
         await addCommitToNotion(
-          commitSha,
+          commit,
           commitMessage,
           notionToken!,
           databaseId!,
           repoName!,
           branch,
         )
-        console.log(`Commit ${commitSha} added to Notion successfully`)
+        // console.log(`Commit ${commitSha} added to Notion successfully`)
       }
     } catch (error: any) {
       const errorMessage = error.message
