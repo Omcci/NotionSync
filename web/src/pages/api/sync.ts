@@ -23,12 +23,19 @@ let syncStatus: SyncStatus = {
   statusMessage: 'No sync performed yet',
 }
 
-async function sync( signal: AbortSignal) {
+let currentAbortController: AbortController | null = null
+
+async function sync(signal: AbortSignal) {
   console.log('Starting sync process...')
   const branches = await fetchRepoBranches(githubToken!, orgName!, repoName!)
   for (const branch of branches) {
     if (signal.aborted) {
-      throw new Error('Sync process was aborted' as any);
+      syncStatus = {
+        lastSyncDate: new Date(),
+        errorBranch: branch,
+        statusMessage: 'Sync process was aborted',
+      }
+      throw new Error('Sync process was aborted' as any)
     }
     try {
       console.log(`Syncing branch: ${branch}`)
@@ -47,7 +54,12 @@ async function sync( signal: AbortSignal) {
 
       for (const commit of commits) {
         if (signal.aborted) {
-          throw new Error('Sync process was aborted' as any);
+          syncStatus = {
+            lastSyncDate: new Date(),
+            errorBranch: branch,
+            statusMessage: 'Sync process was aborted',
+          }
+          throw new Error('Sync process was aborted' as any)
         }
         const commitSha = commit.sha
         if (await commitExistsInNotion(notion, databaseId!, commitSha)) {
@@ -108,12 +120,18 @@ export default async function handler(
         break
       case 'POST':
         if (action === 'sync') {
-          const controller = new AbortController();
-          const signal = controller.signal;
-          (global as any).syncController = controller;
+          currentAbortController = new AbortController()
+          const signal = currentAbortController.signal
 
           const result = await sync(signal)
           res.status(200).json({ message: result })
+        } else if (action === 'stop') {
+          if (currentAbortController) {
+            currentAbortController.abort()
+            res.status(200).json({ message: 'Sync process aborted' })
+          } else {
+            res.status(400).json({ error: 'No sync process to stop' })
+          }
         } else {
           res.status(400).json({ error: 'Invalid action' })
         }
