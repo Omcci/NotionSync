@@ -86,23 +86,62 @@ const HeaderV0 = () => {
         })
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Sync failed. Please try again later.',
-        variant: 'destructive',
-      })
+      if ((error as any).name === 'AbortError') {
+        toast({
+          title: 'Info',
+          description: 'Sync was aborted.',
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Sync failed. Please try again later.',
+          variant: 'destructive',
+        })
+      }
     } finally {
       setLoading(false)
       // setIsSyncing(false)
       syncAbortController.current = null;
     }
   }
-  const handleStopSync = () => {  
+  const handleStopSync = async () => {
     if (syncAbortController.current) {
-      syncAbortController.current.abort();
-      // setIsSyncing(false);
+      syncAbortController.current.abort()
+      syncAbortController.current = null
+      try {
+        const response = await fetch('/api/sync?action=stop', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        const data = await response.json()
+        if (response.ok) {
+          toast({
+            title: 'Info',
+            description: data.message,
+            variant: 'destructive',
+          })
+        } else {
+          toast({
+            title: 'Error',
+            description: data.details || 'Failed to stop sync. Please try again later.',
+            variant: 'destructive',
+          })
+        }
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to stop sync. Please try again later.',
+          variant: 'destructive',
+        })
+      } finally {
+        setLoading(false)
+      }
     }
-  };
+  }
+
 
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
