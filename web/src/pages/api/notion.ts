@@ -7,16 +7,16 @@ const mistralToken = process.env.MISTRAL_TOKEN
 const client = new MistralClient(mistralToken)
 
 export const addCommitToNotion = async (
-  commit: string,
+  commit: any,
   commitMessage: string,
   notionToken: string,
   databaseId: string,
   repoName: string,
   branchName: string,
 ) => {
-  const commitDiff = await fetchCommitDiff(commit)
+  const commitDiff = await fetchCommitDiff(commit.sha)
   if (!commitDiff) {
-    console.error(`Could not fetch diff for commit ${commit}. Skipping.`)
+    console.error(`Could not fetch diff for commit ${commit.sha}. Skipping.`)
     return
   }
 
@@ -34,7 +34,7 @@ export const addCommitToNotion = async (
             {
               type: 'text',
               text: {
-                content: commit,
+                content: commit.sha,
               },
             },
           ],
@@ -76,7 +76,7 @@ export const addCommitToNotion = async (
         },
       },
     })
-    console.log(`Commit added to Notion successfully: ${commit}`)
+    console.log(`Commit added to Notion successfully: ${commit.sha}`)
   } catch (error) {
     console.error(`Failed to add commit to Notion: ${(error as Error).message}`)
   }
