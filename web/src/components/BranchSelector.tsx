@@ -8,20 +8,13 @@ import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Checkbox } from './ui/checkbox'
 import { Label } from './ui/label'
-import { useAppContext } from '@/context/AppContext'
+import { useAppContext, Branch } from '@/context/AppContext'
 import ErrorMessage from './ErrorMessage'
 
-interface Branch {
-  name: string
-  label?: string
-  status: string
-  actions: Array<{ name: string; icon: JSX.Element; url: string }>
-}
-
 const BranchSelector = () => {
-  const { selectedRepo } = useAppContext()
+  const { selectedRepo, selectedBranch, setSelectedBranch } = useAppContext()
   const [branches, setBranches] = useState<Branch[]>([])
-  const [selectedBranch, setSelectedBranch] = useState('')
+  // const [selectedBranch, setSelectedBranch] = useState('')
   const [trackedBranch, setTrackedBranch] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -46,7 +39,6 @@ const BranchSelector = () => {
     })
   }
 
-  // TODO : Add branches state to context
   useEffect(() => {
     if (selectedRepo) {
       fetchBranches(selectedRepo.name, selectedRepo.org)
@@ -61,6 +53,7 @@ const BranchSelector = () => {
 
     try {
       const response = await fetch(url)
+      console.log('Response:', response)
       const data = await response.json()
       if (!response.ok) {
         throw new Error(`Error fetching branches: ${response.status}`)
@@ -74,16 +67,14 @@ const BranchSelector = () => {
               {
                 name: 'View',
                 icon: <EyeIcon />,
-                url: `https://github.com/${selectedRepo!.org}/${
-                  selectedRepo!.name
-                }/tree/${branchName}`,
+                url: `https://github.com/${selectedRepo!.org}/${selectedRepo!.name
+                  }/tree/${branchName}`,
               },
               {
                 name: 'Github',
                 icon: <GithubIcon />,
-                url: `https://github.com/${selectedRepo!.org}/${
-                  selectedRepo!.name
-                }`,
+                url: `https://github.com/${selectedRepo!.org}/${selectedRepo!.name
+                  }`,
               },
             ],
           }
@@ -97,13 +88,13 @@ const BranchSelector = () => {
       setLoading(false)
     }
   }
-  const handleBranchSelect = (branchName: any) => {
-    setSelectedBranch(branchName)
-  }
+  const handleBranchSelect = (branch: Branch) => {
+    setSelectedBranch(branch);
+  };
 
   const branchOptions = branches.map((branch) => ({
     value: branch.name,
-    label: branch.label || branch.name,
+    label: branch.name,
   }))
 
   if (loading) {
@@ -136,8 +127,8 @@ const BranchSelector = () => {
           <SelectComponent
             placeholder="Select a branch"
             options={branchOptions}
-            value={selectedBranch}
-            onChange={(value) => handleBranchSelect(value)}
+            value={selectedBranch ? selectedBranch.name : ''}
+            onChange={(value) => handleBranchSelect(branches.find(branch => branch.name === value)!)}
             disabled={branches.length === 0}
           />
           {selectedBranch && (
@@ -145,10 +136,10 @@ const BranchSelector = () => {
               <input
                 id="track-branch"
                 type="checkbox"
-                checked={trackedBranch.has(selectedBranch)}
+                checked={trackedBranch.has(selectedBranch.name)}
                 onChange={(e) => {
                   handleTrackChange(
-                    selectedBranch,
+                    selectedBranch.name,
                     (e.target as HTMLInputElement).checked,
                   )
                 }}
@@ -182,11 +173,10 @@ const BranchSelector = () => {
                 </td>
                 <td className="px-4 py-3">
                   <Badge
-                    className={`bg-${
-                      branch.status === 'Tracked'
-                        ? 'green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
-                        : 'red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
-                    }`}
+                    className={`bg-${branch.status === 'Tracked'
+                      ? 'green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                      : 'red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
+                      }`}
                     variant="outline"
                   >
                     {branch.status}
