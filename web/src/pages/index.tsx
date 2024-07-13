@@ -6,12 +6,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import Link from 'next/link'
 
 const Home = () => {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 bg-gray-50 dark:bg-gray-900">
+    <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 bg-gray-50 dark:bg-gray-900 ">
       <header className="w-full max-w-3xl text-sm font-mono">
         <p className="mb-6 text-4xl font-bold text-gray-800 dark:text-gray-100">
           Welcome to NotionSync
@@ -91,6 +92,33 @@ const Home = () => {
             <Button asChild>
               <Link href="https://github.com/Omcci/NotionSync">Explore</Link>
             </Button>
+          </CardContent>
+        </Card>
+        <Card className="flex flex-col md:col-span-2">
+          <Image
+            src="/document.jpg"
+            alt="Documentation Image"
+            width={400}
+            height={200}
+            className="rounded-t-lg w-full h-32 object-cover"
+          />
+          <CardHeader>
+            <CardTitle>Documentation & Guides</CardTitle>
+            <CardDescription>
+              Find in-depth information and guides to help you get started.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link href="/docs">View Documentation</Link>
+            </Button>
+            <div className="mt-4">
+              <Input
+                type="text"
+                placeholder="Search documentation..."
+                className="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
           </CardContent>
         </Card>
       </section>
