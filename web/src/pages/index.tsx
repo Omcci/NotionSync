@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { AccordionItem, Accordion, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -121,6 +122,29 @@ const Home = () => {
             </div>
           </CardContent>
         </Card>
+      </section>
+      <section className="w-full max-w-3xl mt-12">
+        <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6">FAQ</h2>
+        <Accordion type="single" collapsible>
+          <AccordionItem value="item-1">
+            <AccordionTrigger>What is NotionSync?</AccordionTrigger>
+            <AccordionContent>
+              NotionSync is a tool that helps you automatically sync your GitHub commits with Notion. It keeps your project management up-to-date by integrating commit messages and branch updates directly into your Notion pages.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-2">
+            <AccordionTrigger>How does NotionSync work?</AccordionTrigger>
+            <AccordionContent>
+              NotionSync connects to your GitHub repositories and monitors for new commits. When a new commit is detected, it fetches the commit details and updates your Notion workspace with this information.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-4">
+            <AccordionTrigger>Can I contribute to NotionSync?</AccordionTrigger>
+            <AccordionContent>
+              Absolutely! NotionSync is an open-source project. You can explore the source code, report issues, and contribute to the project by visiting our GitHub repository.
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </section>
     </main>
   )
