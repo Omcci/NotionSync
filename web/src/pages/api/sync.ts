@@ -4,7 +4,7 @@ import Error from 'next/error'
 import { fetchRepoBranches } from './branches'
 import { fetchCommitsForUserInRepo } from './commits'
 import { addCommitToNotion, commitExistsInNotion } from './notion'
-import { SyncStatus } from '../../../types/types'
+import { SyncStatus } from '@/context/AppContext'
 
 const githubToken = process.env.GITHUB_TOKEN
 const notionToken = process.env.NOTION_TOKEN
@@ -17,26 +17,17 @@ const endDate = process.env.END_DATE
 
 const notion = new Client({ auth: notionToken })
 
-let syncStatus: SyncStatus = {
-  lastSyncDate: null,
-  errorBranch: null,
-  statusMessage: 'No sync performed yet',
-}
-
 let currentAbortController: AbortController | null = null
 
-async function sync(signal: AbortSignal) {
+async function sync(
+  signal: AbortSignal,
+  updateStatus: (status: SyncStatus) => void,
+) {
   console.log('Starting sync process...')
+  console.log('signal: ', signal)
+
   const branches = await fetchRepoBranches(githubToken!, orgName!, repoName!)
   for (const branch of branches) {
-    if (signal.aborted) {
-      syncStatus = {
-        lastSyncDate: new Date(),
-        errorBranch: branch,
-        statusMessage: 'Sync process was aborted',
-      }
-      throw new Error('Sync process was aborted' as any)
-    }
     try {
       console.log(`Syncing branch: ${branch}`)
 
@@ -53,15 +44,17 @@ async function sync(signal: AbortSignal) {
       console.log(`Fetched ${commits.length} commits for branch: ${branch}`)
 
       for (const commit of commits) {
+        console.log('signal.abortedCOMMITS: ', signal.aborted)
         if (signal.aborted) {
-          syncStatus = {
-            lastSyncDate: new Date(),
+          updateStatus({
+            lastSyncDate: new Date().toISOString(),
             errorBranch: branch,
             statusMessage: 'Sync process was aborted',
-          }
+          })
           throw new Error('Sync process was aborted' as any)
         }
         const commitSha = commit.sha
+
         if (await commitExistsInNotion(notion, databaseId!, commitSha)) {
           console.log(`Commit ${commitSha} already exists in Notion. Skipping.`)
           continue
@@ -84,22 +77,22 @@ async function sync(signal: AbortSignal) {
     } catch (error: any) {
       const errorMessage = error.message
       console.error(`Error syncing branch ${branch}: ${errorMessage}`)
-      syncStatus = {
-        lastSyncDate: new Date(),
+      updateStatus({
+        lastSyncDate: new Date().toISOString(),
         errorBranch: branch,
         statusMessage: `Error syncing branch '${branch}': ${errorMessage}`,
-      }
+      })
       throw new Error({
         branchName: branch,
         message: errorMessage,
         statusCode: 500,
       } as any)
     }
-    syncStatus = {
-      lastSyncDate: new Date(),
+    updateStatus({
+      lastSyncDate: new Date().toISOString(),
       errorBranch: '',
       statusMessage: 'Sync process completed',
-    }
+    })
   }
   return 'Sync process completed'
 }
@@ -123,7 +116,11 @@ export default async function handler(
           currentAbortController = new AbortController()
           const signal = currentAbortController.signal
 
-          const result = await sync(signal)
+          const result = await sync(signal, (status: SyncStatus) => {
+            res
+              .status(200)
+              .json({ message: 'Sync status updated successfully', status })
+          })
           res.status(200).json({ message: result })
         } else if (action === 'stop') {
           if (currentAbortController) {
