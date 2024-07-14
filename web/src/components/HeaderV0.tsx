@@ -1,4 +1,4 @@
-import { useAppContext } from '@/context/AppContext'
+import { SyncStatus, useAppContext } from '@/context/AppContext'
 import { FolderSyncIcon } from '../../public/icon/FolderSyncIcon'
 import { GithubIcon } from '../../public/icon/GithubIcon'
 import { RepeatIcon } from '../../public/icon/RepeatIcon'
@@ -17,7 +17,7 @@ import { StopCircleIcon } from 'lucide-react'
 const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
 const HeaderV0 = () => {
-  const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext()
+  const { repos, setRepos, selectedRepo, setSelectedRepo, setSyncStatus } = useAppContext()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const { updateFormValues } = useConfigContext()
@@ -61,6 +61,28 @@ const HeaderV0 = () => {
     }
   }
 
+  const updateSyncStatus = async (status: SyncStatus) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const url = `${apiUrl}/api/syncStatus`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(status),
+      });
+      if (!response.ok) {
+        throw new Error(`Error updating sync status: ${response.status}`);
+      }
+      const data = await response.json();
+      setSyncStatus(status);
+    } catch (error) {
+      console.error('Failed to update sync status:', error);
+    }
+  };
+
   const handleSync = async () => {
     setLoading(true)
     // setIsSyncing(true)
@@ -92,6 +114,10 @@ const HeaderV0 = () => {
           description: 'Sync was aborted.',
           variant: 'destructive',
         })
+        updateSyncStatus({
+          errorBranch: null,
+          statusMessage: 'Sync process aborted',
+        });
       } else {
         toast({
           title: 'Error',
@@ -123,6 +149,10 @@ const HeaderV0 = () => {
             description: data.message,
             variant: 'destructive',
           })
+          updateSyncStatus({
+            errorBranch: null,
+            statusMessage: 'Sync process aborted',
+          });
         } else {
           toast({
             title: 'Error',
