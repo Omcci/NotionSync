@@ -12,8 +12,8 @@ const databaseId = process.env.NOTION_DATABASE_ID
 const orgName = process.env.ORG_NAME
 const repoName = process.env.REPO_NAME
 const mistralToken = process.env.MISTRAL_TOKEN
-const startDate = process.env.START_DATE
-const endDate = process.env.END_DATE
+const startDate = new Date(process.env.START_DATE!)
+const endDate = new Date(process.env.END_DATE!)
 
 const notion = new Client({ auth: notionToken })
 
@@ -43,7 +43,17 @@ async function sync(
 
       console.log(`Fetched ${commits.length} commits for branch: ${branch}`)
 
-      for (const commit of commits) {
+      const filteredCommits = commits.filter((commit: any) => {
+        const commitDate = new Date(commit.commit.author.date)
+        console.log('Commit Date:', commitDate) // Log commit date for debugging
+        return commitDate >= startDate && commitDate <= endDate
+      })
+
+      console.log(
+        `Filtered to ${filteredCommits.length} commits for branch: ${branch}`,
+      )
+
+      for (const commit of filteredCommits) {
         console.log('signal.abortedCOMMITS: ', signal.aborted)
         if (signal.aborted) {
           updateStatus({
@@ -88,12 +98,12 @@ async function sync(
         statusCode: 500,
       } as any)
     }
-    updateStatus({
-      lastSyncDate: new Date().toISOString(),
-      errorBranch: '',
-      statusMessage: 'Sync process completed',
-    })
   }
+  updateStatus({
+    lastSyncDate: new Date().toISOString(),
+    errorBranch: '',
+    statusMessage: 'Sync process completed',
+  })
   return 'Sync process completed'
 }
 
@@ -116,12 +126,12 @@ export default async function handler(
           currentAbortController = new AbortController()
           const signal = currentAbortController.signal
 
-          const result = await sync(signal, (status: SyncStatus) => {
-            res
-              .status(200)
-              .json({ message: 'Sync status updated successfully', status })
+          const result = await sync(signal, (statusSync: SyncStatus) => {
+            res.status(200).json({
+              message: 'Sync process completed',
+              syncStatus: statusSync,
+            })
           })
-          res.status(200).json({ message: result })
         } else if (action === 'stop') {
           if (currentAbortController) {
             currentAbortController.abort()
