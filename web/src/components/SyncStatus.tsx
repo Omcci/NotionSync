@@ -36,7 +36,7 @@ const SyncStatus = () => {
       new Date(syncStatus.lastSyncDate!),
       'MMMM do, yyyy h:mm:ss a',
     )} ${getEmojiTime(new Date(syncStatus.lastSyncDate!))}`
-    : 'Loading ...'
+    : 'No sync yet'
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
