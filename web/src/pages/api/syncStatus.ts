@@ -7,10 +7,22 @@ let syncStatus = {
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'GET') {
+  if (req.method === 'POST') {
+    const { lastSyncDate, errorBranch, statusMessage } = req.body
+
+    syncStatus = {
+      lastSyncDate: lastSyncDate || syncStatus.lastSyncDate,
+      errorBranch: errorBranch || syncStatus.errorBranch,
+      statusMessage: statusMessage || syncStatus.statusMessage,
+    }
+
+    res
+      .status(200)
+      .json({ message: 'Sync status updated successfully', syncStatus })
+  } else if (req.method === 'GET') {
     res.status(200).json(syncStatus)
   } else {
-    res.setHeader('Allow', ['GET'])
+    res.setHeader('Allow', ['GET', 'POST'])
     res.status(405).end(`Method ${req.method} Not Allowed`)
   }
 }
