@@ -23,10 +23,7 @@ const HeaderV0 = () => {
   const { updateFormValues } = useConfigContext()
   // const { data: session } = useSession();
   const username = process.env.NEXT_PUBLIC_USERNAME
-
-  // const [isSyncing, setIsSyncing] = useState(false);
   const syncAbortController = useRef<AbortController | null>(null);
-
 
   useEffect(() => {
     if (username) fetchUserRepos(username)
@@ -77,7 +74,8 @@ const HeaderV0 = () => {
         throw new Error(`Error updating sync status: ${response.status}`);
       }
       const data = await response.json();
-      setSyncStatus(status);
+      console.log('Sync status updated:', data);
+      setSyncStatus(data);
     } catch (error) {
       console.error('Failed to update sync status:', error);
     }
@@ -85,7 +83,6 @@ const HeaderV0 = () => {
 
   const handleSync = async () => {
     setLoading(true)
-    // setIsSyncing(true)
     syncAbortController.current = new AbortController();
     try {
       const response = await fetch('/api/sync?action=sync', {
@@ -99,6 +96,7 @@ const HeaderV0 = () => {
       const data = await response.json()
       if (response.ok) {
         toast({ title: 'Success', description: data.message })
+        setSyncStatus(data.syncStatus);
       } else {
         console.log('Error:', data)
         toast({
@@ -127,7 +125,6 @@ const HeaderV0 = () => {
       }
     } finally {
       setLoading(false)
-      // setIsSyncing(false)
       syncAbortController.current = null;
     }
   }
@@ -171,7 +168,6 @@ const HeaderV0 = () => {
       }
     }
   }
-
 
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
