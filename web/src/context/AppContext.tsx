@@ -17,7 +17,7 @@ export interface Branch {
 }
 
 export interface SyncStatus {
-  lastSyncDate: string | null
+  lastSyncDate?: string | null
   errorBranch: string | null
   statusMessage: string | null
 }
