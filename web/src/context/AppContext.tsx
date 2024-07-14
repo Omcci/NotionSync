@@ -16,7 +16,7 @@ export interface Branch {
   actions: Array<{ name: string; icon: JSX.Element; url: string }>
 }
 
-interface SyncStatus {
+export interface SyncStatus {
   lastSyncDate: string | null
   errorBranch: string | null
   statusMessage: string | null
