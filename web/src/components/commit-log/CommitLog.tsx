@@ -56,7 +56,7 @@ const CommitLog = () => {
     try {
       const orgName = selectedRepo?.org
       const repoName = selectedRepo?.name
-      const branchName = selectedBranch?.name;
+      const branchName = selectedBranch?.name
 
       console.log(`Repo Owner: ${orgName}`)
       console.log(`Repo Name: ${repoName}`)
@@ -85,9 +85,7 @@ const CommitLog = () => {
   }, [searchInput, commits])
 
   useEffect(() => {
-    if (!selectedRepo
-      || !selectedBranch
-    ) return
+    if (!selectedRepo || !selectedBranch) return
     fetchCommits(page)
   }, [selectedRepo, page, selectedBranch])
 
@@ -183,10 +181,11 @@ const CommitLog = () => {
                   {commit.status && (
                     <div>
                       <Badge
-                        className={`${commit.status === 'Verified'
-                          ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
-                          : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
-                          }`}
+                        className={`${
+                          commit.status === 'Verified'
+                            ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                            : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
+                        }`}
                         variant="outline"
                       >
                         {commit.status}

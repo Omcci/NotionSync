@@ -17,13 +17,14 @@ import { StopCircleIcon } from 'lucide-react'
 const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
 const HeaderV0 = () => {
-  const { repos, setRepos, selectedRepo, setSelectedRepo, setSyncStatus } = useAppContext()
+  const { repos, setRepos, selectedRepo, setSelectedRepo, setSyncStatus } =
+    useAppContext()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const { updateFormValues } = useConfigContext()
   // const { data: session } = useSession();
   const username = process.env.NEXT_PUBLIC_USERNAME
-  const syncAbortController = useRef<AbortController | null>(null);
+  const syncAbortController = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (username) fetchUserRepos(username)
@@ -59,8 +60,8 @@ const HeaderV0 = () => {
   }
 
   const updateSyncStatus = async (status: SyncStatus) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const url = `${apiUrl}/api/syncStatus`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    const url = `${apiUrl}/api/syncStatus`
 
     try {
       const response = await fetch(url, {
@@ -69,21 +70,21 @@ const HeaderV0 = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(status),
-      });
+      })
       if (!response.ok) {
-        throw new Error(`Error updating sync status: ${response.status}`);
+        throw new Error(`Error updating sync status: ${response.status}`)
       }
-      const data = await response.json();
-      console.log('Sync status updated:', data);
-      setSyncStatus(data);
+      const data = await response.json()
+      console.log('Sync status updated:', data)
+      setSyncStatus(data)
     } catch (error) {
-      console.error('Failed to update sync status:', error);
+      console.error('Failed to update sync status:', error)
     }
-  };
+  }
 
   const handleSync = async () => {
     setLoading(true)
-    syncAbortController.current = new AbortController();
+    syncAbortController.current = new AbortController()
     try {
       const response = await fetch('/api/sync?action=sync', {
         method: 'POST',
@@ -96,7 +97,7 @@ const HeaderV0 = () => {
       const data = await response.json()
       if (response.ok) {
         toast({ title: 'Success', description: data.message })
-        setSyncStatus(data.syncStatus);
+        setSyncStatus(data.syncStatus)
       } else {
         console.log('Error:', data)
         toast({
@@ -115,7 +116,7 @@ const HeaderV0 = () => {
         updateSyncStatus({
           errorBranch: null,
           statusMessage: 'Sync process aborted',
-        });
+        })
       } else {
         toast({
           title: 'Error',
@@ -125,7 +126,7 @@ const HeaderV0 = () => {
       }
     } finally {
       setLoading(false)
-      syncAbortController.current = null;
+      syncAbortController.current = null
     }
   }
   const handleStopSync = async () => {
@@ -149,11 +150,12 @@ const HeaderV0 = () => {
           updateSyncStatus({
             errorBranch: null,
             statusMessage: 'Sync process aborted',
-          });
+          })
         } else {
           toast({
             title: 'Error',
-            description: data.details || 'Failed to stop sync. Please try again later.',
+            description:
+              data.details || 'Failed to stop sync. Please try again later.',
             variant: 'destructive',
           })
         }
@@ -207,11 +209,7 @@ const HeaderV0 = () => {
           {loading ? 'Syncing...' : 'Start Sync'}
         </Button>
         {loading && (
-          <Button
-            variant="ghost"
-            onClick={handleStopSync}
-            disabled={!loading}
-          >
+          <Button variant="ghost" onClick={handleStopSync} disabled={!loading}>
             <StopCircleIcon className="w-5 h-5 mr-2" />
             Stop Sync
           </Button>

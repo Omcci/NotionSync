@@ -67,14 +67,16 @@ const BranchSelector = () => {
               {
                 name: 'View',
                 icon: <EyeIcon />,
-                url: `https://github.com/${selectedRepo!.org}/${selectedRepo!.name
-                  }/tree/${branchName}`,
+                url: `https://github.com/${selectedRepo!.org}/${
+                  selectedRepo!.name
+                }/tree/${branchName}`,
               },
               {
                 name: 'Github',
                 icon: <GithubIcon />,
-                url: `https://github.com/${selectedRepo!.org}/${selectedRepo!.name
-                  }`,
+                url: `https://github.com/${selectedRepo!.org}/${
+                  selectedRepo!.name
+                }`,
               },
             ],
           }
@@ -89,8 +91,8 @@ const BranchSelector = () => {
     }
   }
   const handleBranchSelect = (branch: Branch) => {
-    setSelectedBranch(branch);
-  };
+    setSelectedBranch(branch)
+  }
 
   const branchOptions = branches.map((branch) => ({
     value: branch.name,
@@ -128,7 +130,11 @@ const BranchSelector = () => {
             placeholder="Select a branch"
             options={branchOptions}
             value={selectedBranch ? selectedBranch.name : ''}
-            onChange={(value) => handleBranchSelect(branches.find(branch => branch.name === value)!)}
+            onChange={(value) =>
+              handleBranchSelect(
+                branches.find((branch) => branch.name === value)!,
+              )
+            }
             disabled={branches.length === 0}
           />
           {selectedBranch && (
@@ -173,10 +179,11 @@ const BranchSelector = () => {
                 </td>
                 <td className="px-4 py-3">
                   <Badge
-                    className={`bg-${branch.status === 'Tracked'
-                      ? 'green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
-                      : 'red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
-                      }`}
+                    className={`bg-${
+                      branch.status === 'Tracked'
+                        ? 'green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                        : 'red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
+                    }`}
                     variant="outline"
                   >
                     {branch.status}

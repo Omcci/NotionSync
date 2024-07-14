@@ -7,24 +7,24 @@ const SyncStatus = () => {
   const { syncStatus, setSyncStatus } = useAppContext()
 
   const fetchSyncStatus = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const url = `${apiUrl}/api/syncStatus`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    const url = `${apiUrl}/api/syncStatus`
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url)
       if (!response.ok) {
-        throw new Error(`Error fetching sync status: ${response.status}`);
+        throw new Error(`Error fetching sync status: ${response.status}`)
       }
-      const data = await response.json();
-      setSyncStatus(data);
+      const data = await response.json()
+      setSyncStatus(data)
     } catch (error) {
-      console.error('Failed to fetch sync status:', error);
+      console.error('Failed to fetch sync status:', error)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchSyncStatus();
-  }, []);
+    fetchSyncStatus()
+  }, [])
 
   const getEmojiTime = (date: Date) => {
     const hours = date.getHours()
@@ -33,9 +33,9 @@ const SyncStatus = () => {
 
   const formattedDate = syncStatus?.lastSyncDate
     ? `${format(
-      new Date(syncStatus.lastSyncDate!),
-      'MMMM do, yyyy h:mm:ss a',
-    )} ${getEmojiTime(new Date(syncStatus.lastSyncDate!))}`
+        new Date(syncStatus.lastSyncDate!),
+        'MMMM do, yyyy h:mm:ss a',
+      )} ${getEmojiTime(new Date(syncStatus.lastSyncDate!))}`
     : 'No sync yet'
 
   return (
@@ -50,7 +50,8 @@ const SyncStatus = () => {
         </div>
         {syncStatus && (
           <div>
-            {syncStatus.statusMessage && syncStatus.statusMessage.includes('aborted') ? (
+            {syncStatus.statusMessage &&
+            syncStatus.statusMessage.includes('aborted') ? (
               <p className="text-red-500 dark:text-red-400">
                 <CircleAlertIcon className="w-5 h-5 mr-2 inline" />
                 {syncStatus.statusMessage}
