@@ -111,6 +111,11 @@ const CommitLog = () => {
     )
   }
 
+  const formatedDate = (date: string) => {
+    const d = new Date(date)
+    return `${d.toLocaleDateString()}`
+  }
+
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
@@ -181,11 +186,19 @@ const CommitLog = () => {
                           <AvatarFallback>{commit.author[0]}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-bold">{commit.authorDetails.name}</p>
-                          <p>{commit.authorDetails.bio}</p>
-                          <p>{commit.authorDetails.location}</p>
-                          <p>{commit.authorDetails.company}</p>
-                          <p>{commit.authorDetails.blog}</p>
+                          <p className="font-bold">
+                            {commit.authorDetails.name}
+                          </p>
+                          <div className="font-medium text-xs">
+                            <p>{commit.authorDetails.bio}</p>
+                            <p>{commit.authorDetails.location}</p>
+                            <p>{commit.authorDetails.company}</p>
+                            <p>{commit.authorDetails.blog}</p>
+                            <p>
+                              Membre depuis:{' '}
+                              {formatedDate(commit.authorDetails.created_at)}{' '}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </HoverCardContent>

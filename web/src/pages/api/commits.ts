@@ -212,6 +212,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             blog: authorDetails.blog,
             company: authorDetails.company,
             avatar_url: authorDetails.avatar_url,
+            created_at: authorDetails.created_at,
           },
           date: commit.commit.author.date,
           status: status,
