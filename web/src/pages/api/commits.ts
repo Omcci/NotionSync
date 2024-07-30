@@ -140,6 +140,24 @@ export const fetchCommitsForUserInRepo = async (
   return { commits, pullRequests }
 }
 
+export const fetchAuthorDetails = async (
+  githubToken: string,
+  username: string,
+) => {
+  const userUrl = `https://api.github.com/users/${username}`
+  const userResponse = await fetch(userUrl, {
+    headers: {
+      Authorization: `token ${githubToken}`,
+    },
+  })
+
+  if (!userResponse.ok) {
+    throw new Error(`Error fetching user details: ${userResponse.status}`)
+  }
+
+  return userResponse.json()
+}
+
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const {
     repoName,
@@ -166,32 +184,48 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       per_page,
     )
 
-    const formattedCommits = commits.map((commit: any) => {
-      const status =
-        commit.commit.verification && commit.commit.verification.verified
-          ? 'Verified'
-          : 'Unverified'
-      const pullRequest = pullRequests.find(
-        (pr: any) => pr.head.sha === commit.sha,
-      )
-      const pullRequestStatus = pullRequest ? 'Open PR' : 'No PR'
+    const formattedCommits = await Promise.all(
+      commits.map(async (commit: any) => {
+        const status =
+          commit.commit.verification && commit.commit.verification.verified
+            ? 'Verified'
+            : 'Unverified'
+        const pullRequest = pullRequests.find(
+          (pr: any) => pr.head.sha === commit.sha,
+        )
+        const pullRequestStatus = pullRequest ? 'Open PR' : 'No PR'
 
-      return {
-        commit: commit.commit.message,
-        branch: commit.commit.tree.sha,
-        author: commit.commit.author.name,
-        date: commit.commit.author.date,
-        status: status,
-        pullRequestStatus: pullRequestStatus,
-        actions: [
-          { name: 'View', url: `${commit.html_url}` },
-          { name: 'Github', url: commit.html_url },
-        ] as Action[],
-        avatar_url: commit.committer
-          ? commit.committer.avatar_url
-          : 'https://github.com/identicons/default.png',
-      }
-    })
+        const authorDetails = await fetchAuthorDetails(
+          token!,
+          commit.author.login,
+        )
+        console.log('Author Details:', authorDetails)
+
+        return {
+          commit: commit.commit.message,
+          branch: commit.commit.tree.sha,
+          author: commit.commit.author.name,
+          authorDetails: {
+            name: authorDetails.name,
+            bio: authorDetails.bio,
+            location: authorDetails.location,
+            blog: authorDetails.blog,
+            company: authorDetails.company,
+            avatar_url: authorDetails.avatar_url,
+          },
+          date: commit.commit.author.date,
+          status: status,
+          pullRequestStatus: pullRequestStatus,
+          actions: [
+            { name: 'View', url: `${commit.html_url}` },
+            { name: 'Github', url: commit.html_url },
+          ] as Action[],
+          avatar_url: commit.committer
+            ? commit.committer.avatar_url
+            : 'https://github.com/identicons/default.png',
+        }
+      }),
+    )
 
     res.status(200).json(formattedCommits)
   } catch (error: any) {
