@@ -19,6 +19,7 @@ import { useAppContext } from '@/context/AppContext'
 import { Action, Commit } from '../../../types/types'
 import Link from 'next/link'
 import ErrorMessage from '../ErrorMessage'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card'
 
 export type Filter = {
   name: string
@@ -163,16 +164,32 @@ const CommitLog = () => {
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Avatar>
-                      <AvatarImage src={commit.avatar_url} />
-                      <AvatarFallback>{commit.author[0]}</AvatarFallback>
-                    </Avatar>
-                    <span>{commit.author}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  {new Date(commit.date).toLocaleString()}
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <div className="flex items-center gap-2 cursor-pointer">
+                        <Avatar>
+                          <AvatarImage src={commit.avatar_url} />
+                          <AvatarFallback>{commit.author[0]}</AvatarFallback>
+                        </Avatar>
+                        <span>{commit.author}</span>
+                      </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent>
+                      <div className="flex items-center gap-2">
+                        <Avatar>
+                          <AvatarImage src={commit.authorDetails.avatar_url} />
+                          <AvatarFallback>{commit.author[0]}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-bold">{commit.authorDetails.name}</p>
+                          <p>{commit.authorDetails.bio}</p>
+                          <p>{commit.authorDetails.location}</p>
+                          <p>{commit.authorDetails.company}</p>
+                          <p>{commit.authorDetails.blog}</p>
+                        </div>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
                 </td>
                 <td className="px-4 py-3">
                   {commit.status && (
