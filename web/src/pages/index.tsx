@@ -37,7 +37,7 @@ const Home = () => {
         </div>
       </header>
       <section className="max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
-        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 hover:shadow-lg transform-gpu hover:shadow-gray-400/50">
+        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu ">
           <Image
             src="/neural.jpg"
             alt="Workflow Image"
@@ -58,7 +58,7 @@ const Home = () => {
             </p>
           </CardContent>
         </Card>
-        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 hover:shadow-lg transform-gpu hover:shadow-gray-400/50">
+        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu ">
           <Image
             src="/collab.jpg"
             alt="Collaboration Image"
@@ -78,7 +78,7 @@ const Home = () => {
             </p>
           </CardContent>
         </Card>
-        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 hover:shadow-lg transform-gpu hover:shadow-gray-400/50">
+        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu ">
           <Image
             src="/gh.webp"
             alt="Repository Image"
@@ -100,7 +100,7 @@ const Home = () => {
             </Button>
           </CardContent>
         </Card>
-        <Card className="flex flex-col md:col-span-2 transition-transform duration-500 hover:rotate-1 hover:scale-105 hover:shadow-lg transform-gpu hover:shadow-gray-400/50">
+        <Card className="flex flex-col md:col-span-2 transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu">
           <Image
             src="/document.jpg"
             alt="Documentation Image"
