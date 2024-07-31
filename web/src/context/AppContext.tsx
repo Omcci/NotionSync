@@ -6,8 +6,18 @@ interface Repo {
   org: string
 }
 
-interface SyncStatus {
-  lastSyncDate: string | null
+export interface Branch {
+  name: string
+  commit: {
+    sha: string
+    url: string
+  }
+  status: string
+  actions: Array<{ name: string; icon: JSX.Element; url: string }>
+}
+
+export interface SyncStatus {
+  lastSyncDate?: string | null
   errorBranch: string | null
   statusMessage: string | null
 }
@@ -17,6 +27,8 @@ interface AppContextType {
   setRepos: (repos: Repo[]) => void
   selectedRepo: Repo | null
   setSelectedRepo: (repo: Repo | null) => void
+  selectedBranch: Branch | null
+  setSelectedBranch: (branch: Branch | null) => void
   syncStatus: SyncStatus | null
   setSyncStatus: (status: SyncStatus | null) => void
 }
@@ -26,6 +38,8 @@ const initialState: AppContextType = {
   setRepos: () => {},
   selectedRepo: null,
   setSelectedRepo: () => {},
+  selectedBranch: null,
+  setSelectedBranch: () => {},
   syncStatus: null,
   setSyncStatus: () => {},
 }
@@ -40,12 +54,15 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [repos, setRepos] = useState<Repo[]>([])
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null)
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
 
   const value = {
     repos,
     setRepos,
     selectedRepo,
     setSelectedRepo,
+    selectedBranch,
+    setSelectedBranch,
     syncStatus,
     setSyncStatus,
   }

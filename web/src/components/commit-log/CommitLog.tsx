@@ -50,18 +50,21 @@ const CommitLog = () => {
   const [page, setPage] = useState(1)
   const commitsPerPage = 10
 
-  const { selectedRepo } = useAppContext()
-  console.log('Selected Repo:', selectedRepo)
-
+  const { selectedRepo, selectedBranch } = useAppContext()
+  // console.log('Selected Repo:', selectedRepo)
+  // console.log('Selected Branch:', selectedBranch)
   const fetchCommits = async (page: number) => {
     try {
       const orgName = selectedRepo?.org
       const repoName = selectedRepo?.name
+      const branchName = selectedBranch?.name
+
       console.log(`Repo Owner: ${orgName}`)
       console.log(`Repo Name: ${repoName}`)
+      console.log(`Branch Name: ${branchName}`)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
       const response = await fetch(
-        `${apiUrl}/api/commits?orgName=${orgName}&repoName=${repoName}&page=${page}&per_page=${commitsPerPage}`,
+        `${apiUrl}/api/commits?orgName=${orgName}&repoName=${repoName}&branch=${branchName}&page=${page}&per_page=${commitsPerPage}`,
       )
       console.log('response', response)
       const data = await response.json()
@@ -83,9 +86,9 @@ const CommitLog = () => {
   }, [searchInput, commits])
 
   useEffect(() => {
-    if (!selectedRepo) return
+    if (!selectedRepo || !selectedBranch) return
     fetchCommits(page)
-  }, [selectedRepo, page])
+  }, [selectedRepo, page, selectedBranch])
 
   const theader = ['Commit', 'Sha', 'Author', 'Date', 'Status', 'Actions']
 
@@ -95,7 +98,7 @@ const CommitLog = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold">Commit Log</h2>
         </div>
-        <p>Please select a repository to show the commits.</p>
+        <p>Please select a repository and a branch to show the commits.</p>
       </div>
     )
   }

@@ -1,4 +1,4 @@
-import { useAppContext } from '@/context/AppContext'
+import { SyncStatus, useAppContext } from '@/context/AppContext'
 import { FolderSyncIcon } from '../../public/icon/FolderSyncIcon'
 import { GithubIcon } from '../../public/icon/GithubIcon'
 import { RepeatIcon } from '../../public/icon/RepeatIcon'
@@ -7,8 +7,9 @@ import { Button } from './ui/button'
 import { Select } from './ui/select'
 import { Toggle } from './ui/toggle'
 import { useToast } from './ui/use-toast'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useConfigContext } from '@/context/ConfigContext'
+import { StopCircleIcon } from 'lucide-react'
 // import { signIn, signOut, useSession } from "next-auth/react";
 //TODO : add session with github oauth
 //TODO : display user friendly message of sync status
@@ -16,12 +17,14 @@ import { useConfigContext } from '@/context/ConfigContext'
 const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
 const HeaderV0 = () => {
-  const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext()
+  const { repos, setRepos, selectedRepo, setSelectedRepo, setSyncStatus } =
+    useAppContext()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const { updateFormValues } = useConfigContext()
   // const { data: session } = useSession();
   const username = process.env.NEXT_PUBLIC_USERNAME
+  const syncAbortController = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (username) fetchUserRepos(username)
@@ -56,8 +59,32 @@ const HeaderV0 = () => {
     }
   }
 
+  const updateSyncStatus = async (status: SyncStatus) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    const url = `${apiUrl}/api/syncStatus`
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(status),
+      })
+      if (!response.ok) {
+        throw new Error(`Error updating sync status: ${response.status}`)
+      }
+      const data = await response.json()
+      console.log('Sync status updated:', data)
+      setSyncStatus(data)
+    } catch (error) {
+      console.error('Failed to update sync status:', error)
+    }
+  }
+
   const handleSync = async () => {
     setLoading(true)
+    syncAbortController.current = new AbortController()
     try {
       const response = await fetch('/api/sync?action=sync', {
         method: 'POST',
@@ -65,10 +92,12 @@ const HeaderV0 = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username }),
+        signal: syncAbortController.current.signal,
       })
       const data = await response.json()
       if (response.ok) {
         toast({ title: 'Success', description: data.message })
+        setSyncStatus(data.syncStatus)
       } else {
         console.log('Error:', data)
         toast({
@@ -78,15 +107,70 @@ const HeaderV0 = () => {
         })
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Sync failed. Please try again later.',
-        variant: 'destructive',
-      })
+      if ((error as any).name === 'AbortError') {
+        toast({
+          title: 'Info',
+          description: 'Sync was aborted.',
+          variant: 'destructive',
+        })
+        updateSyncStatus({
+          errorBranch: null,
+          statusMessage: 'Sync process aborted',
+        })
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Sync failed. Please try again later.',
+          variant: 'destructive',
+        })
+      }
     } finally {
       setLoading(false)
+      syncAbortController.current = null
     }
   }
+  const handleStopSync = async () => {
+    if (syncAbortController.current) {
+      syncAbortController.current.abort()
+      syncAbortController.current = null
+      try {
+        const response = await fetch('/api/sync?action=stop', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        const data = await response.json()
+        if (response.ok) {
+          toast({
+            title: 'Info',
+            description: data.message,
+            variant: 'destructive',
+          })
+          updateSyncStatus({
+            errorBranch: null,
+            statusMessage: 'Sync process aborted',
+          })
+        } else {
+          toast({
+            title: 'Error',
+            description:
+              data.details || 'Failed to stop sync. Please try again later.',
+            variant: 'destructive',
+          })
+        }
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to stop sync. Please try again later.',
+          variant: 'destructive',
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
+
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
     if (repo) {
@@ -124,6 +208,12 @@ const HeaderV0 = () => {
           <FolderSyncIcon className="w-5 h-5 mr-2" />
           {loading ? 'Syncing...' : 'Start Sync'}
         </Button>
+        {loading && (
+          <Button variant="ghost" onClick={handleStopSync} disabled={!loading}>
+            <StopCircleIcon className="w-5 h-5 mr-2" />
+            Stop Sync
+          </Button>
+        )}
         <Toggle aria-label="Automatic Sync">
           {' '}
           {/* TODO : add automatic sync //  */}
