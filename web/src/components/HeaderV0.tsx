@@ -9,6 +9,10 @@ import { Toggle } from './ui/toggle'
 import { useToast } from './ui/use-toast'
 import { useEffect, useState } from 'react'
 import { useConfigContext } from '@/context/ConfigContext'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog'
+import { SettingsIcon } from '../../public/icon/SettingsIcon'
+import ConfigSettingsForm from './config-settings/ConfigSettingsForm'
+
 // import { signIn, signOut, useSession } from "next-auth/react";
 //TODO : add session with github oauth
 //TODO : display user friendly message of sync status
@@ -129,6 +133,24 @@ const HeaderV0 = () => {
           {/* TODO : add automatic sync //  */}
           <RepeatIcon className="w-5 h-5" />
         </Toggle>
+      </div>
+      <div className="flex items-center gap-4">
+        <Dialog>
+          <DialogTrigger asChild>
+            <button aria-label="Settings">
+              <SettingsIcon className="w-6 h-6 text-gray-800 dark:text-gray-100" />
+            </button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Settings</DialogTitle>
+              <DialogDescription>
+                Update your repository and token settings.
+              </DialogDescription>
+            </DialogHeader>
+            <ConfigSettingsForm />
+          </DialogContent>
+        </Dialog>
       </div>
     </header>
   )
