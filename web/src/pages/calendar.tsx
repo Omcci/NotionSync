@@ -1,29 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import { Commit } from '../../types/types';
+import React, { useEffect, useState } from 'react'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import { Commit } from '../../types/types'
 
 const CalendarPage = () => {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState([])
 
   useEffect(() => {
     const fetchCommits = async () => {
       try {
-        const response = await fetch('/api/github/commits');
-        const data = await response.json();
+        const response = await fetch('/api/github/commits')
+        const data = await response.json()
         const formattedEvents = data.map((commit: Commit) => ({
           title: commit.commit,
           date: commit.date,
-        }));
-        setEvents(formattedEvents);
+        }))
+        setEvents(formattedEvents)
       } catch (error) {
-        console.error('Error fetching commits:', error);
+        console.error('Error fetching commits:', error)
       }
-    };
+    }
 
-    fetchCommits();
-  }, []);
+    fetchCommits()
+  }, [])
 
   return (
     <div className="container mx-auto p-4">
@@ -37,7 +37,7 @@ const CalendarPage = () => {
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CalendarPage;
+export default CalendarPage
