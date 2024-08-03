@@ -4,14 +4,14 @@ const withTM = require('next-transpile-modules')(['lucide-react']) // Include yo
 const nextConfig = {
   reactStrictMode: true,
 
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:4001/:path*', // Proxy to Backend
-      },
-    ]
-  },
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/:path*',
+  //       destination: 'http://localhost:4001/:path*', // Proxy to Backend
+  //     },
+  //   ]
+  // },
 }
 
 module.exports = withTM(nextConfig)
