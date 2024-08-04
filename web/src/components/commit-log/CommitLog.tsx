@@ -120,6 +120,13 @@ const CommitLog = () => {
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold">Commit Log</h2>
+        {selectedRepo && (
+          <Link href={`/calendar?orgName=${selectedRepo.org}&repoName=${selectedRepo.name}`} passHref>
+            <Button variant="ghost">
+              <CalendarDaysIcon className="w-5 h-5" />
+            </Button>
+          </Link>
+        )}
         <CommitLogFilters
           filters={filters}
           searchInput={searchInput}
