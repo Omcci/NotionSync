@@ -4,16 +4,46 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { Commit } from '../../types/types';
 import { useRouter } from 'next/router';
+import { useAppContext } from '@/context/AppContext';
+import SelectComponent from '@/components/SelectComponent';
 
 const CalendarPage = () => {
   const [events, setEvents] = useState([]);
   const router = useRouter();
-  const { orgName, repoName } = router.query;
-  console.log('orgName:', orgName);
-  console.log('repoName:', repoName);
+  // const { orgName, repoName } = router.query;
+  // console.log('orgName:', orgName);
+  // console.log('repoName:', repoName);
+
+  const { repos, selectedRepo, setSelectedRepo, setRepos } = useAppContext();
+  console.log('repos', repos)
+  const { org: orgName, name: repoName } = selectedRepo || {};
+
+  // useEffect(() => {
+  //   const fetchRepos = async () => {
+  //     if (repos?.length === 0) {
+  //       const username = process.env.NEXT_PUBLIC_USERNAME;
+  //       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  //       const url = `${apiUrl}/api/repos?username=${encodeURIComponent(username!)}`;
+
+  //       try {
+  //         const response = await fetch(url);
+  //         if (!response.ok) {
+  //           throw new Error(`Error fetching repositories: ${response.status}`);
+  //         }
+  //         const data = await response.json();
+  //         setRepos(data.repos);
+  //       } catch (error) {
+  //         console.error('Failed to fetch repositories:', error);
+  //       }
+  //     }
+  //   };
+
+  //   fetchRepos();
+  // }, [repos, setRepos]);
+
 
   useEffect(() => {
-    if (!orgName || !repoName) return;
+    if (!selectedRepo) return;
 
     const fetchCommits = async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -39,11 +69,25 @@ const CalendarPage = () => {
       }
     };
     fetchCommits();
-  }, [repoName, orgName]);
+  }, [repoName, orgName, selectedRepo]);
+
+
+  const handleRepoSelect = (repoId: string) => {
+    const repo = repos.find((r) => r.id === repoId);
+    if (repo) {
+      setSelectedRepo(repo);
+    }
+  };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">My Commits Calendar</h1>
+      <SelectComponent
+        placeholder="Select a repository"
+        options={repos?.map(repo => ({ value: repo.id, label: repo.name }))}
+        value={selectedRepo ? selectedRepo.id : ''}
+        onChange={handleRepoSelect}
+      />
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}
