@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { useAppContext } from '@/context/AppContext';
 import SelectComponent from '@/components/SelectComponent';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import ModalCommits from '@/components/ModalCommits';
 
 //TODO : add mistral to make a summary of the day
 const CalendarPage = () => {
@@ -121,7 +122,7 @@ const CalendarPage = () => {
           dateClick={handleDateClick}
         />
       </div>
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <button className="hidden">Open</button>
         </DialogTrigger>
@@ -136,17 +137,17 @@ const CalendarPage = () => {
               {commitDetails.map((commit, idx) => (
                 <li key={idx} className="p-4">
                   <div className="flex items-start space-x-4">
-                    {/* <img
+                    <img
                       src={commit.authorDetails.avatar_url}
                       alt={`${commit.author}'s avatar`}
                       className="w-10 h-10 rounded-full"
-                    /> */}
+                    />
                     <div>
                       <p className="text-lg font-semibold">{commit.commit}</p>
                       <p className="text-gray-500">Author: {commit.author}</p>
                       <p className="text-gray-500">Date: {new Date(commit.date).toLocaleString()}</p>
                       <p className="text-gray-500">Status: {commit.status}</p>
-                      {/* <div className="mt-2">
+                      <div className="mt-2">
                         {commit.actions.map((action, actionIdx) => (
                           <a
                             key={actionIdx}
@@ -158,7 +159,7 @@ const CalendarPage = () => {
                             {action.name}
                           </a>
                         ))}
-                      </div> */}
+                      </div>
                     </div>
                   </div>
                 </li>
@@ -167,7 +168,10 @@ const CalendarPage = () => {
           )}
         </DialogContent>
 
-      </Dialog>
+      </Dialog> */}
+
+      <ModalCommits open={open} setOpen={setOpen} selectedDate={selectedDate} commitDetails={commitDetails} />
+
     </div>
   );
 };
