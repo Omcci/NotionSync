@@ -69,10 +69,10 @@ const CalendarPage = () => {
         const formattedEvents = data.map((commit: Commit) => ({
           title: commit.commit,
           date: commit.date,
-        }));
-        setEvents(formattedEvents);
+        }))
+        setEvents(formattedEvents)
       } catch (error) {
-        console.error('Error fetching commits:', error);
+        console.error('Error fetching commits:', error)
       }
     };
     fetchCommits();
@@ -173,7 +173,7 @@ const CalendarPage = () => {
       <ModalCommits open={open} setOpen={setOpen} selectedDate={selectedDate} commitDetails={commitDetails} />
 
     </div>
-  );
-};
+  )
+}
 
-export default CalendarPage;
+export default CalendarPage
