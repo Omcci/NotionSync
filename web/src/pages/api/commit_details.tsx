@@ -1,40 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { Commit } from '../../../types/types';
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import { Commit } from '../../../types/types'
 
 const CommitDetailsPage = () => {
-  const [commits, setCommits] = useState<Commit[]>([]);
-  const router = useRouter();
-  const { date, orgName, repoName } = router.query;
+  const [commits, setCommits] = useState<Commit[]>([])
+  const router = useRouter()
+  const { date, orgName, repoName } = router.query
 
   useEffect(() => {
-    if (!date || !orgName || !repoName) return;
+    if (!date || !orgName || !repoName) return
 
     const fetchCommits = async () => {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const url = `${apiUrl}/api/commits_details?repoName=${repoName}&orgName=${orgName}&date=${date}`;
-      console.log('fetching commits for date', url);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const url = `${apiUrl}/api/commits_details?repoName=${repoName}&orgName=${orgName}&date=${date}`
+      console.log('fetching commits for date', url)
 
       try {
-        const response = await fetch(url);
-        console.log('response:', response);
+        const response = await fetch(url)
+        console.log('response:', response)
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Error fetching commits: ${response.status} - ${errorText}`);
+          const errorText = await response.text()
+          throw new Error(
+            `Error fetching commits: ${response.status} - ${errorText}`,
+          )
         }
-        const data = await response.json();
-        console.log('data:', data);
-        setCommits(data);
+        const data = await response.json()
+        console.log('data:', data)
+        setCommits(data)
       } catch (error) {
-        console.error('Error fetching commits:', error);
+        console.error('Error fetching commits:', error)
       }
-    };
+    }
 
-    fetchCommits();
-  }, [date, orgName, repoName]);
+    fetchCommits()
+  }, [date, orgName, repoName])
 
   if (!commits.length) {
-    return <p>No commits found for this date.</p>;
+    return <p>No commits found for this date.</p>
   }
 
   return (
@@ -43,14 +45,16 @@ const CommitDetailsPage = () => {
       <ul>
         {commits.map((commit, idx) => (
           <li key={idx}>
-            <p><strong>{commit.commit}</strong></p>
+            <p>
+              <strong>{commit.commit}</strong>
+            </p>
             <p>Author: {commit.author}</p>
             <p>Date: {commit.date}</p>
           </li>
         ))}
       </ul>
     </div>
-  );
-};
+  )
+}
 
-export default CommitDetailsPage;
+export default CommitDetailsPage

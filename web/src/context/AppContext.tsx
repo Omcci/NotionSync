@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from 'react'
 
 interface Repo {
   id: string
@@ -44,24 +50,24 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   useEffect(() => {
     const fetchRepos = async () => {
       if (repos.length === 0) {
-        const username = process.env.NEXT_PUBLIC_USERNAME;
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const url = `${apiUrl}/api/repos?username=${encodeURIComponent(username!)}`;
+        const username = process.env.NEXT_PUBLIC_USERNAME
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL
+        const url = `${apiUrl}/api/repos?username=${encodeURIComponent(username!)}`
 
         try {
-          const response = await fetch(url);
+          const response = await fetch(url)
           if (!response.ok) {
-            throw new Error(`Error fetching repositories: ${response.status}`);
+            throw new Error(`Error fetching repositories: ${response.status}`)
           }
-          const data = await response.json();
-          setRepos(data.repos);
+          const data = await response.json()
+          setRepos(data.repos)
         } catch (error) {
-          console.error('Failed to fetch repositories:', error);
+          console.error('Failed to fetch repositories:', error)
         }
       }
-    };
-    fetchRepos();
-  }, [repos.length]);
+    }
+    fetchRepos()
+  }, [repos.length])
 
   const value = {
     repos,

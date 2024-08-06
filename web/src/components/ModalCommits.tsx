@@ -1,14 +1,30 @@
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import React from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 type ModalCommitsProps = {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  selectedDate: string;
-  commitDetails: { commit: string; author: string; date: string, status: string }[];
-};
+  open: boolean
+  setOpen: (open: boolean) => void
+  selectedDate: string
+  commitDetails: {
+    commit: string
+    author: string
+    date: string
+    status: string
+  }[]
+}
 
-const ModalCommits = ({ open, setOpen, selectedDate, commitDetails }: ModalCommitsProps) => {
+const ModalCommits = ({
+  open,
+  setOpen,
+  selectedDate,
+  commitDetails,
+}: ModalCommitsProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -16,7 +32,9 @@ const ModalCommits = ({ open, setOpen, selectedDate, commitDetails }: ModalCommi
       </DialogTrigger>
       <DialogContent className="max-w-3xl overflow-y-auto max-h-[75vh]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Commits on {selectedDate}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            Commits on {selectedDate}
+          </DialogTitle>
         </DialogHeader>
         {commitDetails.length === 0 ? (
           <p className="text-gray-500">No commits found for this date.</p>
@@ -28,7 +46,9 @@ const ModalCommits = ({ open, setOpen, selectedDate, commitDetails }: ModalCommi
                   <div>
                     <p className="text-lg font-semibold">{commit.commit}</p>
                     <p className="text-gray-500">Author: {commit.author}</p>
-                    <p className="text-gray-500">Date: {new Date(commit.date).toLocaleString()}</p>
+                    <p className="text-gray-500">
+                      Date: {new Date(commit.date).toLocaleString()}
+                    </p>
                     <p className="text-gray-500">Status: {commit.status}</p>
                   </div>
                 </div>
@@ -38,7 +58,7 @@ const ModalCommits = ({ open, setOpen, selectedDate, commitDetails }: ModalCommi
         )}
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default ModalCommits;
+export default ModalCommits
