@@ -212,14 +212,16 @@ const CommitLog = () => {
                   </HoverCard>
                 </td>
                 <td className="px-4 py-3">
+                  {formatedDate(commit.date)}
+                </td>
+                <td className="px-4 py-3">
                   {commit.status && (
                     <div>
                       <Badge
-                        className={`${
-                          commit.status === 'Verified'
+                        className={`${commit.status === 'Verified'
                             ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
                             : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
-                        }`}
+                          }`}
                         variant="outline"
                       >
                         {commit.status}
