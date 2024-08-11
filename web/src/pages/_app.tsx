@@ -10,6 +10,7 @@ import { ConfigProvider } from '@/context/ConfigContext'
 
 import { supabase } from '../lib/supabaseClient';
 import { User } from '@supabase/supabase-js'
+import { useRouter } from 'next/router'
 
 
 const interFont = Inter({
@@ -20,6 +21,7 @@ const interFont = Inter({
 function MyApp({ Component, pageProps }: AppProps) {
 
   const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const getSession = async () => {
@@ -31,6 +33,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      session?.user ? router.push('/dashboardv0') : router.push('/');
     });
 
     return () => {
