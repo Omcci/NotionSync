@@ -33,7 +33,6 @@ function MyApp({ Component, pageProps }: AppProps) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      session?.user ? router.push('/dashboardv0') : router.push('/');
     });
 
     return () => {
@@ -44,7 +43,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <AppProvider>
       <ConfigProvider>
-        <Layout>
+        <Layout user={user}>
           <Head>
             <meta
               name="viewport"
