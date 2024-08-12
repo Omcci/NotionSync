@@ -8,10 +8,9 @@ import Head from 'next/head'
 import { AppProvider } from '@/context/AppContext'
 import { ConfigProvider } from '@/context/ConfigContext'
 
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/router'
-
 
 const interFont = Inter({
   subsets: ['latin'],
@@ -19,26 +18,28 @@ const interFont = Inter({
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
-
-  const [user, setUser] = useState<User | null>(null);
-  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-    };
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+    }
 
-    getSession();
+    getSession()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
 
     return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+      subscription.unsubscribe()
+    }
+  }, [])
 
   return (
     <AppProvider>
