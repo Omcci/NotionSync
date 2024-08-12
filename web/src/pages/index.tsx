@@ -15,8 +15,25 @@ import {
 import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import Link from 'next/link'
+import { GithubIcon } from '../../public/icon/GithubIcon'
+import signInWithGitHub from '@/lib/login'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
+import { User } from '@supabase/supabase-js'
 
+// TODO : refactor user state to get it from context
 const Home = () => {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+
+    getSession();
+  }, []);
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 bg-gray-50 dark:bg-gray-900 ">
       <header className="w-full max-w-3xl text-sm font-mono">
@@ -27,14 +44,26 @@ const Home = () => {
           Seamlessly sync your GitHub commits with Notion to keep your project
           management up-to-date and effortless.
         </p>
-        <div className="flex  border-b border-gray-300 dark:border-gray-700 py-4">
-          <span className="text-gray-600 dark:text-gray-300">
-            Get started by going to{' '}
+        {user ? (
+          <>
+            Get started by visiting your{' '}
+            <Link href="/dashboardv0">
+              <code className="font-bold text-gray-900 dark:text-gray-100">
+                Dashboard
+              </code>
+            </Link>
+          </>
+        ) : (
+          <>
+            Get started by signing in to{' '}
             <code className="font-bold text-gray-900 dark:text-gray-100">
-              <Link href="/dashboardv0">dashboard</Link>
+              <Button variant="ghost" onClick={signInWithGitHub}>
+                <GithubIcon className="w-5 h-5 mr-2" />
+                GitHub
+              </Button>
             </code>
-          </span>
-        </div>
+          </>
+        )}
       </header>
       <section className="max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
         <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu ">
