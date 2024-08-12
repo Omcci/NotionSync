@@ -23,16 +23,18 @@ import { User } from '@supabase/supabase-js'
 
 // TODO : refactor user state to get it from context
 const Home = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-    };
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+    }
 
-    getSession();
-  }, []);
+    getSession()
+  }, [])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 bg-gray-50 dark:bg-gray-900 ">
