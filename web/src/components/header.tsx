@@ -1,9 +1,17 @@
-import { supabase } from '@/lib/supabaseClient';
-import { MenuIcon } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient'
+import { MenuIcon } from 'lucide-react'
 import Link from 'next/link'
 import LogoutButton from './LogoutButton'
-import { Button } from './ui/button';
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from './ui/navigation-menu';
+import { Button } from './ui/button'
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from './ui/navigation-menu'
 
 export function Header({ user }: { user: any }) {
   const links = [
