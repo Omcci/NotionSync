@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link'
 import LogoutButton from './LogoutButton'
 import { Button } from './ui/button';
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from './ui/navigation-menu';
 
 export function Header({ user }: { user: any }) {
   const links = [
@@ -32,7 +33,7 @@ export function Header({ user }: { user: any }) {
             alt="NotionSync"
             className="w-8"
           />
-          <span className="text-white">NotionSync</span>
+          <span className="text-white hidden md:flex">NotionSync</span>
         </Link>
         <nav className="hidden md:flex items-center gap-4">
           {links.map(({ href, label }) => (
@@ -41,6 +42,28 @@ export function Header({ user }: { user: any }) {
             </Link>
           ))}
         </nav>
+      </div>
+      <div className="md:hidden">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Menu</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="p-2">
+                  {links.map(({ href, label }) => (
+                    <li key={`${href}${label}`}>
+                      <Link href={href} legacyBehavior passHref>
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                          {label}
+                        </NavigationMenuLink>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
       </div>
       <div className="flex items-center gap-4">
         {user ? (
