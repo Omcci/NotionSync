@@ -72,7 +72,7 @@ const Home = () => {
             alt="Workflow Image"
             width={400}
             height={200}
-            className="rounded-t-lg w-full h-32 object-cover"
+            className="rounded-t-lg w-full h-32 object-cover filter grayscale hover:grayscale-0 transition-all duration-300"
           />
           <CardHeader>
             <CardTitle>Automate Your Workflow</CardTitle>
@@ -89,11 +89,11 @@ const Home = () => {
         </Card>
         <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu ">
           <Image
-            src="/collab.jpg"
+            src="/collab1.jpg"
             alt="Collaboration Image"
             width={400}
             height={200}
-            className="rounded-t-lg w-full h-32 object-cover"
+            className="rounded-t-lg w-full h-32 object-cover filter grayscale hover:grayscale-0 transition-all duration-300"
           />
           <CardHeader>
             <CardTitle>Enhance Collaboration</CardTitle>
@@ -131,11 +131,11 @@ const Home = () => {
         </Card>
         <Card className="flex flex-col md:col-span-2 transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu">
           <Image
-            src="/document.jpg"
+            src="/document1.jpg"
             alt="Documentation Image"
             width={400}
             height={200}
-            className="rounded-t-lg w-full h-32 object-cover"
+            className="rounded-t-lg w-full h-32 object-cover filter grayscale hover:grayscale-0 transition-all duration-300"
           />
           <CardHeader>
             <CardTitle>Documentation & Guides</CardTitle>
