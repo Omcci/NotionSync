@@ -17,10 +17,10 @@ export function Header({ user }: { user: any }) {
   const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
-    });
+    })
 
-    if (error) console.error('Error during sign-in:', error.message);
-  };
+    if (error) console.error('Error during sign-in:', error.message)
+  }
 
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-gray-950 shadow-sm dark:bg-gray-950 dark:text-gray-50">
