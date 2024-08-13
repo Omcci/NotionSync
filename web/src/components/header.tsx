@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+import { MenuIcon } from 'lucide-react';
 import Link from 'next/link'
 import LogoutButton from './LogoutButton'
 import { Button } from './ui/button';
@@ -47,13 +48,17 @@ export function Header({ user }: { user: any }) {
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <NavigationMenuTrigger>Menu</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="p-2">
+              <NavigationMenuTrigger className="flex items-center p-2 rounded-md bg-gray-900  transition-colors">
+                <MenuIcon className="w-6 h-6 text-white" aria-hidden="true" />
+              </NavigationMenuTrigger>
+              <NavigationMenuContent className="">
+                <ul className="p-4 space-y-2">
                   {links.map(({ href, label }) => (
                     <li key={`${href}${label}`}>
                       <Link href={href} legacyBehavior passHref>
-                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                        <NavigationMenuLink
+                          className={`${navigationMenuTriggerStyle()} block`}
+                        >
                           {label}
                         </NavigationMenuLink>
                       </Link>
