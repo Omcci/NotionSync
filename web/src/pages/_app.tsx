@@ -11,6 +11,7 @@ import { ConfigProvider } from '@/context/ConfigContext'
 import { supabase } from '../lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/router'
+import { UserProvider } from '@/context/UserContext'
 
 const interFont = Inter({
   subsets: ['latin'],
@@ -18,46 +19,26 @@ const interFont = Inter({
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const [user, setUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-    }
-
-    getSession()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
 
   return (
-    <AppProvider>
-      <ConfigProvider>
-        <Layout user={user}>
-          <Head>
-            <meta
-              name="viewport"
-              content="width=device-width, initial-scale=1.0"
-            />
-            <style dangerouslySetInnerHTML={{ __html: interFont.style }} />
-          </Head>
-          <div className={interFont.className}>
-            <Component {...pageProps} user={user} />
-          </div>
-        </Layout>
-      </ConfigProvider>
-    </AppProvider>
+    <UserProvider>
+      <AppProvider>
+        <ConfigProvider>
+          <Layout>
+            <Head>
+              <meta
+                name="viewport"
+                content="width=device-width, initial-scale=1.0"
+              />
+              <style dangerouslySetInnerHTML={{ __html: interFont.style }} />
+            </Head>
+            <div className={interFont.className}>
+              <Component {...pageProps} />
+            </div>
+          </Layout>
+        </ConfigProvider>
+      </AppProvider>
+    </UserProvider>
   )
 }
 
