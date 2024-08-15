@@ -56,7 +56,7 @@ const Home = () => {
             </Link>
           </>
         ) : (
-          <>
+          <div className='flex items-center'>
             Get started by signing in to{' '}
             <code className="font-bold text-gray-900 dark:text-gray-100">
               <Button variant="ghost" onClick={signInWithGitHub}>
@@ -64,7 +64,7 @@ const Home = () => {
                 GitHub
               </Button>
             </code>
-          </>
+          </div>
         )}
       </header>
       <section className="max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
