@@ -68,13 +68,13 @@ const Home = () => {
         )}
       </header>
       <section className="max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
-        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu ">
+        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu filter grayscale hover:grayscale-0 ">
           <Image
             src="/neural.jpg"
             alt="Workflow Image"
             width={400}
             height={200}
-            className="rounded-t-lg w-full h-32 object-cover filter grayscale hover:grayscale-0 transition-all duration-300"
+            className="rounded-t-lg w-full h-32 object-cover transition-all duration-300"
           />
           <CardHeader>
             <CardTitle>Automate Your Workflow</CardTitle>
@@ -89,13 +89,13 @@ const Home = () => {
             </p>
           </CardContent>
         </Card>
-        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu ">
+        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu filter grayscale hover:grayscale-0 ">
           <Image
             src="/collab1.jpg"
             alt="Collaboration Image"
             width={400}
             height={200}
-            className="rounded-t-lg w-full h-32 object-cover filter grayscale hover:grayscale-0 transition-all duration-300"
+            className="rounded-t-lg w-full h-32 object-cover transition-all duration-300"
           />
           <CardHeader>
             <CardTitle>Enhance Collaboration</CardTitle>
@@ -131,13 +131,13 @@ const Home = () => {
             </Button>
           </CardContent>
         </Card>
-        <Card className="flex flex-col md:col-span-2 transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu">
+        <Card className="flex flex-col md:col-span-2 transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu filter grayscale hover:grayscale-0">
           <Image
             src="/document1.jpg"
             alt="Documentation Image"
             width={400}
             height={200}
-            className="rounded-t-lg w-full h-32 object-cover filter grayscale hover:grayscale-0 transition-all duration-300"
+            className="rounded-t-lg w-full h-32 object-cover transition-all duration-300"
           />
           <CardHeader>
             <CardTitle>Documentation & Guides</CardTitle>
