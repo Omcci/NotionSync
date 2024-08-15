@@ -1,3 +1,4 @@
+import { useUser } from '@/context/UserContext';
 import { supabase } from '@/lib/supabaseClient';
 import { MenuIcon } from 'lucide-react';
 import Link from 'next/link'
@@ -5,7 +6,7 @@ import LogoutButton from './LogoutButton'
 import { Button } from './ui/button';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from './ui/navigation-menu';
 
-export function Header({ user }: { user: any }) {
+export function Header() {
   const links = [
     { href: '/', label: 'Home' },
     { href: '/dashboard', label: 'Dashboard' },
@@ -21,6 +22,8 @@ export function Header({ user }: { user: any }) {
 
     if (error) console.error('Error during sign-in:', error.message)
   }
+
+  const { user } = useUser();
 
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-gray-950 shadow-sm dark:bg-gray-950 dark:text-gray-50">
