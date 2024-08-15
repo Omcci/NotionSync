@@ -19,7 +19,6 @@ const interFont = Inter({
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
-
   return (
     <UserProvider>
       <AppProvider>
