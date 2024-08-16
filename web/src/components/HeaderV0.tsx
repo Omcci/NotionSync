@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import { useConfigContext } from '@/context/ConfigContext'
 import ConfigSettings from './config-settings/ConfigSettings'
 import signInWithGitHub from '@/lib/login'
+import { useUser } from '@/context/UserContext'
 
 // import { signIn, signOut, useSession } from "next-auth/react";
 //TODO : add session with github oauth
@@ -25,6 +26,7 @@ const HeaderV0 = () => {
   const { updateFormValues } = useConfigContext()
   // const { data: session } = useSession();
   const username = process.env.NEXT_PUBLIC_USERNAME
+  const user = useUser()
 
   useEffect(() => {
     if (username) fetchUserRepos(username)
@@ -118,6 +120,7 @@ const HeaderV0 = () => {
           options={repoOptions}
           value={selectedRepo ? selectedRepo.id : ''}
           onChange={(id) => handleRepoSelect(id)}
+          disabled={!user?.user || loading || repos.length === 0 || !username}
         />
         <Button
           variant="ghost"
