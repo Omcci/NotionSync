@@ -164,11 +164,13 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     orgName,
     page = '1',
     per_page = '10',
+    date,
   } = req.query as {
     repoName: string
     orgName: string
     page: string
     per_page: string
+    date?: string
   }
 
   console.log(`Fetching commits for ${orgName}/${repoName}`)
@@ -184,8 +186,19 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       per_page,
     )
 
+    let filteredCommits = commits
+
+    if (date) {
+      filteredCommits = commits.filter((commit: any) => {
+        const commitDate = new Date(commit.commit.author.date)
+          .toISOString()
+          .split('T')[0]
+        return commitDate === date
+      })
+    }
+
     const formattedCommits = await Promise.all(
-      commits.map(async (commit: any) => {
+      filteredCommits.map(async (commit: any) => {
         const status =
           commit.commit.verification && commit.commit.verification.verified
             ? 'Verified'
