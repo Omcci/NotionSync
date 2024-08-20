@@ -28,9 +28,12 @@ const CalendarPage = () => {
 
     const fetchCommits = async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      const url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}`
+      let url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}`
       console.log('fetching sync status', url)
 
+      if (selectedDate) {
+        url += `&date=${selectedDate}`;
+      }
       try {
         const response = await fetch(url)
         console.log('response:', response)
@@ -42,17 +45,21 @@ const CalendarPage = () => {
         }
         const data = await response.json()
         console.log('data:', data)
-        const formattedEvents = data.map((commit: Commit) => ({
-          title: commit.commit,
-          date: commit.date,
-        }))
-        setEvents(formattedEvents)
+        if (selectedDate) {
+          setCommitDetails(data);
+        } else {
+          const formattedEvents = data.map((commit: Commit) => ({
+            title: commit.commit,
+            date: commit.date,
+          }));
+          setEvents(formattedEvents);
+        }
       } catch (error) {
         console.error('Error fetching commits:', error)
       }
     }
     fetchCommits()
-  }, [repoName, orgName, selectedRepo])
+  }, [repoName, orgName, selectedRepo, selectedDate])
 
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
@@ -62,24 +69,23 @@ const CalendarPage = () => {
   }
 
   const handleDateClick = async (info: any) => {
-    setSelectedDate(info.dateStr)
-    setOpen(true)
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    const url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}&date=${info.dateStr}`
+    setSelectedDate(info.dateStr);
+    setCommitDetails([]);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}&date=${info.dateStr}`;
     try {
-      const response = await fetch(url)
+      const response = await fetch(url);
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(
-          `Error fetching commits: ${response.status} - ${errorText}`,
-        )
+        const errorText = await response.text();
+        throw new Error(`Error fetching commits: ${response.status} - ${errorText}`);
       }
-      const data = await response.json()
-      setCommitDetails(data)
+      const data = await response.json();
+      setCommitDetails(data);
+      setOpen(true);
     } catch (error) {
-      console.error('Error fetching commits:', error)
+      console.error('Error fetching commits:', error);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto p-4">
