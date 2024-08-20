@@ -32,7 +32,7 @@ const CalendarPage = () => {
       console.log('fetching sync status', url)
 
       if (selectedDate) {
-        url += `&date=${selectedDate}`;
+        url += `&date=${selectedDate}`
       }
       try {
         const response = await fetch(url)
@@ -46,13 +46,13 @@ const CalendarPage = () => {
         const data = await response.json()
         console.log('data:', data)
         if (selectedDate) {
-          setCommitDetails(data);
+          setCommitDetails(data)
         } else {
           const formattedEvents = data.map((commit: Commit) => ({
             title: commit.commit,
             date: commit.date,
-          }));
-          setEvents(formattedEvents);
+          }))
+          setEvents(formattedEvents)
         }
       } catch (error) {
         console.error('Error fetching commits:', error)
@@ -69,30 +69,36 @@ const CalendarPage = () => {
   }
 
   const handleDateClick = async (info: any) => {
-    setSelectedDate(info.dateStr);
-    setCommitDetails([]);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}&date=${info.dateStr}`;
+    setSelectedDate(info.dateStr)
+    setCommitDetails([])
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    const url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}&date=${info.dateStr}`
     try {
-      const response = await fetch(url);
+      const response = await fetch(url)
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error fetching commits: ${response.status} - ${errorText}`);
+        const errorText = await response.text()
+        throw new Error(
+          `Error fetching commits: ${response.status} - ${errorText}`,
+        )
       }
-      const data = await response.json();
-      setCommitDetails(data);
-      setOpen(true);
+      const data = await response.json()
+      setCommitDetails(data)
+      setOpen(true)
     } catch (error) {
-      console.error('Error fetching commits:', error);
+      console.error('Error fetching commits:', error)
     }
-  };
+  }
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">My Commits Calendar</h1>
       <SelectComponent
         placeholder="Select a repository"
-        options={user.user ? repos?.map((repo) => ({ value: repo.id, label: repo.name })) : []}
+        options={
+          user.user
+            ? repos?.map((repo) => ({ value: repo.id, label: repo.name }))
+            : []
+        }
         value={selectedRepo ? selectedRepo.id : ''}
         onChange={handleRepoSelect}
         disabled={!user.user}
