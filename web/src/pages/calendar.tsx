@@ -7,11 +7,13 @@ import { useRouter } from 'next/router'
 import { useAppContext } from '@/context/AppContext'
 import SelectComponent from '@/components/SelectComponent'
 import ModalCommits from '@/components/ModalCommits'
+import { useUser } from '@/context/UserContext'
 
 //TODO : add mistral to make a summary of the day
 const CalendarPage = () => {
   const [events, setEvents] = useState([])
   const router = useRouter()
+  const user = useUser()
 
   const [selectedDate, setSelectedDate] = useState('')
   const [commitDetails, setCommitDetails] = useState<Commit[]>([])
@@ -84,9 +86,10 @@ const CalendarPage = () => {
       <h1 className="text-2xl font-bold mb-4">My Commits Calendar</h1>
       <SelectComponent
         placeholder="Select a repository"
-        options={repos?.map((repo) => ({ value: repo.id, label: repo.name }))}
+        options={user.user ? repos?.map((repo) => ({ value: repo.id, label: repo.name })) : []}
         value={selectedRepo ? selectedRepo.id : ''}
         onChange={handleRepoSelect}
+        disabled={!user.user}
       />
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <FullCalendar
