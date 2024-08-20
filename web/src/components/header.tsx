@@ -1,6 +1,6 @@
-import { useUser } from '@/context/UserContext';
-import { supabase } from '@/lib/supabaseClient';
-import { MenuIcon } from 'lucide-react';
+import { useUser } from '@/context/UserContext'
+import { supabase } from '@/lib/supabaseClient'
+import { MenuIcon } from 'lucide-react'
 import Link from 'next/link'
 import LogoutButton from './LogoutButton'
 import { Button } from './ui/button'
@@ -31,7 +31,7 @@ export function Header() {
     if (error) console.error('Error during sign-in:', error.message)
   }
 
-  const { user } = useUser();
+  const { user } = useUser()
 
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-gray-950 shadow-sm dark:bg-gray-950 dark:text-gray-50">
