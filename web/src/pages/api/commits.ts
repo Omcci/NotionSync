@@ -158,18 +158,45 @@ export const fetchAuthorDetails = async (
   return userResponse.json()
 }
 
+export const fetchAllCommitsForRepo = async (
+  githubToken: string,
+  orgName: string,
+  repoName: string,
+) => {
+  let page = 1
+  const per_page = 100
+  let allCommits: any = []
+
+  while (true) {
+    const { commits } = await fetchCommitsForUserInRepo(
+      githubToken,
+      orgName,
+      repoName,
+      page.toString(),
+      per_page.toString(),
+    )
+
+    if (commits.length === 0) break
+
+    allCommits = allCommits.concat(commits)
+    page++
+  }
+
+  return allCommits
+}
+
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const {
     repoName,
     orgName,
-    page = '1',
-    per_page = '10',
+    // page = '1',
+    // per_page = '10',
     date,
   } = req.query as {
     repoName: string
     orgName: string
-    page: string
-    per_page: string
+    // page: string
+    // per_page: string
     date?: string
   }
 
@@ -178,18 +205,18 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   const token = process.env.GITHUB_TOKEN
 
   try {
-    const { commits, pullRequests } = await fetchCommitsForUserInRepo(
+    const allCommits = await fetchAllCommitsForRepo(
       token!,
       orgName,
       repoName,
-      page,
-      per_page,
+      // page,
+      // per_page,
     )
 
-    let filteredCommits = commits
+    let filteredCommits = allCommits
 
     if (date) {
-      filteredCommits = commits.filter((commit: any) => {
+      filteredCommits = allCommits.filter((commit: any) => {
         const commitDate = new Date(commit.commit.author.date)
           .toISOString()
           .split('T')[0]
@@ -203,11 +230,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           commit.commit.verification && commit.commit.verification.verified
             ? 'Verified'
             : 'Unverified'
-        const pullRequest = pullRequests.find(
-          (pr: any) => pr.head.sha === commit.sha,
-        )
-        const pullRequestStatus = pullRequest ? 'Open PR' : 'No PR'
-
         const authorDetails = await fetchAuthorDetails(
           token!,
           commit.author.login,
@@ -229,7 +251,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           },
           date: commit.commit.author.date,
           status: status,
-          pullRequestStatus: pullRequestStatus,
           actions: [
             { name: 'View', url: `${commit.html_url}` },
             { name: 'Github', url: commit.html_url },
