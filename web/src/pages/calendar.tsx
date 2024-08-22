@@ -102,6 +102,12 @@ const CalendarPage = () => {
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           events={events}
+          eventTimeFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          }}
+          eventClassNames={() => ' text-xs truncate'}
           dateClick={handleDateClick}
         />
       </div>
