@@ -2,12 +2,12 @@ version: '3'
 services:
   web:
     build: 
-      context: .
+      context: ./web
       target: dev
     ports:
       - '3000:3000'
     volumes:
-      - '.:/app'
+      - './web:/app'
       - '/app/node_modules'
     environment:
       - NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
