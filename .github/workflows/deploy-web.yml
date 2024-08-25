@@ -2,38 +2,41 @@ name: Deploy Web
 
 on:
   push:
-    branches: ["dev"]
+    branches: ['dev']
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up SSH agent
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Build the Docker image
-      run: |
-        docker build -t web-image ./web
-        docker save web-image | gzip > web-image.tar.gz
+      - name: Build the Docker image
+        run: |
+          docker build -t web-image ./web
+          docker save web-image | gzip > web-image.tar.gz
 
-    - name: Copy Docker image to server
-      run: |
-        scp -o StrictHostKeyChecking=no web-image.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_PATH }}
+      - name: Copy Docker image to server
+        run: |
+          scp -o StrictHostKeyChecking=no web-image.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_PATH }}
 
-    - name: Deploy to server
-      run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
-          gunzip -c ${{ secrets.DEPLOY_PATH }}/web-image.tar.gz | docker load && \
-          docker stop web-container || true && \
-          docker rm web-container || true && \
-          docker run -d --name web-container -p 4000:3000 web-image
-        "
-      env:
-        SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
-        
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+            gunzip -c ${{ secrets.DEPLOY_PATH }}/web-image.tar.gz | docker load && \
+            docker stop web-container || true && \
+            docker rm web-container || true && \
+            docker run -d --name web-container -p 4000:3000 \
+              -e NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+              -e NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
+              web-image
+          "
+
+        env:
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
