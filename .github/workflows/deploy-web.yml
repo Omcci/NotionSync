@@ -19,10 +19,8 @@ jobs:
 
       - name: Build the Docker image
         run: |
-          docker build \
-            --build-arg NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
-            -t web-image ./web
+          docker build -t web-image ./web
+          docker save web-image | gzip > web-image.tar.gz
 
       - name: Copy Docker image to server
         run: |
