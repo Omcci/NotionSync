@@ -1,40 +1,27 @@
-name: Deploy Web
+name: Compile and push client and server image for staging 
 
 on:
-  push:
-    branches: ['dev']
+for the dev branch
+  pull_request:
+    branches: ["dev"]
+    types:
+      - closed
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
+    if: github.event.pull_request.merged == true 
+
+  deployment:
+    needs: build
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up SSH agent
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Build the Docker image
-        run: |
-          docker build -t web-image ./web
-          docker save web-image | gzip > web-image.tar.gz
-
-      - name: Copy Docker image to server
-        run: |
-          scp -o StrictHostKeyChecking=no web-image.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_PATH }}
-
-      - name: Deploy to server
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
-            gunzip -c ${{ secrets.DEPLOY_PATH }}/web-image.tar.gz | docker load && \
-            docker stop web-container || true && \
-            docker rm web-container || true && \
-            docker run -d --name web-container -p 4000:3000 \
-              web-image
-          "
-
+      - name: Invoke deployment hook
         env:
-          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SECRET_KEY: ${{ secrets.WEBHOOK_SECRET }}
+        run: |
+          PAYLOAD='{}'
+          SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET_KEY" | awk '{print $2}')
+          SIGNATURE="sha256=$SIGNATURE"
+
+          curl -X POST -H "Content-Type: application/json" -H "X-Hub-Signature: $SIGNATURE" -d "$PAYLOAD" ${{ secrets.WEBHOOK_URL_DEV }}
