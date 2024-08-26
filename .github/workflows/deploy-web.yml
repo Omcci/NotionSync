@@ -1,7 +1,6 @@
 name: Compile and push client and server image for staging 
 
 on:
-for the dev branch
   pull_request:
     branches: ["dev"]
     types:
