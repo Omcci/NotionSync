@@ -1,10 +1,17 @@
 import { supabase } from './supabaseClient'
 
+const getRedirectUrl = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000'
+  }
+  return 'https://notionsync.fr'
+}
+
 const signInWithGitHub = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: 'https://notionsync.fr',
+      redirectTo: getRedirectUrl(),
     },
   })
 
