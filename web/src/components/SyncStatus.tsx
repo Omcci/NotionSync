@@ -6,8 +6,9 @@ import { format } from 'date-fns'
 const SyncStatus = () => {
   const { syncStatus, setSyncStatus } = useAppContext()
   const fetchSyncStatus = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    const url = `${apiUrl}/api/syncStatus`
+    // const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    // const url = `${apiUrl}/api/syncStatus`
+     const url = `/api/syncStatus`
 
     try {
       const response = await fetch(url)
