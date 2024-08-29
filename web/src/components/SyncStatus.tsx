@@ -8,7 +8,7 @@ const SyncStatus = () => {
   const fetchSyncStatus = async () => {
     // const apiUrl = process.env.NEXT_PUBLIC_API_URL
     // const url = `${apiUrl}/api/syncStatus`
-     const url = `/api/syncStatus`
+    const url = `/api/syncStatus`
 
     try {
       const response = await fetch(url)
