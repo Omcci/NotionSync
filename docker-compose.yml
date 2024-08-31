@@ -6,13 +6,10 @@ services:
       context: ./web
       target: dev
     ports:
-      - '3000:3000'
+      - '9000:3000'
     volumes:
       - './web:/app'
       - '/app/node_modules'
-    environment:
-      - NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
     depends_on:
       - db
 
