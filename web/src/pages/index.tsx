@@ -41,7 +41,6 @@ const Home = () => {
       <header className="w-full max-w-3xl text-sm font-mono">
         <p className="mb-6 text-4xl font-bold text-gray-800 dark:text-gray-100">
           Welcome to NotionSync 🚀
-
         </p>
         <p className="mb-8 text-lg text-gray-600">
           Seamlessly sync your GitHub commits with Notion to keep your project
