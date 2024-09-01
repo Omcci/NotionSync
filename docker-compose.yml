@@ -1,17 +1,15 @@
-version: '3'
+version: '3.8'
+
 services:
   web:
     build:
       context: ./web
       target: dev
     ports:
-      - '4000:3000'
+      - '9001:3000'
     volumes:
       - './web:/app'
       - '/app/node_modules'
-    environment:
-      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_KEY}
     depends_on:
       - db
 
