@@ -17,9 +17,7 @@ import {
 export function Header() {
   const links = [
     { href: '/', label: 'Home' },
-    { href: '/dashboard', label: 'Dashboard' },
     { href: '/dashboardv0', label: 'DashboardV0' },
-    { href: '/testconfig', label: 'Testconfig' },
     { href: '/calendar', label: 'Calendar' },
   ]
 

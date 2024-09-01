@@ -1,8 +1,8 @@
-name: Compile and push client and server image for staging
+name: Compile and push client and server image for production
 
 on:
   pull_request:
-    branches: ['dev']
+    branches: ['main']
     types:
       - closed
   workflow_dispatch:
@@ -19,4 +19,4 @@ jobs:
           PAYLOAD='{}'
           SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET_KEY" | awk '{print $2}')
           SIGNATURE="sha256=$SIGNATURE"
-          curl -X POST -H "Content-Type: application/json" -H "X-Hub-Signature: $SIGNATURE" -d "$PAYLOAD" ${{ secrets.WEBHOOK_URL_DEV }}
+          curl -X POST -H "Content-Type: application/json" -H "X-Hub-Signature: $SIGNATURE" -d "$PAYLOAD" ${{ secrets.WEBHOOK_URL_MAIN }}
