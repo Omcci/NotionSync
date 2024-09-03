@@ -129,10 +129,25 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           commit.commit.verification && commit.commit.verification.verified
             ? 'Verified'
             : 'Unverified'
-        const authorDetails = await fetchAuthorDetails(
-          token!,
-          commit.author.login,
-        )
+
+        let authorDetails = null
+        let authorName = 'Unknown Author'
+        let committerAvatarUrl = 'https://github.com/identicons/default.png'
+
+        if (commit.author && commit.author.login) {
+          authorDetails = await fetchAuthorDetails(token!, commit.author.login)
+          authorName = commit.commit.author.name
+        } else {
+          authorDetails = {
+            name: 'Unknown Author',
+            bio: '',
+            location: '',
+            blog: '',
+            company: '',
+            avatar_url: committerAvatarUrl,
+            created_at: '',
+          }
+        }
         // console.log('Author Details:', authorDetails)
 
         return {
