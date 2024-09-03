@@ -17,7 +17,7 @@ import {
 export function Header() {
   const links = [
     { href: '/', label: 'Home' },
-    { href: '/dashboardv0', label: 'DashboardV0' },
+    { href: '/dashboardv0', label: 'Dashboard' },
     { href: '/calendar', label: 'Calendar' },
   ]
 
@@ -81,10 +81,20 @@ export function Header() {
       </div>
       <div className="flex items-center gap-4">
         {user ? (
-          <>
-            <span className="text-white">Welcome, {user.email}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col md:flex-row items-center md:gap-2">
+              <span className="text-white">Welcome,</span>
+              <Link href="/profile">
+                <span className="text-white underline">{user.email}</span>
+              </Link>
+            </div>
+            <img
+              src={user.user_metadata.avatar_url}
+              alt="User Avatar"
+              className="w-8 h-8 rounded-full"
+            />
             <LogoutButton />
-          </>
+          </div>
         ) : (
           <Button onClick={handleLogin}>Login with GitHub</Button>
         )}
