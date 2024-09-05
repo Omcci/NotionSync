@@ -1,3 +1,5 @@
+import { ReposResponse } from '@/pages/api/repos'
+import { useQuery } from '@tanstack/react-query'
 import React, {
   createContext,
   useContext,
@@ -42,32 +44,39 @@ interface AppProviderProps {
   children: ReactNode
 }
 
+const fetchRepos = async (): Promise<Repo[]> => {
+  const username = process.env.NEXT_PUBLIC_USERNAME
+  const response = await fetch(
+    `/api/repos?username=${encodeURIComponent(username!)}`,
+  )
+
+  if (!response.ok) {
+    throw new Error(`Error fetching repositories: ${response.status}`)
+  }
+
+  const data: ReposResponse = await response.json()
+  if (data.repos) {
+    return data.repos
+  } else {
+    throw new Error(data.error || 'Unknown error occurred')
+  }
+}
+
 export const AppProvider = ({ children }: AppProviderProps) => {
   const [repos, setRepos] = useState<Repo[]>([])
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null)
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
 
-  useEffect(() => {
-    const fetchRepos = async () => {
-      if (repos.length === 0) {
-        const username = process.env.NEXT_PUBLIC_USERNAME
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL
-        const url = `${apiUrl}/api/repos?username=${encodeURIComponent(username!)}`
+  const { data: fetchedRepos = [] } = useQuery<Repo[], Error>({
+    queryKey: ['repos'],
+    queryFn: fetchRepos,
+  })
 
-        try {
-          const response = await fetch(url)
-          if (!response.ok) {
-            throw new Error(`Error fetching repositories: ${response.status}`)
-          }
-          const data = await response.json()
-          setRepos(data.repos)
-        } catch (error) {
-          console.error('Failed to fetch repositories:', error)
-        }
-      }
+  useEffect(() => {
+    if (fetchedRepos) {
+      setRepos(fetchedRepos)
     }
-    fetchRepos()
-  }, [repos.length])
+  }, [fetchedRepos])
 
   const value = {
     repos,
