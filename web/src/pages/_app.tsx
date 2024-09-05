@@ -12,32 +12,43 @@ import { supabase } from '../lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/router'
 import { UserProvider } from '@/context/UserContext'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const interFont = Inter({
   subsets: ['latin'],
   weight: ['400', '700'],
 })
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5,
+    },
+  },
+})
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <UserProvider>
-      <AppProvider>
-        <ConfigProvider>
-          <Layout>
-            <Head>
-              <meta
-                name="viewport"
-                content="width=device-width, initial-scale=1.0"
-              />
-              <style dangerouslySetInnerHTML={{ __html: interFont.style }} />
-            </Head>
-            <div className={interFont.className}>
-              <Component {...pageProps} />
-            </div>
-          </Layout>
-        </ConfigProvider>
-      </AppProvider>
-    </UserProvider>
+    <QueryClientProvider client={queryClient}>
+      <UserProvider>
+        <AppProvider>
+          <ConfigProvider>
+            <Layout>
+              <Head>
+                <meta
+                  name="viewport"
+                  content="width=device-width, initial-scale=1.0"
+                />
+                <style dangerouslySetInnerHTML={{ __html: interFont.style }} />
+              </Head>
+              <div className={interFont.className}>
+                <Component {...pageProps} />
+              </div>
+            </Layout>
+          </ConfigProvider>
+        </AppProvider>
+      </UserProvider>
+    </QueryClientProvider>
   )
 }
 
