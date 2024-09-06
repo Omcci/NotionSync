@@ -68,7 +68,11 @@ type CommitDetailsProps = {
   repoName: string
 }
 
-const CommitDetails: React.FC<CommitDetailsProps> = ({ date, orgName, repoName }) => {
+const CommitDetails: React.FC<CommitDetailsProps> = ({
+  date,
+  orgName,
+  repoName,
+}) => {
   const [commits, setCommits] = useState<Commit[]>([])
 
   useEffect(() => {
@@ -83,7 +87,9 @@ const CommitDetails: React.FC<CommitDetailsProps> = ({ date, orgName, repoName }
         const response = await fetch(url)
         if (!response.ok) {
           const errorText = await response.text()
-          throw new Error(`Error fetching commits: ${response.status} - ${errorText}`)
+          throw new Error(
+            `Error fetching commits: ${response.status} - ${errorText}`,
+          )
         }
         const data = await response.json()
         setCommits(data)
@@ -103,7 +109,9 @@ const CommitDetails: React.FC<CommitDetailsProps> = ({ date, orgName, repoName }
     <ul>
       {commits.map((commit, idx) => (
         <li key={idx}>
-          <p><strong>{commit.commit}</strong></p>
+          <p>
+            <strong>{commit.commit}</strong>
+          </p>
           <p>Author: {commit.author}</p>
           <p>Date: {commit.date}</p>
         </li>

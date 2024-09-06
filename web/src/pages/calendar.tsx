@@ -18,25 +18,26 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState('')
   const [commitDetails, setCommitDetails] = useState<Commit[]>([])
   const [open, setOpen] = useState(false)
+  const [dateRange, setDateRange] = useState({ start: '', end: '' })
 
   const { repos, selectedRepo, setSelectedRepo, setRepos } = useAppContext()
   console.log('repos', repos)
   const { org: orgName, name: repoName } = selectedRepo || {}
 
   useEffect(() => {
-    if (!selectedRepo) return
+    if (!selectedRepo || !dateRange.start || !dateRange.end) return
 
     const fetchCommits = async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      let url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}`
-      console.log('fetching sync status', url)
+      let url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}&startDate=${dateRange.start}&endDate=${dateRange.end}&allPages=true`
+      // console.log('fetching sync status', url)
 
       if (selectedDate) {
         url += `&date=${selectedDate}`
       }
       try {
         const response = await fetch(url)
-        console.log('response:', response)
+        // console.log('response:', response)
         if (!response.ok) {
           const errorText = await response.text()
           throw new Error(
@@ -59,7 +60,7 @@ const CalendarPage = () => {
       }
     }
     fetchCommits()
-  }, [repoName, orgName, selectedRepo, selectedDate])
+  }, [repoName, orgName, selectedRepo, selectedDate, dateRange])
 
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
@@ -89,6 +90,13 @@ const CalendarPage = () => {
     }
   }
 
+  const handleDatesSet = (info: any) => {
+    setDateRange({
+      start: info.startStr,
+      end: info.endStr,
+    })
+  }
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">My Commits Calendar</h1>
@@ -115,6 +123,7 @@ const CalendarPage = () => {
           }}
           eventClassNames={() => ' text-xs truncate'}
           dateClick={handleDateClick}
+          datesSet={handleDatesSet}
         />
       </div>
       <ModalCommits
