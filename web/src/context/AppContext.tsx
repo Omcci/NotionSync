@@ -1,3 +1,4 @@
+import { supabase } from '@/lib/supabaseClient'
 import { ReposResponse } from '@/pages/api/repos'
 import { useQuery } from '@tanstack/react-query'
 import React, {
@@ -31,11 +32,11 @@ interface AppContextType {
 
 const initialState: AppContextType = {
   repos: [],
-  setRepos: () => {},
+  setRepos: () => { },
   selectedRepo: null,
-  setSelectedRepo: () => {},
+  setSelectedRepo: () => { },
   syncStatus: null,
-  setSyncStatus: () => {},
+  setSyncStatus: () => { },
 }
 
 const AppContext = createContext<AppContextType>(initialState)
@@ -44,39 +45,46 @@ interface AppProviderProps {
   children: ReactNode
 }
 
-const fetchRepos = async (): Promise<Repo[]> => {
-  const username = process.env.NEXT_PUBLIC_USERNAME
-  const response = await fetch(
-    `/api/repos?username=${encodeURIComponent(username!)}`,
-  )
-
+const fetchRepos = async (githubToken: string): Promise<Repo[]> => {
+  const response = await fetch(`/api/repos?githubToken=${githubToken}`)
   if (!response.ok) {
     throw new Error(`Error fetching repositories: ${response.status}`)
   }
-
   const data: ReposResponse = await response.json()
-  if (data.repos) {
-    return data.repos
-  } else {
-    throw new Error(data.error || 'Unknown error occurred')
-  }
+  return data.repos || []
 }
 
 export const AppProvider = ({ children }: AppProviderProps) => {
   const [repos, setRepos] = useState<Repo[]>([])
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null)
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
+  const [githubToken, setGithubToken] = useState<string | null>(null)
+
+  useEffect(() => {
+    const getUserSession = async () => {
+      const { data, error } = await supabase.auth.getSession()
+      if (data.session && data.session.provider_token) {
+        setGithubToken(data.session.provider_token)
+      } else {
+        console.error('Error retrieving GitHub token', error)
+      }
+    }
+
+    getUserSession()
+  }, [])
 
   const { data: fetchedRepos = [] } = useQuery<Repo[], Error>({
-    queryKey: ['repos'],
-    queryFn: fetchRepos,
+    queryKey: ['repos', githubToken],
+    queryFn: () => fetchRepos(githubToken!),
+    enabled: !!githubToken,
+    staleTime: 1000 * 60 * 5,
   })
 
   useEffect(() => {
-    if (fetchedRepos) {
+    if (fetchedRepos.length && JSON.stringify(fetchedRepos) !== JSON.stringify(repos)) {
       setRepos(fetchedRepos)
     }
-  }, [fetchedRepos])
+  }, [fetchedRepos, repos])
 
   const value = {
     repos,
