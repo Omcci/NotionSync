@@ -72,6 +72,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     endDate,
     date,
     allPages,
+    githubToken,
     page = '1',
     per_page = '10',
   } = req.query as {
@@ -81,11 +82,16 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     startDate?: string
     endDate?: string
     allPages?: string
+    githubToken?: string
     page: string
     per_page: string
   }
 
-  const token = process.env.GITHUB_TOKEN
+  if (!githubToken) {
+    return res
+      .status(401)
+      .json({ error: 'Unauthorized: No GitHub token available' })
+  }
 
   try {
     let allCommits: any[] = []
@@ -95,7 +101,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       const per_page = 100
       while (true) {
         const { commits } = await fetchCommitsForUserInRepo(
-          token!,
+          githubToken,
           orgName,
           repoName,
           page.toString(),
@@ -111,7 +117,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       }
     } else {
       const { commits } = await fetchCommitsForUserInRepo(
-        token!,
+        githubToken,
         orgName,
         repoName,
         page,
@@ -145,7 +151,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         let committerAvatarUrl = 'https://github.com/identicons/default.png'
 
         if (commit.author && commit.author.login) {
-          authorDetails = await fetchAuthorDetails(token!, commit.author.login)
+          authorDetails = await fetchAuthorDetails(
+            githubToken,
+            commit.author.login,
+          )
           authorName = commit.commit.author.name
         } else {
           authorDetails = {
