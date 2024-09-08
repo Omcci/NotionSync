@@ -8,8 +8,34 @@ import { useAppContext } from '@/context/AppContext'
 import SelectComponent from '@/components/SelectComponent'
 import ModalCommits from '@/components/ModalCommits'
 import { useUser } from '@/context/UserContext'
+import { supabase } from '@/lib/supabaseClient'
+import { useQuery } from '@tanstack/react-query'
 
 //TODO : add mistral to make a summary of the day
+const fetchCommits = async (repoName: string, orgName: string, dateRange: { start: string, end: string }, selectedDate?: string) => {
+  const { data: { session } } = await supabase.auth.getSession()
+  const githubToken = session?.provider_token
+  if (!githubToken) {
+    throw new Error('Unauthorized: No GitHub token available')
+  }
+
+  let commitsUrl = `/api/commits?repoName=${repoName}&orgName=${orgName}&startDate=${dateRange.start}&endDate=${dateRange.end}&allPages=true&githubToken=${githubToken}`
+  if (selectedDate) {
+    commitsUrl += `&date=${selectedDate}`
+  }
+  const response = await fetch(commitsUrl, {
+    headers: {
+      Authorization: `Bearer ${githubToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Error fetching commits: ${response.status} - ${errorText}`)
+  }
+  return await response.json()
+}
+
 const CalendarPage = () => {
   const [events, setEvents] = useState([])
   const router = useRouter()
@@ -24,43 +50,26 @@ const CalendarPage = () => {
   console.log('repos', repos)
   const { org: orgName, name: repoName } = selectedRepo || {}
 
+  const { data: commitData, isLoading, isError } = useQuery({
+    queryKey: ['commits', repoName, orgName, dateRange, selectedDate],
+    queryFn: () => fetchCommits(repoName!, orgName!, dateRange, selectedDate),
+    enabled: !!repoName && !!orgName && !!dateRange.start && !!dateRange.end,
+    refetchOnWindowFocus: false,
+  })
+
   useEffect(() => {
-    if (!selectedRepo || !dateRange.start || !dateRange.end) return
+    if (!commitData || isError) return
 
-    const fetchCommits = async () => {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      let url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}&startDate=${dateRange.start}&endDate=${dateRange.end}&allPages=true`
-      // console.log('fetching sync status', url)
-
-      if (selectedDate) {
-        url += `&date=${selectedDate}`
-      }
-      try {
-        const response = await fetch(url)
-        // console.log('response:', response)
-        if (!response.ok) {
-          const errorText = await response.text()
-          throw new Error(
-            `Error fetching commits: ${response.status} - ${errorText}`,
-          )
-        }
-        const data = await response.json()
-        console.log('data:', data)
-        if (selectedDate) {
-          setCommitDetails(data)
-        } else {
-          const formattedEvents = data.map((commit: Commit) => ({
-            title: commit.commit,
-            date: commit.date,
-          }))
-          setEvents(formattedEvents)
-        }
-      } catch (error) {
-        console.error('Error fetching commits:', error)
-      }
+    if (selectedDate) {
+      setCommitDetails(commitData)
+    } else {
+      const formattedEvents = commitData.map((commit: Commit) => ({
+        title: commit.commit,
+        date: commit.date,
+      }))
+      setEvents(formattedEvents)
     }
-    fetchCommits()
-  }, [repoName, orgName, selectedRepo, selectedDate, dateRange])
+  }, [commitData, selectedDate, isError])
 
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
@@ -69,25 +78,9 @@ const CalendarPage = () => {
     }
   }
 
-  const handleDateClick = async (info: any) => {
+  const handleDateClick = (info: any) => {
     setSelectedDate(info.dateStr)
-    setCommitDetails([])
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    const url = `${apiUrl}/api/commits?repoName=${repoName}&orgName=${orgName}&date=${info.dateStr}`
-    try {
-      const response = await fetch(url)
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(
-          `Error fetching commits: ${response.status} - ${errorText}`,
-        )
-      }
-      const data = await response.json()
-      setCommitDetails(data)
-      setOpen(true)
-    } catch (error) {
-      console.error('Error fetching commits:', error)
-    }
+    setOpen(true)
   }
 
   const handleDatesSet = (info: any) => {
