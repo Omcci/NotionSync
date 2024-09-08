@@ -3,7 +3,6 @@ import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import { Commit } from '../../types/types'
-import { useRouter } from 'next/router'
 import { useAppContext } from '@/context/AppContext'
 import SelectComponent from '@/components/SelectComponent'
 import ModalCommits from '@/components/ModalCommits'
@@ -38,15 +37,13 @@ const fetchCommits = async (repoName: string, orgName: string, dateRange: { star
 
 const CalendarPage = () => {
   const [events, setEvents] = useState([])
-  const router = useRouter()
-  const user = useUser()
-
   const [selectedDate, setSelectedDate] = useState('')
   const [commitDetails, setCommitDetails] = useState<Commit[]>([])
   const [open, setOpen] = useState(false)
   const [dateRange, setDateRange] = useState({ start: '', end: '' })
+  const user = useUser()
 
-  const { repos, selectedRepo, setSelectedRepo, setRepos } = useAppContext()
+  const { repos, selectedRepo, setSelectedRepo } = useAppContext()
   console.log('repos', repos)
   const { org: orgName, name: repoName } = selectedRepo || {}
 
