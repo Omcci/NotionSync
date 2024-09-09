@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import React, {
   createContext,
   useContext,
@@ -36,32 +37,49 @@ const initialConfig: ConfigSettings = {
 
 const ConfigContext = createContext<ConfigContextType>({
   config: initialConfig,
-  setConfig: () => {},
-  fetchConfig: () => {},
-  updateFormValues: () => {},
+  setConfig: () => { },
+  fetchConfig: () => { },
+  updateFormValues: () => { },
   fetchUserRepos: async () => [],
 })
+
+
+const fetchConfig = async (): Promise<ConfigSettings> => {
+  const response = await fetch('/api/config')
+  if (!response.ok) {
+    throw new Error('Error fetching config')
+  }
+  return await response.json()
+}
+
+const fetchUserRepos = async (username: string): Promise<Repo[]> => {
+  const response = await fetch(`/api/repos?username=${username}`)
+  if (!response.ok) throw new Error('Error fetching repos')
+  const data = await response.json()
+  return data.repos || []
+}
 
 export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [config, setConfig] = useState<ConfigSettings>(initialConfig)
 
-  const fetchConfig = async () => {
-    const response = await fetch('/api/config')
-    const data = await response.json()
-    setConfig(data)
-  }
-
-  const fetchUserRepos = async (username: string) => {
-    const response = await fetch(`/api/repos?username=${username}`)
-    const data = await response.json()
-    return data.repos || []
-  }
+  const { data: fetchedConfig, refetch: refetchConfig } = useQuery({
+    queryKey: ['config'],
+    queryFn: () => fetchConfig(),
+    enabled: false,
+    refetchOnWindowFocus: false,
+  })
 
   useEffect(() => {
-    fetchConfig()
-  }, [])
+    if (fetchedConfig) {
+      setConfig(fetchedConfig)
+    }
+  }, [fetchedConfig])
+
+  useEffect(() => {
+    refetchConfig()
+  }, [refetchConfig])
 
   const updateFormValues = (repo: string, org: string) => {
     setConfig((prevConfig) => ({
