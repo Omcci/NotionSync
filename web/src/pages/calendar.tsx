@@ -44,7 +44,7 @@ const CalendarPage = () => {
   const user = useUser()
 
   const { repos, selectedRepo, setSelectedRepo } = useAppContext()
-  console.log('repos', repos)
+  // console.log('repos', repos)
   const { org: orgName, name: repoName } = selectedRepo || {}
 
   const { data: commitData, isLoading, isError } = useQuery({
@@ -89,19 +89,23 @@ const CalendarPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">My Commits Calendar</h1>
-      <SelectComponent
-        placeholder="Select a repository"
-        options={
-          user.user
-            ? repos?.map((repo) => ({ value: repo.id, label: repo.name }))
-            : []
-        }
-        value={selectedRepo ? selectedRepo.id : ''}
-        onChange={handleRepoSelect}
-        disabled={!user.user}
-      />
-      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+      <h1 className="text-2xl font-bold ">Calendar.</h1>
+      <h3 className='text-lg text-gray-400 mb-4 '> Deep dive into your github commits by selecting a repository and a date.
+      </h3>
+      <div className='mb-4'>
+        <SelectComponent
+          placeholder="Select a repository"
+          options={
+            user.user
+              ? repos?.map((repo) => ({ value: repo.id, label: repo.name }))
+              : []
+          }
+          value={selectedRepo ? selectedRepo.id : ''}
+          onChange={handleRepoSelect}
+          disabled={!user.user}
+        />
+      </div>
+      <div className="bg-white rounded-lg overflow-hidden">
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
