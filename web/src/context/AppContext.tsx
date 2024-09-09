@@ -78,6 +78,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     queryFn: () => fetchRepos(githubToken!),
     enabled: !!githubToken,
     staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
   })
 
   useEffect(() => {
