@@ -1,4 +1,5 @@
 import { useUser } from '@/context/UserContext'
+import signInWithGitHub from '@/lib/login'
 import { supabase } from '@/lib/supabaseClient'
 import { MenuIcon } from 'lucide-react'
 import Link from 'next/link'
@@ -22,11 +23,7 @@ export function Header() {
   ]
 
   const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-    })
-
-    if (error) console.error('Error during sign-in:', error.message)
+    await signInWithGitHub()
   }
 
   const { user } = useUser()
