@@ -51,7 +51,7 @@ const CommitLog = () => {
   const commitsPerPage = 10
 
   const { selectedRepo } = useAppContext()
-  console.log('Selected Repo:', selectedRepo)
+  // console.log('Selected Repo:', selectedRepo)
 
   const fetchCommits = async (page: number) => {
     try {
