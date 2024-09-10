@@ -20,10 +20,13 @@ import signInWithGitHub from '@/lib/login'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
+import SnakeGame from '@/components/SnakeGame'
 
 // TODO : refactor user state to get it from context
 const Home = () => {
   const [user, setUser] = useState<User | null>(null)
+  const [triggerGame, setTriggerGame] = useState(false)
+  const [iconSize, setIconSize] = useState(20)
 
   useEffect(() => {
     const getSession = async () => {
@@ -35,6 +38,14 @@ const Home = () => {
 
     getSession()
   }, [])
+
+  const handleClickOpenGame = () => {
+    if (iconSize < 100) {
+      setIconSize(iconSize + 10)
+    } else {
+      setTriggerGame(true)
+    }
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 bg-gray-50 dark:bg-gray-900 ">
@@ -159,6 +170,29 @@ const Home = () => {
           </CardContent>
         </Card>
       </section>
+      <div className="flex justify-center mt-8">
+        {!triggerGame ? (
+          <div
+            onClick={handleClickOpenGame}
+            className="transition-transform duration-500 ease-in-out"
+            style={{ width: iconSize, height: iconSize }}
+          >
+            <Image
+              src="/what.png"
+              alt="?"
+              width={iconSize}
+              height={iconSize}
+              className="cursor-pointer"
+            />
+          </div>
+        ) : (
+          <div className="w-full max-w-2xl mx-auto p-4 bg-white dark:bg-gray-800 rounded-lg">
+            <div className="w-full">
+              <SnakeGame />
+            </div>
+          </div>
+        )}
+      </div>
       <section className="w-full max-w-3xl mt-12">
         <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6">
           FAQ
@@ -191,7 +225,7 @@ const Home = () => {
           </AccordionItem>
         </Accordion>
       </section>
-    </main>
+    </main >
   )
 }
 
