@@ -87,10 +87,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     per_page: string
   }
 
-  if (!githubToken) {
-    return res
-      .status(401)
-      .json({ error: 'Unauthorized: No GitHub token available' })
+  const token = githubToken || req.headers.authorization?.split(' ')[1] 
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized: No GitHub token available' })
   }
 
   try {
@@ -101,7 +100,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       const per_page = 100
       while (true) {
         const { commits } = await fetchCommitsForUserInRepo(
-          githubToken,
+          token!,
           orgName,
           repoName,
           page.toString(),
@@ -117,7 +116,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       }
     } else {
       const { commits } = await fetchCommitsForUserInRepo(
-        githubToken,
+        token!,
         orgName,
         repoName,
         page,
@@ -152,7 +151,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
         if (commit.author && commit.author.login) {
           authorDetails = await fetchAuthorDetails(
-            githubToken,
+            token!,
             commit.author.login,
           )
           authorName = commit.commit.author.name
