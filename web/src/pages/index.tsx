@@ -225,7 +225,7 @@ const Home = () => {
           </AccordionItem>
         </Accordion>
       </section>
-    </main >
+    </main>
   )
 }
 
