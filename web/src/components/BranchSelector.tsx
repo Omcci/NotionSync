@@ -56,8 +56,7 @@ const BranchSelector = () => {
   const fetchBranches = async (repoName: string, orgName: string) => {
     setLoading(true)
     setError(null)
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    const url = `${apiUrl}/api/branches?repoName=${encodeURIComponent(repoName)}&orgName=${encodeURIComponent(orgName)}`
+    const url = `/api/branches?repoName=${encodeURIComponent(repoName)}&orgName=${encodeURIComponent(orgName)}`
 
     try {
       const response = await fetch(url)
