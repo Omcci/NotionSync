@@ -26,7 +26,7 @@ import EeDial from '@/components/EeDial'
 const Home = () => {
   const [user, setUser] = useState<User | null>(null)
   const [triggerEe, setTriggerEe] = useState(false)
-  const [iconSize, setIconSize] = useState(20)
+  const [iconSize, setIconSize] = useState(10)
 
   useEffect(() => {
     const getSession = async () => {
@@ -39,7 +39,7 @@ const Home = () => {
     getSession()
   }, [])
 
-  const handleClickOpenGame = () => {
+  const handleClickOpenEe = () => {
     if (iconSize < 100) {
       setIconSize(iconSize + 10)
     } else {
@@ -47,12 +47,11 @@ const Home = () => {
     }
   }
 
-  const handleDialogChange = (open: boolean) => {
-    setTriggerEe(open)
-    if (!open) {
-      setIconSize(20)
+  useEffect(() => {
+    if (!triggerEe) {
+      setIconSize(10)
     }
-  }
+  }, [triggerEe])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 bg-gray-50 dark:bg-gray-900 ">
@@ -179,7 +178,7 @@ const Home = () => {
       </section>
       <section className="flex justify-center mt-8">
         <div
-          onClick={handleClickOpenGame}
+          onClick={handleClickOpenEe}
           className="transition-transform duration-500 ease-in-out"
           style={{ width: iconSize, height: iconSize }}
         >
