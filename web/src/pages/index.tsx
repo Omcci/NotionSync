@@ -176,7 +176,7 @@ const Home = () => {
           </CardContent>
         </Card>
       </section>
-      <section className="flex justify-center mt-8">
+      <section>
         <div
           onClick={handleClickOpenEe}
           className="transition-transform duration-500 ease-in-out"
