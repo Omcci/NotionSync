@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 
 const BOARD_SIZE = 18
-const CONTROLS = { LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40 }
+const CONTROLS = {
+  LEFT: ['ArrowLeft', 'q', 'Q'],
+  UP: ['ArrowUp', 'z', 'Z'],
+  RIGHT: ['ArrowRight', 'd', 'D'],
+  DOWN: ['ArrowDown', 's', 'S'],
+}
 const COLORS = {
   GAME_OVER: '#FF007F',
   FRUIT: '#00FF00',
@@ -14,7 +19,7 @@ const SnakeGame = () => {
   const [board, setBoard] = useState(
     Array(BOARD_SIZE).fill(Array(BOARD_SIZE).fill(false)),
   )
-  const [snake, setSnake] = useState([{ x: 8, y: 8 }])
+  const [snake, setSnake] = useState([{ x: 12, y: 8 }])
   const [direction, setDirection] = useState(CONTROLS.LEFT)
   const [fruit, setFruit] = useState({ x: 5, y: 5 })
   const [isGameOver, setIsGameOver] = useState(false)
@@ -38,23 +43,15 @@ const SnakeGame = () => {
   }
 
   useEffect(() => {
-    const handleKeydown = (e) => {
-      const currentDirection = directionRef.current
-      switch (e.keyCode) {
-        case CONTROLS.LEFT:
-          if (currentDirection !== CONTROLS.RIGHT) setDirection(CONTROLS.LEFT)
-          break
-        case CONTROLS.UP:
-          if (currentDirection !== CONTROLS.DOWN) setDirection(CONTROLS.UP)
-          break
-        case CONTROLS.RIGHT:
-          if (currentDirection !== CONTROLS.LEFT) setDirection(CONTROLS.RIGHT)
-          break
-        case CONTROLS.DOWN:
-          if (currentDirection !== CONTROLS.UP) setDirection(CONTROLS.DOWN)
-          break
-        default:
-          break
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (CONTROLS.LEFT.includes(e.key)) {
+        if (directionRef.current !== CONTROLS.RIGHT) setDirection(CONTROLS.LEFT)
+      } else if (CONTROLS.UP.includes(e.key)) {
+        if (directionRef.current !== CONTROLS.DOWN) setDirection(CONTROLS.UP)
+      } else if (CONTROLS.RIGHT.includes(e.key)) {
+        if (directionRef.current !== CONTROLS.LEFT) setDirection(CONTROLS.RIGHT)
+      } else if (CONTROLS.DOWN.includes(e.key)) {
+        if (directionRef.current !== CONTROLS.UP) setDirection(CONTROLS.DOWN)
       }
     }
 
@@ -106,7 +103,7 @@ const SnakeGame = () => {
   }, [snake, direction, isGameOver, score, highScore])
 
   const resetGame = () => {
-    setSnake([{ x: 8, y: 8 }])
+    setSnake([{ x: 12, y: 8 }])
     setDirection(CONTROLS.LEFT)
     setFruit({ x: 5, y: 5 })
     setScore(0)
@@ -119,8 +116,8 @@ const SnakeGame = () => {
         className="grid border-neon-pink bg-black "
         style={{ gridTemplateColumns: 'repeat(18, minmax(0, 1fr))' }}
       >
-        {board.map((row, rowIndex) =>
-          row.map((col, colIndex) => (
+        {board.map((row: boolean[], rowIndex: number) =>
+          row.map((col: boolean, colIndex: number) => (
             <div
               key={`${rowIndex}-${colIndex}`}
               className="w-6 h-6"
@@ -148,7 +145,7 @@ const SnakeGame = () => {
               letterSpacing: '2px',
             }}
           >
-            Reset Game
+            Restart
           </button>
         </div>
       )}
