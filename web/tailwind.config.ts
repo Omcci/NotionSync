@@ -67,10 +67,20 @@ const config = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
+        glow: {
+          '0%': {
+            textShadow:
+              '0 0 5px #fff, 0 0 10px #ff00ff, 0 0 20px #00ffff, 0 0 25px #ff00ff',
+          },
+          '100%': {
+            textShadow: '0 0 10px #ff00ff, 0 0 20px #00ffff, 0 0 40px #ff00ff',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        glow: 'glow 1s infinite alternate',
       },
     },
   },
