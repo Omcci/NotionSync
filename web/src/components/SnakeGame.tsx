@@ -105,6 +105,14 @@ const SnakeGame = () => {
     return () => clearInterval(interval)
   }, [snake, direction, isGameOver, score, highScore])
 
+  const resetGame = () => {
+    setSnake([{ x: 8, y: 8 }])
+    setDirection(CONTROLS.LEFT)
+    setFruit({ x: 5, y: 5 })
+    setScore(0)
+    setIsGameOver(false)
+  }
+
   return (
     <div className="flex flex-col items-center ">
       <div
@@ -129,6 +137,21 @@ const SnakeGame = () => {
           )),
         )}
       </div>
+      {isGameOver && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <button
+            onClick={resetGame}
+            className="bg-lime-300 text-purple-700 font-extrabold italic py-4 px-6 rounded-full shadow-lg hover:bg-yellow-500 border-4 border-red-500 animate-bounce transform rotate-6 hover:rotate-12"
+            style={{
+              textShadow: '2px 2px 4px #ff0000',
+              fontFamily: '"Comic Sans MS", "Comic Sans", cursive',
+              letterSpacing: '2px',
+            }}
+          >
+            Reset Game
+          </button>
+        </div>
+      )}
       <div className="p-2 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 font-mono text-lg">
         High Score: {highScore}
       </div>
@@ -137,14 +160,16 @@ const SnakeGame = () => {
       </div>
       <div className="h-9 leading-9">
         {isGameOver && (
-          <div
-            className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 animate-pulse"
-            style={{
-              textShadow:
-                '0 0 3px #FF007F, 0 0 2px #FF007F, 0 0 3px #FF007F, 0 0 0px #FF007F',
-            }}
-          >
-            GAME OVER
+          <div className="flex flex-col items-center">
+            <div
+              className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 animate-pulse"
+              style={{
+                textShadow:
+                  '0 0 3px #FF007F, 0 0 2px #FF007F, 0 0 3px #FF007F, 0 0 0px #FF007F',
+              }}
+            >
+              GAME OVER
+            </div>
           </div>
         )}
       </div>
