@@ -96,33 +96,25 @@ const BranchSelector = () => {
     label: branch.label || branch.name,
   }))
 
-  if (!selectedRepo) {
-    return (
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">Branch Selector</h2>
-        </div>
-        <p>Please select a repository to show the branches</p>
+  const renderContent = (message: string) => (
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold">Branch Selector</h2>
       </div>
-    )
+      <p>{message}</p>
+    </div>
+  )
+
+  if (!selectedRepo) {
+    return renderContent("Please select a repository to show the branches")
   }
 
   if (isLoading) {
-    return (
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
-        <h2 className="text-lg font-bold">Branch Selector</h2>
-        <p>Loading branches...</p>
-      </div>
-    )
+    return renderContent("Loading branches...")
   }
 
   if (isError) {
-    return (
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
-        <h2 className="text-lg font-bold">Branch Selector</h2>
-        <ErrorMessage message={error as any} />
-      </div>
-    )
+    return renderContent(`Error: ${error?.message || "Failed to load branches"}`)
   }
 
   return (
