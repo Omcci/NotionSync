@@ -36,7 +36,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       .json({ error: 'Missing repoName or orgName parameter' })
   }
 
-  const token = process.env.GITHUB_TOKEN
+  const token = req.headers.authorization?.split(' ')[1]
+
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized: No GitHub token provided' })
+  }
 
   try {
     const branches = await fetchRepoBranches(token!, orgName, repoName)
