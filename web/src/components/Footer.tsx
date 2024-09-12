@@ -1,5 +1,3 @@
-// components/Footer.tsx
-import React from 'react'
 import Link from 'next/link'
 import Icon from './Icon'
 
@@ -19,10 +17,16 @@ const Footer: React.FC = () => {
               Contact
             </Link>
             <Link
-              href="/privacy"
+              href="/privacy-policy"
               className="text-white hover:text-gray-300 mr-4"
             >
               Privacy Policy
+            </Link>
+            <Link
+              href="/terms-and-conditions"
+              className="text-white hover:text-gray-300 mr-4"
+            >
+              Terms and Conditions
             </Link>
           </div>
           <div className="py-2">
@@ -30,7 +34,7 @@ const Footer: React.FC = () => {
               <Icon name="github" size={24} color="white" />
             </a>
             <a
-              href="https://twitter.com/YourTwitter"
+              href="https://twitter.com/"
               aria-label="Twitter"
               className="ml-4"
             >
