@@ -5,7 +5,7 @@ export type Commit = {
   author: string
   date: string
   status: string
-  actions: string[]
+  actions: { name: string; url: string }[]
   avatar_url: string
 }
 
