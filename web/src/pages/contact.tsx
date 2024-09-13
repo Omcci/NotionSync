@@ -25,7 +25,7 @@ const ContactPage: React.FC = () => {
     setLoading(true)
 
     try {
-      //TODO: implement mail service 
+      //TODO: implement mail service
       toast({
         title: 'Success',
         description: 'Your message has been sent successfully!',
