@@ -72,6 +72,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     endDate,
     date,
     allPages,
+    githubToken,
     page = '1',
     per_page = '10',
   } = req.query as {
@@ -81,11 +82,17 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     startDate?: string
     endDate?: string
     allPages?: string
+    githubToken?: string
     page: string
     per_page: string
   }
 
-  const token = process.env.GITHUB_TOKEN
+  const token = githubToken || req.headers.authorization?.split(' ')[1]
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: 'Unauthorized: No GitHub token available' })
+  }
 
   try {
     let allCommits: any[] = []

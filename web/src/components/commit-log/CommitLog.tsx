@@ -20,6 +20,8 @@ import { Action, Commit } from '../../../types/types'
 import Link from 'next/link'
 import ErrorMessage from '../ErrorMessage'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabaseClient'
 
 export type Filter = {
   name: string
@@ -41,55 +43,70 @@ const filters: Filter[] = [
   },
 ]
 
+const fetchCommits = async (
+  orgName: string,
+  repoName: string,
+  page: number,
+  perPage: number,
+) => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  const githubToken = session?.provider_token
+  if (!githubToken) {
+    throw new Error('Error: No GitHub token available')
+  }
+
+  const response = await fetch(
+    `/api/commits?orgName=${orgName}&repoName=${repoName}&page=${page}&per_page=${perPage}`,
+    {
+      headers: {
+        Authorization: `Bearer ${githubToken}`,
+      },
+    },
+  )
+  console.log('Response:', response)
+  if (!response.ok) {
+    throw new Error(`Error fetching commits: ${response.statusText}`)
+  }
+  return await response.json()
+}
+
 const CommitLog = () => {
-  const [commits, setCommits] = useState<Commit[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState<string>('')
-  const [filteredCommits, setFilteredCommits] = useState<any[]>([])
   const [page, setPage] = useState(1)
   const commitsPerPage = 10
 
   const { selectedRepo } = useAppContext()
-  console.log('Selected Repo:', selectedRepo)
 
-  const fetchCommits = async (page: number) => {
-    try {
-      const orgName = selectedRepo?.org
-      const repoName = selectedRepo?.name
-      console.log(`Repo Owner: ${orgName}`)
-      console.log(`Repo Name: ${repoName}`)
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      const response = await fetch(
-        `${apiUrl}/api/commits?orgName=${orgName}&repoName=${repoName}&page=${page}&per_page=${commitsPerPage}`,
-      )
-      console.log('response', response)
-      const data = await response.json()
-      console.log('DATATA', data)
-      setCommits(data)
-      setLoading(false)
-    } catch (error: any) {
-      setError(error.message)
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    setFilteredCommits(
-      commits.filter((commit) =>
-        commit.commit.toLowerCase().includes(searchInput.toLowerCase()),
+  const {
+    data: commits = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['commits', selectedRepo?.org, selectedRepo?.name, page],
+    queryFn: () =>
+      fetchCommits(
+        selectedRepo?.org!,
+        selectedRepo?.name!,
+        page,
+        commitsPerPage,
       ),
-    )
-  }, [searchInput, commits])
+    enabled: !!selectedRepo,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  })
 
-  useEffect(() => {
-    if (!selectedRepo) return
-    fetchCommits(page)
-  }, [selectedRepo, page])
+  const filteredCommits = Array.isArray(commits)
+    ? commits.filter((commit: Commit) =>
+        commit.commit.toLowerCase().includes(searchInput.toLowerCase()),
+      )
+    : []
 
   const theader = ['Commit', 'Sha', 'Author', 'Date', 'Status', 'Actions']
 
-  if (loading) {
+  if (isLoading || !selectedRepo) {
     return (
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
@@ -100,13 +117,13 @@ const CommitLog = () => {
     )
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold">Commit Log</h2>
         </div>
-        <ErrorMessage message={error} />
+        <ErrorMessage message={(error as Error).message} />
       </div>
     )
   }
@@ -228,12 +245,14 @@ const CommitLog = () => {
                       >
                         {commit.status}
                       </Badge>
-                      <Badge
-                        className={`ml-2 ${commit.pullRequestStatus === 'Open PR' ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-900 dark:text-gray-400'}`}
-                        variant="outline"
-                      >
-                        {commit.pullRequestStatus}
-                      </Badge>
+                      {commit.pullRequestStatus && (
+                        <Badge
+                          className={`ml-2 ${commit.pullRequestStatus === 'Open PR' ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-900 dark:text-gray-400'}`}
+                          variant="outline"
+                        >
+                          {commit.pullRequestStatus}
+                        </Badge>
+                      )}
                     </div>
                   )}
                 </td>

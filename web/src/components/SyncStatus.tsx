@@ -1,63 +1,72 @@
 import { useAppContext } from '@/context/AppContext'
 import { CircleAlertIcon } from '../../public/icon/CircleAlertIcon'
-import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
+import { useEffect } from 'react'
+
+const fetchSyncStatus = async () => {
+  const response = await fetch('/api/syncStatus')
+  if (!response.ok) {
+    throw new Error(`Error fetching sync status: ${response.status}`)
+  }
+  return await response.json()
+}
+
+const getEmojiTime = (date: Date) => {
+  const hours = date.getHours()
+  return hours >= 6 && hours < 18 ? '🌞' : '🌜'
+}
 
 const SyncStatus = () => {
   const { syncStatus, setSyncStatus } = useAppContext()
-  const fetchSyncStatus = async () => {
-    // const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    // const url = `${apiUrl}/api/syncStatus`
-    const url = `/api/syncStatus`
 
-    try {
-      const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error(`Error fetching sync status: ${response.status}`)
-      }
-      const data = await response.json()
-      setSyncStatus(data)
-    } catch (error) {
-      console.error('Failed to fetch sync status:', error)
-    }
-  }
+  const { data, error, isLoading, isError } = useQuery({
+    queryKey: ['syncStatus'],
+    queryFn: fetchSyncStatus,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: true,
+  })
 
   useEffect(() => {
-    fetchSyncStatus()
-    const interval = setInterval(() => {
-      fetchSyncStatus()
-    }, 60000)
+    if (data) {
+      setSyncStatus(data)
+    }
+  }, [data, setSyncStatus])
 
-    return () => clearInterval(interval)
-  }, [])
-
-  const getEmojiTime = (date: Date) => {
-    const hours = date.getHours()
-    return hours >= 6 && hours < 18 ? '🌞' : '🌜'
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Last Sync Status</h2>
+        </div>
+        <p>Loading...</p>
+      </div>
+    )
   }
 
-  const formattedDate = syncStatus
-    ? `${format(
-        new Date(syncStatus.lastSyncDate!),
-        'MMMM do, yyyy h:mm:ss a',
-      )} ${getEmojiTime(new Date(syncStatus.lastSyncDate!))}`
-    : 'Loading ...'
+  if (isError) {
+    return <p>Error: {error?.message}</p>
+  }
+
+  const formattedDate = data?.lastSyncDate
+    ? `${format(new Date(data.lastSyncDate), 'MMMM do, yyyy h:mm:ss a')} ${getEmojiTime(new Date(data.lastSyncDate))}`
+    : data?.statusMessage || 'Loading...'
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ">
         <div>
-          <h2 className="text-lg font-bold">Last Sync Status</h2>
+          <h2 className="text-lg font-bold mb-4">Last Sync Status</h2>
           <p className="text-gray-500 dark:text-gray-400">
             Last successful sync: {''}
             <span className="font-bold">{formattedDate}</span>
           </p>
         </div>
-        {syncStatus && syncStatus.errorBranch && (
+        {data && data.errorBranch && (
           <div>
             <p className="text-red-500 dark:text-red-400">
               <CircleAlertIcon className="w-5 h-5 mr-2 inline" />
-              {syncStatus.statusMessage}
+              {data.statusMessage}
             </p>
           </div>
         )}
