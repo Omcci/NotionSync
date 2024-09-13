@@ -9,10 +9,18 @@ import ModalCommits from '@/components/ModalCommits'
 import { useUser } from '@/context/UserContext'
 import { supabase } from '@/lib/supabaseClient'
 import { useQuery } from '@tanstack/react-query'
+import { Card, CardContent } from '@/components/ui/card'
 
 //TODO : add mistral to make a summary of the day
-const fetchCommits = async (repoName: string, orgName: string, dateRange: { start: string, end: string }, selectedDate?: string) => {
-  const { data: { session } } = await supabase.auth.getSession()
+const fetchCommits = async (
+  repoName: string,
+  orgName: string,
+  dateRange: { start: string; end: string },
+  selectedDate?: string,
+) => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
   const githubToken = session?.provider_token
   if (!githubToken) {
     throw new Error('Unauthorized: No GitHub token available')
@@ -47,8 +55,20 @@ const CalendarPage = () => {
   // console.log('repos', repos)
   const { org: orgName, name: repoName } = selectedRepo || {}
 
-  const { data: commitData, isLoading, isError } = useQuery({
-    queryKey: ['commits', repoName, orgName, dateRange, selectedDate],
+  const {
+    data: commitData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: [
+      'commits',
+      repoName,
+      orgName,
+      dateRange.start,
+      dateRange.end,
+      selectedDate,
+    ],
     queryFn: () => fetchCommits(repoName!, orgName!, dateRange, selectedDate),
     enabled: !!repoName && !!orgName && !!dateRange.start && !!dateRange.end,
     refetchOnWindowFocus: false,
@@ -87,12 +107,43 @@ const CalendarPage = () => {
     })
   }
 
+  // useEffect(() => {
+  //   const titleEl = document.querySelector('.fc-toolbar-title') as HTMLElement
+  //   if (titleEl) {
+  //     titleEl.style.fontSize = '1.5rem'
+  //     titleEl.style.fontWeight = 'bolder'
+  //   }
+
+  //   const buttonEls = document.querySelectorAll<HTMLElement>('.fc-button')
+  //   buttonEls.forEach(button => {
+  //     button.style.padding = '0.3rem 0.6rem'
+  //     button.style.fontSize = '0.8rem'
+  //     button.style.color = '#6B7280' // Light grey
+  //     button.style.border = '1px solid #E5E7EB' // Light border
+  //     button.style.background = '#F9FAFB' // Very light background
+  //   })
+
+  //   const dayCells = document.querySelectorAll<HTMLElement>('.fc-daygrid-day')
+  //   dayCells.forEach(cell => {
+  //     cell.style.background = '#F3F4F6' // Very light grey for day cells
+
+  //   })
+
+  //   const eventEls = document.querySelectorAll<HTMLElement>('.fc-event')
+  //   eventEls.forEach(event => {
+  //     // event.style.backgroundColor = '#9CA3AF' // Muted grey for events
+  //     event.style.color = 'black' // Light text color
+  //     event.style.cursor = "crosshair"
+  //   })
+  // }, [events])
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold ">Calendar.</h1>
-      <h3 className='text-lg text-gray-400 mb-4 '> Deep dive into your github commits by selecting a repository and a date.
+      <h1 className="text-2xl font-bold text-gray-800">Calendar</h1>
+      <h3 className="text-lg text-gray-500 mb-4">
+        Deep dive into your GitHub commits by selecting a repository and a date.
       </h3>
-      <div className='mb-4'>
+      <div className="mb-4">
         <SelectComponent
           placeholder="Select a repository"
           options={
@@ -105,26 +156,37 @@ const CalendarPage = () => {
           disabled={!user.user}
         />
       </div>
-      <div className="bg-white rounded-lg overflow-hidden">
-        <FullCalendar
-          plugins={[dayGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          events={events}
-          eventTimeFormat={{
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          }}
-          eventClassNames={() => ' text-xs truncate'}
-          dateClick={handleDateClick}
-          datesSet={handleDatesSet}
-        />
-      </div>
+      <Card className="bg-gray-50 shadow-lg rounded-lg overflow-hidden py-4">
+        <CardContent>
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            events={events}
+            eventTimeFormat={{
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false,
+            }}
+            eventClassNames={() => 'text-xs truncate'}
+            dateClick={handleDateClick}
+            datesSet={handleDatesSet}
+            headerToolbar={{
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,dayGridWeek',
+            }}
+            height="auto"
+          />
+        </CardContent>
+      </Card>
       <ModalCommits
         open={open}
         setOpen={setOpen}
         selectedDate={selectedDate}
         commitDetails={commitDetails}
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
       />
     </div>
   )
