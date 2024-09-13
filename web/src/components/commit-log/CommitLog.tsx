@@ -245,12 +245,14 @@ const CommitLog = () => {
                       >
                         {commit.status}
                       </Badge>
-                      <Badge
-                        className={`ml-2 ${commit.pullRequestStatus === 'Open PR' ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-900 dark:text-gray-400'}`}
-                        variant="outline"
-                      >
-                        {commit.pullRequestStatus}
-                      </Badge>
+                      {commit.pullRequestStatus && (
+                        <Badge
+                          className={`ml-2 ${commit.pullRequestStatus === 'Open PR' ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-900 dark:text-gray-400'}`}
+                          variant="outline"
+                        >
+                          {commit.pullRequestStatus}
+                        </Badge>
+                      )}
                     </div>
                   )}
                 </td>
