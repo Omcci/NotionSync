@@ -10,6 +10,8 @@ import { Checkbox } from './ui/checkbox'
 import { Label } from './ui/label'
 import { useAppContext } from '@/context/AppContext'
 import ErrorMessage from './ErrorMessage'
+import { useUser } from '@/context/UserContext'
+import { useQuery } from '@tanstack/react-query'
 
 interface Branch {
   name: string
@@ -18,113 +20,101 @@ interface Branch {
   actions: Array<{ name: string; icon: JSX.Element; url: string }>
 }
 
+const fetchBranches = async (repoName: string, orgName: string, githubToken: string, trackedBranch: Set<string>) => {
+  const response = await fetch(
+    `/api/branches?repoName=${encodeURIComponent(repoName)}&orgName=${encodeURIComponent(orgName)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${githubToken}`,
+      },
+    },
+  )
+  const data = await response.json()
+  if (!response.ok) {
+    throw new Error(`Error fetching branches: ${response.status}`)
+  }
+  const detailedBranches = (data.branches || []).map((branchName: string) => ({
+    name: branchName,
+    status: trackedBranch.has(branchName) ? 'Tracked' : 'Untracked',
+    actions: [
+      {
+        name: 'View',
+        icon: <EyeIcon />,
+        url: `https://github.com/${orgName}/${repoName}/tree/${branchName}`,
+      },
+      {
+        name: 'Github',
+        icon: <GithubIcon />,
+        url: `https://github.com/${orgName}/${repoName}`,
+      },
+    ],
+  }))
+
+  return detailedBranches
+}
+
 const BranchSelector = () => {
   const { selectedRepo } = useAppContext()
-  const [branches, setBranches] = useState<Branch[]>([])
+  const { githubToken } = useUser()
   const [selectedBranch, setSelectedBranch] = useState('')
   const [trackedBranch, setTrackedBranch] = useState<Set<string>>(new Set())
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+
+  const { data: branches = [], isLoading, isError, error } = useQuery(
+    {
+      queryKey: ['branches', selectedRepo?.name, selectedRepo?.org, githubToken],
+      queryFn: () => fetchBranches(selectedRepo!.name, selectedRepo!.org, githubToken!, trackedBranch),
+      enabled: !!selectedRepo && !!githubToken,
+      staleTime: 1000 * 60 * 5,
+    }
+  )
 
   const handleTrackChange = (branchName: string, isChecked: boolean) => {
     setTrackedBranch((prevTrackedBranch) => {
       const updatedTrackedBranch = new Set(prevTrackedBranch)
-
       if (isChecked) {
         updatedTrackedBranch.add(branchName)
       } else {
         updatedTrackedBranch.delete(branchName)
       }
-      setBranches((prevBranches) =>
-        prevBranches.map((branch) =>
-          branch.name === branchName
-            ? { ...branch, status: isChecked ? 'Tracked' : 'Untracked' }
-            : branch,
-        ),
-      )
+
+      branches.forEach((branch: Branch) => {
+        if (branch.name === branchName) {
+          branch.status = isChecked ? 'Tracked' : 'Untracked'
+        }
+      })
+
       return updatedTrackedBranch
     })
   }
 
-  // TODO : Add branches state to context
-  useEffect(() => {
-    if (selectedRepo) {
-      fetchBranches(selectedRepo.name, selectedRepo.org)
-    }
-  }, [selectedRepo])
-
-  const fetchBranches = async (repoName: string, orgName: string) => {
-    setLoading(true)
-    setError(null)
-    const url = `/api/branches?repoName=${encodeURIComponent(repoName)}&orgName=${encodeURIComponent(orgName)}`
-
-    try {
-      const response = await fetch(url)
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(`Error fetching branches: ${response.status}`)
-      }
-      const detailedBranches = (data.branches || []).map(
-        (branchName: string) => {
-          return {
-            name: branchName,
-            status: trackedBranch.has(branchName) ? 'Tracked' : 'Untracked',
-            actions: [
-              {
-                name: 'View',
-                icon: <EyeIcon />,
-                url: `https://github.com/${selectedRepo!.org}/${
-                  selectedRepo!.name
-                }/tree/${branchName}`,
-              },
-              {
-                name: 'Github',
-                icon: <GithubIcon />,
-                url: `https://github.com/${selectedRepo!.org}/${
-                  selectedRepo!.name
-                }`,
-              },
-            ],
-          }
-        },
-      )
-
-      setBranches(detailedBranches)
-    } catch (error: any) {
-      setError(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-  const handleBranchSelect = (branchName: any) => {
+  const handleBranchSelect = (branchName: string) => {
     setSelectedBranch(branchName)
   }
 
-  const branchOptions = branches.map((branch) => ({
+  const branchOptions = branches.map((branch: Branch) => ({
     value: branch.name,
     label: branch.label || branch.name,
   }))
 
-  if (loading) {
-    return (
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">Branch Selector</h2>
-        </div>
-        <p>Please select a repository to show the branches</p>
+  const renderContent = (message: string) => (
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold">Branch Selector</h2>
       </div>
-    )
+      <p>{message}</p>
+    </div>
+  )
+
+  if (!selectedRepo) {
+    return renderContent("Please select a repository to show the branches")
   }
 
-  if (error) {
-    return (
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">Branch Selector</h2>
-        </div>
-        <ErrorMessage message={error} />
-      </div>
-    )
+  if (isLoading) {
+    return renderContent("Loading branches...")
+  }
+
+  if (isError) {
+    return renderContent(`Error: ${error?.message || "Failed to load branches"}`)
   }
 
   return (
@@ -173,7 +163,7 @@ const BranchSelector = () => {
           </thead>
 
           <tbody>
-            {branches.map((branch, idx) => (
+            {branches.map((branch: Branch, idx: number) => (
               <tr key={idx} className="border-b dark:border-gray-700">
                 <td className="px-4 py-3 flex items-center gap-2">
                   <GitBranchIcon className="w-5 h-5" />
@@ -181,11 +171,10 @@ const BranchSelector = () => {
                 </td>
                 <td className="px-4 py-3">
                   <Badge
-                    className={`bg-${
-                      branch.status === 'Tracked'
-                        ? 'green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
-                        : 'red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
-                    }`}
+                    className={`bg-${branch.status === 'Tracked'
+                      ? 'green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                      : 'red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
+                      }`}
                     variant="outline"
                   >
                     {branch.status}
