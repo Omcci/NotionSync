@@ -20,9 +20,16 @@ interface Branch {
   actions: Array<{ name: string; icon: JSX.Element; url: string }>
 }
 
-const fetchBranches = async (repoName: string, orgName: string, githubToken: string, trackedBranch: Set<string>) => {
+const fetchBranches = async (
+  repoName: string,
+  orgName: string,
+  githubToken: string,
+  trackedBranch: Set<string>,
+  page: number,
+  perPage: number = 5,
+) => {
   const response = await fetch(
-    `/api/branches?repoName=${encodeURIComponent(repoName)}&orgName=${encodeURIComponent(orgName)}`,
+    `/api/branches?repoName=${encodeURIComponent(repoName)}&orgName=${encodeURIComponent(orgName)}&page=${page}&perPage=${perPage}`,
     {
       headers: {
         Authorization: `Bearer ${githubToken}`,
@@ -58,15 +65,36 @@ const BranchSelector = () => {
   const { githubToken } = useUser()
   const [selectedBranch, setSelectedBranch] = useState('')
   const [trackedBranch, setTrackedBranch] = useState<Set<string>>(new Set())
+  const [page, setPage] = useState(1)
+  const perPage = 5
 
-  const { data: branches = [], isLoading, isError, error } = useQuery(
-    {
-      queryKey: ['branches', selectedRepo?.name, selectedRepo?.org, githubToken],
-      queryFn: () => fetchBranches(selectedRepo!.name, selectedRepo!.org, githubToken!, trackedBranch),
-      enabled: !!selectedRepo && !!githubToken,
-      staleTime: 1000 * 60 * 5,
-    }
-  )
+  const {
+    data: branches = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: [
+      'branches',
+      selectedRepo?.name,
+      selectedRepo?.org,
+      githubToken,
+      trackedBranch,
+      page,
+      perPage,
+    ],
+    queryFn: () =>
+      fetchBranches(
+        selectedRepo!.name,
+        selectedRepo!.org,
+        githubToken!,
+        trackedBranch,
+        page,
+        perPage,
+      ),
+    enabled: !!selectedRepo && !!githubToken,
+    staleTime: 1000 * 60 * 5,
+  })
 
   const handleTrackChange = (branchName: string, isChecked: boolean) => {
     setTrackedBranch((prevTrackedBranch) => {
@@ -106,15 +134,17 @@ const BranchSelector = () => {
   )
 
   if (!selectedRepo) {
-    return renderContent("Please select a repository to show the branches")
+    return renderContent('Please select a repository to show the branches')
   }
 
   if (isLoading) {
-    return renderContent("Loading branches...")
+    return renderContent('Loading branches...')
   }
 
   if (isError) {
-    return renderContent(`Error: ${error?.message || "Failed to load branches"}`)
+    return renderContent(
+      `Error: ${error?.message || 'Failed to load branches'}`,
+    )
   }
 
   return (
@@ -171,10 +201,11 @@ const BranchSelector = () => {
                 </td>
                 <td className="px-4 py-3">
                   <Badge
-                    className={`bg-${branch.status === 'Tracked'
-                      ? 'green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
-                      : 'red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
-                      }`}
+                    className={`bg-${
+                      branch.status === 'Tracked'
+                        ? 'green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                        : 'red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
+                    }`}
                     variant="outline"
                   >
                     {branch.status}
@@ -196,6 +227,21 @@ const BranchSelector = () => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex justify-center mt-4">
+        <Button
+          className="mr-4"
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+        >
+          Previous
+        </Button>
+        <Button
+          disabled={branches.length < perPage}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </Button>
       </div>
     </div>
   )
