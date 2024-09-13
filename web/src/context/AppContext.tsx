@@ -32,11 +32,11 @@ interface AppContextType {
 
 const initialState: AppContextType = {
   repos: [],
-  setRepos: () => { },
+  setRepos: () => {},
   selectedRepo: null,
-  setSelectedRepo: () => { },
+  setSelectedRepo: () => {},
   syncStatus: null,
-  setSyncStatus: () => { },
+  setSyncStatus: () => {},
 }
 
 const AppContext = createContext<AppContextType>(initialState)
@@ -82,7 +82,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   })
 
   useEffect(() => {
-    if (fetchedRepos.length && JSON.stringify(fetchedRepos) !== JSON.stringify(repos)) {
+    if (
+      fetchedRepos.length &&
+      JSON.stringify(fetchedRepos) !== JSON.stringify(repos)
+    ) {
       setRepos(fetchedRepos)
     }
   }, [fetchedRepos, repos])

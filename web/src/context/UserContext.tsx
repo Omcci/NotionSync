@@ -21,8 +21,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         data: { session },
       } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
-      if (session?.provider_token)
-        setGithubToken(session.provider_token)
+      if (session?.provider_token) setGithubToken(session.provider_token)
     }
 
     getSession()
@@ -39,7 +38,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [])
 
   return (
-    <UserContext.Provider value={{ user, githubToken }}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{ user, githubToken }}>
+      {children}
+    </UserContext.Provider>
   )
 }
 

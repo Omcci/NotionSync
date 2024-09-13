@@ -37,12 +37,11 @@ const initialConfig: ConfigSettings = {
 
 const ConfigContext = createContext<ConfigContextType>({
   config: initialConfig,
-  setConfig: () => { },
-  fetchConfig: () => { },
-  updateFormValues: () => { },
+  setConfig: () => {},
+  fetchConfig: () => {},
+  updateFormValues: () => {},
   fetchUserRepos: async () => [],
 })
-
 
 const fetchConfig = async (): Promise<ConfigSettings> => {
   const response = await fetch('/api/config')

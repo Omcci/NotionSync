@@ -87,9 +87,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     per_page: string
   }
 
-  const token = githubToken || req.headers.authorization?.split(' ')[1] 
+  const token = githubToken || req.headers.authorization?.split(' ')[1]
   if (!token) {
-    return res.status(401).json({ error: 'Unauthorized: No GitHub token available' })
+    return res
+      .status(401)
+      .json({ error: 'Unauthorized: No GitHub token available' })
   }
 
   try {
@@ -150,10 +152,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         let committerAvatarUrl = 'https://github.com/identicons/default.png'
 
         if (commit.author && commit.author.login) {
-          authorDetails = await fetchAuthorDetails(
-            token!,
-            commit.author.login,
-          )
+          authorDetails = await fetchAuthorDetails(token!, commit.author.login)
           authorName = commit.commit.author.name
         } else {
           authorDetails = {

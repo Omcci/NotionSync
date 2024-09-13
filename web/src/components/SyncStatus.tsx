@@ -20,14 +20,12 @@ const getEmojiTime = (date: Date) => {
 const SyncStatus = () => {
   const { syncStatus, setSyncStatus } = useAppContext()
 
-  const { data, error, isLoading, isError } = useQuery(
-    {
-      queryKey: ['syncStatus'],
-      queryFn: fetchSyncStatus,
-      refetchInterval: 60000,
-      refetchOnWindowFocus: true,
-    }
-  )
+  const { data, error, isLoading, isError } = useQuery({
+    queryKey: ['syncStatus'],
+    queryFn: fetchSyncStatus,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: true,
+  })
 
   useEffect(() => {
     if (data) {
@@ -53,7 +51,6 @@ const SyncStatus = () => {
   const formattedDate = data?.lastSyncDate
     ? `${format(new Date(data.lastSyncDate), 'MMMM do, yyyy h:mm:ss a')} ${getEmojiTime(new Date(data.lastSyncDate))}`
     : data?.statusMessage || 'Loading...'
-
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
