@@ -1,4 +1,4 @@
-FROM node:18-alpine as base
+FROM node:18-alpine AS base
 
 WORKDIR /app
 
@@ -8,10 +8,10 @@ RUN npm install
 COPY . .
 
 # Development stage
-FROM base as dev
+FROM base AS dev
 CMD npm run dev
 
 # Production stage
-FROM base as prod
+FROM base AS prod
 RUN npm run build
 CMD npm run start
