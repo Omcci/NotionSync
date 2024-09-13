@@ -17,8 +17,6 @@ import { useUser } from '@/context/UserContext'
 //TODO : add session with github oauth
 //TODO : display user friendly message of sync status
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL
-
 const HeaderV0 = () => {
   const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext()
   const [loading, setLoading] = useState(false)
@@ -27,39 +25,6 @@ const HeaderV0 = () => {
   // const { data: session } = useSession();
   const username = process.env.NEXT_PUBLIC_USERNAME
   const user = useUser()
-
-  useEffect(() => {
-    if (username) fetchUserRepos(username)
-    console.log('username:', username)
-  }, [username])
-
-  const fetchUserRepos = async (username: string) => {
-    const url = `${apiUrl}/api/repos?username=${encodeURIComponent(username)}`
-    console.log('URL:', url)
-
-    try {
-      const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error(`Error fetching repositories: ${response.status}`)
-      }
-      const data = await response.json()
-      if (data.repos) {
-        setRepos(data.repos)
-      } else {
-        toast({
-          title: 'Error',
-          description: data.error || 'Failed to fetch repositories.',
-          variant: 'destructive',
-        })
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch repositories.',
-        variant: 'destructive',
-      })
-    }
-  }
 
   const handleSync = async () => {
     setLoading(true)
@@ -108,12 +73,16 @@ const HeaderV0 = () => {
   }))
   return (
     <header className="py-4 px-6 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={signInWithGitHub}>
-          <GithubIcon className="w-5 h-5 mr-2" />
-          Login with GitHub
-        </Button>
-      </div>
+      {user.user ? (
+        ''
+      ) : (
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={signInWithGitHub}>
+            <GithubIcon className="w-5 h-5 mr-2" />
+            Login with GitHub
+          </Button>
+        </div>
+      )}
       <div className="flex items-center gap-4">
         <SelectComponent
           placeholder="Select a repository"

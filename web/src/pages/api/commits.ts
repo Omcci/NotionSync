@@ -7,8 +7,15 @@ export const fetchCommitsForUserInRepo = async (
   repoName: string,
   page: string,
   per_page: string,
+  since?: string,
+  until?: string,
 ) => {
-  const commitsUrl = `https://api.github.com/repos/${orgName}/${repoName}/commits?page=${page}&per_page=${per_page}`
+  let commitsUrl = `https://api.github.com/repos/${orgName}/${repoName}/commits?page=${page}&per_page=${per_page}`
+
+  if (since && until) {
+    commitsUrl += `&since=${since}&until=${until}`
+  }
+
   const pullRequestsUrl = `https://api.github.com/repos/${orgName}/${repoName}/pulls?state=open`
 
   const [commitsResponse, pullRequestsResponse] = await Promise.all([
@@ -57,60 +64,70 @@ export const fetchAuthorDetails = async (
   return userResponse.json()
 }
 
-export const fetchAllCommitsForRepo = async (
-  githubToken: string,
-  orgName: string,
-  repoName: string,
-) => {
-  let page = 1
-  const per_page = 100
-  let allCommits: any = []
-
-  while (true) {
-    const { commits } = await fetchCommitsForUserInRepo(
-      githubToken,
-      orgName,
-      repoName,
-      page.toString(),
-      per_page.toString(),
-    )
-
-    if (commits.length === 0) break
-
-    allCommits = allCommits.concat(commits)
-    page++
-  }
-
-  return allCommits
-}
-
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const {
     repoName,
     orgName,
-    // page = '1',
-    // per_page = '10',
+    startDate,
+    endDate,
     date,
+    allPages,
+    githubToken,
+    page = '1',
+    per_page = '10',
   } = req.query as {
     repoName: string
     orgName: string
-    // page: string
-    // per_page: string
     date?: string
+    startDate?: string
+    endDate?: string
+    allPages?: string
+    githubToken?: string
+    page: string
+    per_page: string
   }
 
-  console.log(`Fetching commits for ${orgName}/${repoName}`)
-
-  const token = process.env.GITHUB_TOKEN
+  const token = githubToken || req.headers.authorization?.split(' ')[1]
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: 'Unauthorized: No GitHub token available' })
+  }
 
   try {
-    const allCommits = await fetchAllCommitsForRepo(
-      token!,
-      orgName,
-      repoName,
-      // page,
-      // per_page,
-    )
+    let allCommits: any[] = []
+
+    if (allPages === 'true') {
+      let page = 1
+      const per_page = 100
+      while (true) {
+        const { commits } = await fetchCommitsForUserInRepo(
+          token!,
+          orgName,
+          repoName,
+          page.toString(),
+          per_page.toString(),
+          startDate,
+          endDate,
+        )
+
+        if (commits.length === 0) break
+
+        allCommits = allCommits.concat(commits)
+        page++
+      }
+    } else {
+      const { commits } = await fetchCommitsForUserInRepo(
+        token!,
+        orgName,
+        repoName,
+        page,
+        per_page,
+        startDate,
+        endDate,
+      )
+      allCommits = commits
+    }
 
     let filteredCommits = allCommits
 
@@ -129,11 +146,25 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           commit.commit.verification && commit.commit.verification.verified
             ? 'Verified'
             : 'Unverified'
-        const authorDetails = await fetchAuthorDetails(
-          token!,
-          commit.author.login,
-        )
-        // console.log('Author Details:', authorDetails)
+
+        let authorDetails = null
+        let authorName = 'Unknown Author'
+        let committerAvatarUrl = 'https://github.com/identicons/default.png'
+
+        if (commit.author && commit.author.login) {
+          authorDetails = await fetchAuthorDetails(token!, commit.author.login)
+          authorName = commit.commit.author.name
+        } else {
+          authorDetails = {
+            name: 'Unknown Author',
+            bio: '',
+            location: '',
+            blog: '',
+            company: '',
+            avatar_url: committerAvatarUrl,
+            created_at: '',
+          }
+        }
 
         return {
           commit: commit.commit.message,

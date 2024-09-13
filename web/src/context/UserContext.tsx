@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js'
 
 interface UserContextType {
   user: User | null
+  githubToken: string | null
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -12,6 +13,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null)
+  const [githubToken, setGithubToken] = useState<string | null>(null)
 
   useEffect(() => {
     const getSession = async () => {
@@ -19,6 +21,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         data: { session },
       } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
+      if (session?.provider_token) setGithubToken(session.provider_token)
     }
 
     getSession()
@@ -35,7 +38,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [])
 
   return (
-    <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{ user, githubToken }}>
+      {children}
+    </UserContext.Provider>
   )
 }
 
