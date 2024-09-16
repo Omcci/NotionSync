@@ -65,6 +65,7 @@ const SnakeGame = () => {
         setHighScore(score)
         localStorage.setItem('highScore', score.toString())
       }
+      return
     }
 
     const moveSnake = () => {
