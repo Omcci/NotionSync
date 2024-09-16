@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   Dialog,
   DialogContent,
@@ -6,17 +5,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Progress } from '@/components/ui/progress'
+import { Commit } from '../../types/types'
+import { useEffect, useState } from 'react'
+import CommitDetails from './CommitDetails'
 
 type ModalCommitsProps = {
   open: boolean
   setOpen: (open: boolean) => void
   selectedDate: string
-  commitDetails: {
-    commit: string
-    author: string
-    date: string
-    status: string
-  }[]
+  commitDetails: Commit[]
+  isLoading: boolean
+  isError: boolean
+  error?: Error | null
 }
 
 const ModalCommits = ({
@@ -24,37 +25,49 @@ const ModalCommits = ({
   setOpen,
   selectedDate,
   commitDetails,
+  isLoading,
+  isError,
+  error,
 }: ModalCommitsProps) => {
+  const [progress, setProgress] = useState(0)
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (isLoading) {
+      interval = setInterval(() => {
+        setProgress((prev) => (prev >= 100 ? 0 : prev + 10))
+      }, 100)
+    } else {
+      setProgress(0)
+    }
+    return () => clearInterval(interval)
+  }, [isLoading])
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button className="hidden">Open</button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl overflow-y-auto max-h-[75vh]">
+      <DialogContent
+        className="max-w-3xl overflow-y-auto max-h-[75vh]"
+        aria-describedby={undefined}
+      >
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             Commits on {selectedDate}
           </DialogTitle>
         </DialogHeader>
-        {commitDetails.length === 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-4">
+            <Progress className="w-full" value={progress} />
+          </div>
+        ) : isError ? (
+          <p className="text-red-500">
+            Error: {error?.message || 'Failed to fetch commits.'}
+          </p>
+        ) : commitDetails.length === 0 ? (
           <p className="text-gray-500">No commits found for this date.</p>
         ) : (
-          <ul className="divide-y divide-gray-200">
-            {commitDetails.map((commit, idx) => (
-              <li key={idx} className="p-4">
-                <div className="flex items-start space-x-4">
-                  <div>
-                    <p className="text-lg font-semibold">{commit.commit}</p>
-                    <p className="text-gray-500">Author: {commit.author}</p>
-                    <p className="text-gray-500">
-                      Date: {new Date(commit.date).toLocaleString()}
-                    </p>
-                    <p className="text-gray-500">Status: {commit.status}</p>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <CommitDetails commitDetails={commitDetails} />
         )}
       </DialogContent>
     </Dialog>

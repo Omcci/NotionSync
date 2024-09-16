@@ -20,10 +20,13 @@ import signInWithGitHub from '@/lib/login'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
+import EeDial from '@/components/EeDial'
 
 // TODO : refactor user state to get it from context
 const Home = () => {
   const [user, setUser] = useState<User | null>(null)
+  const [triggerEe, setTriggerEe] = useState(false)
+  const [iconSize, setIconSize] = useState(10)
 
   useEffect(() => {
     const getSession = async () => {
@@ -36,11 +39,25 @@ const Home = () => {
     getSession()
   }, [])
 
+  const handleClickOpenEe = () => {
+    if (iconSize < 100) {
+      setIconSize(iconSize + 10)
+    } else {
+      setTriggerEe(true)
+    }
+  }
+
+  useEffect(() => {
+    if (!triggerEe) {
+      setIconSize(10)
+    }
+  }, [triggerEe])
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 bg-gray-50 dark:bg-gray-900 ">
       <header className="w-full max-w-3xl text-sm font-mono">
         <p className="mb-6 text-4xl font-bold text-gray-800 dark:text-gray-100">
-          Welcome to NotionSync
+          Welcome to NotionSync 🖐️ 🖐️
         </p>
         <p className="mb-8 text-lg text-gray-600">
           Seamlessly sync your GitHub commits with Notion to keep your project
@@ -159,6 +176,23 @@ const Home = () => {
           </CardContent>
         </Card>
       </section>
+      <section>
+        <div
+          onClick={handleClickOpenEe}
+          className="transition-transform duration-500 ease-in-out"
+          style={{ width: iconSize, height: iconSize }}
+        >
+          <Image
+            src="/what.png"
+            alt="?"
+            width={iconSize}
+            height={iconSize}
+            className="cursor-pointer"
+          />
+        </div>
+      </section>
+      <EeDial triggerEe={triggerEe} setTriggerEe={setTriggerEe} />
+
       <section className="w-full max-w-3xl mt-12">
         <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6">
           FAQ

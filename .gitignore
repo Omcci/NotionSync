@@ -33,3 +33,5 @@ Thumbs.db
 node_modules/
 **/.DS_Store
 
+fetch-and-deploy-main.sh
+fetch-and-deploy-dev.sh

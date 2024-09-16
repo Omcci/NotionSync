@@ -5,8 +5,10 @@ export const fetchRepoBranches = async (
   githubToken: string,
   orgName: string,
   repoName: string,
+  perPage: number,
+  page: number,
 ) => {
-  const url = `https://api.github.com/repos/${orgName}/${repoName}/branches`
+  const url = `https://api.github.com/repos/${orgName}/${repoName}/branches?per_page=${perPage}&page=${page}`
   try {
     const response = await fetch(url, {
       headers: { Authorization: `token ${githubToken}` },
@@ -25,9 +27,16 @@ export const fetchRepoBranches = async (
 }
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const { repoName, orgName } = req.query as {
+  const {
+    repoName,
+    orgName,
+    perPage = '5',
+    page = '1',
+  } = req.query as {
     repoName: string
     orgName: string
+    perPage: string
+    page: string
   }
 
   if (!repoName || !orgName) {
@@ -36,10 +45,22 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       .json({ error: 'Missing repoName or orgName parameter' })
   }
 
-  const token = process.env.GITHUB_TOKEN
+  const token = req.headers.authorization?.split(' ')[1]
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: 'Unauthorized: No GitHub token provided' })
+  }
 
   try {
-    const branches = await fetchRepoBranches(token!, orgName, repoName)
+    const branches = await fetchRepoBranches(
+      token!,
+      orgName,
+      repoName,
+      +perPage,
+      +page,
+    )
     console.log('API is sending branches:', branches)
     res.status(200).json({ branches })
   } catch (error: any) {

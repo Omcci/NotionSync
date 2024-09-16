@@ -1,10 +1,8 @@
 import { supabase } from './supabaseClient'
 
 const getRedirectUrl = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000'
-  }
-  return 'https://notionsync.fr'
+  const currentUrl = window.location.href
+  return currentUrl
 }
 
 const signInWithGitHub = async () => {
@@ -16,10 +14,8 @@ const signInWithGitHub = async () => {
   })
 
   if (error) {
-    console.error('Error: ', error.message)
-    alert('Failed to sign in: ' + error.message)
-  } else {
-    alert('Successfully signed in with GitHub!')
+    console.error('Error during sign-in:', error.message)
+    return
   }
 }
 
