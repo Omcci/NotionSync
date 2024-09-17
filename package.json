@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prettier:check": "prettier --check .",
-    "prettier:write": "prettier --write ."
+    "prettier:write": "prettier --write .",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "keywords": [],
   "author": "",
