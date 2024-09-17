@@ -36,7 +36,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Format code with Prettier" || echo "No changes to commit"
+          git commit -m "Format and Lint code with Prettier and ESLint" || echo "No changes to commit"
       - name: Pull latest changes and push
         run: |
           git pull --rebase origin ${{ env.BRANCH_NAME }}
