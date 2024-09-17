@@ -57,7 +57,7 @@ const Home = () => {
     <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 bg-gray-50 dark:bg-gray-900 ">
       <header className="w-full max-w-3xl text-sm font-mono">
         <p className="mb-6 text-4xl font-bold text-gray-800 dark:text-gray-100">
-          Welcome to NotionSync 👋
+          Welcome to NotionSync 👋 👋 
         </p>
         <p className="mb-8 text-lg text-gray-600">
           Seamlessly sync your GitHub commits with Notion to keep your project
