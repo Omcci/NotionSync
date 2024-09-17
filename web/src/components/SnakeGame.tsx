@@ -101,7 +101,7 @@ const SnakeGame = () => {
 
     const interval = setInterval(moveSnake, 200)
     return () => clearInterval(interval)
-  }, [snake, direction, isGameOver, score, highScore])
+  }, [snake, direction, isGameOver, score, highScore, fruit])
 
   const resetGame = () => {
     setSnake([{ x: 12, y: 8 }])
