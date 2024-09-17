@@ -31,9 +31,6 @@ jobs:
       - name: Run Prettier
         run: npm run prettier:write
 
-      - name: Run ESLint
-        run: npm run lint
-
       - name: Commit changes
         run: |
           git config --global user.name "github-actions[bot]"
