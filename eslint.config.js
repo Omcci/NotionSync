@@ -1,11 +1,9 @@
-module.exports = [
+export default [
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-      },
+      ecmaVersion: 'latest',
+      sourceType: 'module',
     },
     rules: {
       semi: ['error', 'never'],
