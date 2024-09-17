@@ -25,7 +25,13 @@ let syncStatus: SyncStatus = {
 
 async function sync() {
   console.log('Starting sync process...')
-  const branches = await fetchRepoBranches(githubToken!, orgName!, repoName!, 100, 1)
+  const branches = await fetchRepoBranches(
+    githubToken!,
+    orgName!,
+    repoName!,
+    100,
+    1,
+  )
   for (const branch of branches) {
     try {
       console.log(`Syncing branch: ${branch}`)
