@@ -1,4 +1,4 @@
-module.exports = [
+export default [
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
