@@ -1,4 +1,4 @@
-export default [
+module.exports = [
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
@@ -8,8 +8,8 @@ export default [
       },
     },
     rules: {
-      semi: ['error', 'never'],
-      quotes: ['error', 'single'],
+      'semi': ['error', 'never'],
+      'quotes': ['error', 'single'],
     },
   },
-]
+];
