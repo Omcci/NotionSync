@@ -8,24 +8,24 @@ const TermsAndConditions = () => {
 
       <h2 className="text-2xl font-semibold mt-6">1. Introduction</h2>
       <p>
-        These Terms and Conditions (&#34;Terms&#34;) govern your use of our services. By
-        accessing or using our service, you agree to comply with and be bound by
-        these Terms.
+        These Terms and Conditions (&#34;Terms&#34;) govern your use of our
+        services. By accessing or using our service, you agree to comply with
+        and be bound by these Terms.
       </p>
 
       <h2 className="text-2xl font-semibold mt-6">2. Definitions</h2>
       <ul className="list-disc list-inside">
         <li>
-          <strong>&#34;Service&#34;:</strong> Refers to the online platform provided by
-          NotionSync.
+          <strong>&#34;Service&#34;:</strong> Refers to the online platform
+          provided by NotionSync.
         </li>
         <li>
-          <strong>&#34;User&#34;:</strong> Any individual who accesses or uses our
-          Service.
+          <strong>&#34;User&#34;:</strong> Any individual who accesses or uses
+          our Service.
         </li>
         <li>
-          <strong>&#34;Content&#34;:</strong> Any material or information uploaded or
-          made available through the Service.
+          <strong>&#34;Content&#34;:</strong> Any material or information
+          uploaded or made available through the Service.
         </li>
       </ul>
 
