@@ -4,6 +4,10 @@ const withTM = require('next-transpile-modules')(['lucide-react']) // Include yo
 const nextConfig = {
   reactStrictMode: true,
 
+  images: {
+    domains: ['avatars.githubusercontent.com'], // Add the external domain here
+  },
+
   // async rewrites() {
   //   return [
   //     {

@@ -40,16 +40,20 @@ const EeDial = ({ triggerEe, setTriggerEe }: EeDialProps) => {
                 <p className="font-bold">Controls</p>
                 <ul className="list-none m-0 text-left ">
                   <li>
-                    ← or <span className="font-bold">'Q'</span>: Move Left
+                    ← or <span className="font-bold">&apos;Q&apos;</span>: Move
+                    Left
                   </li>
                   <li>
-                    ↑ or <span className="font-bold">'Z'</span>: Move Up
+                    ↑ or <span className="font-bold">&apos;Z&apos;</span>: Move
+                    Up
                   </li>
                   <li>
-                    → or <span className="font-bold">'D'</span>: Move Right
+                    → or <span className="font-bold">&apos;D&apos;</span>: Move
+                    Right
                   </li>
                   <li>
-                    ↓ or <span className="font-bold">'S'</span>: Move Down
+                    ↓ or <span className="font-bold">&apos;S&apos;</span>: Move
+                    Down
                   </li>
                 </ul>
               </CardContent>

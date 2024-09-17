@@ -1,4 +1,3 @@
-// src/pages/api/branches.ts
 import { NextApiRequest, NextApiResponse } from 'next'
 
 export const fetchRepoBranches = async (
@@ -26,7 +25,7 @@ export const fetchRepoBranches = async (
   }
 }
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+const getBranches = async (req: NextApiRequest, res: NextApiResponse) => {
   const {
     repoName,
     orgName,
@@ -68,3 +67,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(500).json({ error: error.message })
   }
 }
+
+export default getBranches

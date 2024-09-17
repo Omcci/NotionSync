@@ -14,10 +14,10 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from './ui/navigation-menu'
+import Image from 'next/image'
 
 export function Header() {
   const links = [
-    { href: '/', label: 'Home' },
     { href: '/dashboardv0', label: 'Dashboard' },
     { href: '/calendar', label: 'Calendar' },
   ]
@@ -61,10 +61,12 @@ export function Header() {
           href="/"
           className="flex items-center gap-2 text-lg font-semibold"
         >
-          <img
+          <Image
             src="/NotionSyncLogoWhite.png"
             alt="NotionSync"
             className="w-8"
+            width={32}
+            height={32}
           />
           <span className="text-white hidden md:flex">NotionSync</span>
         </Link>
@@ -85,10 +87,12 @@ export function Header() {
                 <span className="text-white underline">{user.email}</span>
               </Link>
             </div>
-            <img
+            <Image
               src={user.user_metadata.avatar_url}
               alt="User Avatar"
               className="w-8 h-8 rounded-full"
+              width={32}
+              height={32}
             />
             <LogoutButton />
           </div>

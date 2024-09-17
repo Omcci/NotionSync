@@ -64,7 +64,7 @@ export const fetchAuthorDetails = async (
   return userResponse.json()
 }
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
   const {
     repoName,
     orgName,
@@ -198,3 +198,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(500).json({ error: error.message })
   }
 }
+
+export default getCommits
