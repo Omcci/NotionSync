@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback } from '@radix-ui/react-avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from './ui/button'
 import { CheckCircle, XCircle } from 'lucide-react'
+import { AvatarImage } from './ui/avatar'
 
 type CommitDetailsProps = {
   commitDetails: {
@@ -10,6 +11,7 @@ type CommitDetailsProps = {
     date: string
     status?: string
     actions: { name: string; url: string }[]
+    avatar_url?: string
   }[]
 }
 
@@ -40,39 +42,40 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
           >
             <div className="flex items-center space-x-4">
               <Avatar>
-                {/* <AvatarImage src={commit.avatar_url || '/default-avatar.png'} alt={commit.author} /> */}
+                <AvatarImage
+                  className='w-8 h-8 rounded-full'
+                  src={commit.avatar_url || '/default-avatar.png'} alt={commit.author} />
                 <AvatarFallback>
                   {commit.author.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="text-sm font-medium">{commit.commit}</h3>
-                <p className="text-xs text-gray-500">by {commit.author}</p>
-                <p className="text-xs text-gray-400">
-                  {new Date(commit.date).toLocaleTimeString([], {
+                <p className="text-xs text-gray-500">by
+                  <span className='font-bold text-blue-400'>
+                    {' '} {commit.author} {' '}
+                  </span>
+                  at {' '}
+                  {new Date(commit.date).toLocaleString('en-US', {
+                    timeZone: 'UTC',
                     hour: '2-digit',
                     minute: '2-digit',
+                    hour12: false,
                   })}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center space-x-2">
-              {commit.status ? (
-                <Badge
-                  variant="destructive"
-                  className="flex items-center space-x-1"
-                >
-                  <XCircle className="h-4 w-4" />
+              {commit.status === "Verified" ? (
+                <Badge className="flex items-center space-x-1 bg-green-100 text-green-700">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
                   <span>{commit.status}</span>
                 </Badge>
               ) : (
-                <Badge
-                  variant="default"
-                  className="flex items-center space-x-1"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  <span>Verified</span>
+                <Badge className="flex items-center space-x-1 bg-red-100 text-red-700">
+                  <XCircle className="h-4 w-4 text-red-500" />
+                  <span>{commit.status}</span>
                 </Badge>
               )}
 
