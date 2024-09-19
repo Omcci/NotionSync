@@ -163,32 +163,37 @@ const CalendarPage = () => {
           disabled={!user.user}
         />
       </div>
-      <Card className="bg-gray-50 shadow-lg rounded-lg overflow-hidden py-4">
-        <CardContent>
-          {isLoading && <LoadingSpinner />}
-          <FullCalendar
-            plugins={[dayGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            events={events}
-            eventTimeFormat={{
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false,
-            }}
-            dayMaxEvents={5}
-            timeZone="Europe/Paris"
-            // eventClassNames={() => 'text-xs truncate'}
-            dateClick={handleDateClick}
-            datesSet={handleDatesSet}
-            headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,dayGridWeek',
-            }}
-            height="auto"
-          />
-        </CardContent>
-      </Card>
+      {isLoading ?
+        <div className='flex justify-center mt-10'>
+          <LoadingSpinner />
+        </div>
+
+        : <Card className="bg-gray-50 shadow-lg rounded-lg overflow-hidden py-4">
+          <CardContent>
+            <FullCalendar
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              events={events}
+              eventTimeFormat={{
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              }}
+              dayMaxEvents={5}
+              timeZone="Europe/Paris"
+              // eventClassNames={() => 'text-xs truncate'}
+              dateClick={handleDateClick}
+              datesSet={handleDatesSet}
+              headerToolbar={{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,dayGridWeek',
+              }}
+              height="auto"
+            />
+          </CardContent>
+        </Card>}
+
       <ModalCommits
         open={open}
         setOpen={setOpen}
