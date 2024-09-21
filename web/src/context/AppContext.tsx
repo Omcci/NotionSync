@@ -8,6 +8,7 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react'
+import { useUser } from './UserContext'
 
 interface Repo {
   id: string
@@ -32,11 +33,11 @@ interface AppContextType {
 
 const initialState: AppContextType = {
   repos: [],
-  setRepos: () => {},
+  setRepos: () => { },
   selectedRepo: null,
-  setSelectedRepo: () => {},
+  setSelectedRepo: () => { },
   syncStatus: null,
-  setSyncStatus: () => {},
+  setSyncStatus: () => { },
 }
 
 const AppContext = createContext<AppContextType>(initialState)
@@ -58,22 +59,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [repos, setRepos] = useState<Repo[]>([])
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null)
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
-  const [githubToken, setGithubToken] = useState<string | null>(null)
 
-  useEffect(() => {
-    const getUserSession = async () => {
-      const { data, error } = await supabase.auth.getSession()
-      if (data.session && data.session.provider_token) {
-        setGithubToken(data.session.provider_token)
-      } else {
-        console.error('Error retrieving GitHub token', error)
-      }
-    }
+  const { githubToken } = useUser()
 
-    getUserSession()
-  }, [])
 
-  const { data: fetchedRepos = [] } = useQuery<Repo[], Error>({
+  const { data: fetchedRepos = [], refetch } = useQuery<Repo[], Error>({
     queryKey: ['repos', githubToken],
     queryFn: () => fetchRepos(githubToken!),
     enabled: !!githubToken,
@@ -89,6 +79,12 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       setRepos(fetchedRepos)
     }
   }, [fetchedRepos, repos])
+
+  useEffect(() => {
+    if (githubToken) {
+      refetch()
+    }
+  }, [githubToken, refetch])
 
   const value = {
     repos,
