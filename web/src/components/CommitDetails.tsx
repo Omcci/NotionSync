@@ -38,24 +38,23 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
         {commitDetails.map((commit, idx) => (
           <li
             key={idx}
-            className="flex items-center justify-between p-2 bg-gray-50 rounded-md shadow-sm hover:bg-gray-100 transition-colors"
+            className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 bg-gray-50 rounded-md shadow-sm hover:bg-gray-100 transition-colors"
           >
-            <div className="flex items-center space-x-4">
+            <div className="flex items-start space-x-4">
               <Avatar>
                 <AvatarImage
-                  className='w-8 h-8 rounded-full'
-                  src={commit.avatar_url || '/default-avatar.png'} alt={commit.author} />
+                  className="w-8 h-8 rounded-full object-cover"
+                  src={commit.avatar_url || '/default-avatar.png'}
+                  alt={commit.author}
+                />
                 <AvatarFallback>
                   {commit.author.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="text-sm font-medium">{commit.commit}</h3>
-                <p className="text-xs text-gray-500">by
-                  <span className='font-bold text-blue-400'>
-                    {' '} {commit.author} {' '}
-                  </span>
-                  at {' '}
+                <p className="text-xs text-gray-500">
+                  by <span className="font-bold text-blue-400"> {commit.author} </span> at{' '}
                   {new Date(commit.date).toLocaleString('en-US', {
                     timeZone: 'UTC',
                     hour: '2-digit',
@@ -65,9 +64,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
                 </p>
               </div>
             </div>
-
-            <div className="flex items-center space-x-2">
-              {commit.status === "Verified" ? (
+            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto sm:space-x-2 space-y-2 sm:space-y-0 mt-4 sm:mt-0">
+              {commit.status === 'Verified' ? (
                 <Badge className="flex items-center space-x-1 bg-green-100 text-green-700">
                   <CheckCircle className="h-4 w-4 text-green-500" />
                   <span>{commit.status}</span>
@@ -79,7 +77,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
                 </Badge>
               )}
 
-              <div className="flex space-x-1">
+              <div className="flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0">
                 {commit.actions?.map((action, actionIdx) => (
                   <Button
                     key={actionIdx}
