@@ -60,7 +60,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null)
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
 
-  const { githubToken } = useUser()
+  const { githubToken, refreshSession } = useUser()
 
 
   const { data: fetchedRepos = [], refetch } = useQuery<Repo[], Error>({
@@ -80,9 +80,19 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     }
   }, [fetchedRepos, repos])
 
+  const refreshAndFetchRepos = async () => {
+    if (!githubToken) {
+      await refreshSession()
+    } else {
+      refetch()
+    }
+  }
+
   useEffect(() => {
     if (githubToken) {
       refetch()
+    } else {
+      refreshAndFetchRepos()
     }
   }, [githubToken, refetch])
 
