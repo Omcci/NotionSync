@@ -3,18 +3,14 @@ import Layout from '../components/Layout'
 import React, { useEffect, useState } from 'react'
 import '../../styles/globals.css'
 
-import { Inter } from 'next/font/google'
+import { Inter, Figtree } from 'next/font/google'
 import Head from 'next/head'
 import { AppProvider } from '@/context/AppContext'
 import { ConfigProvider } from '@/context/ConfigContext'
-
-import { supabase } from '../lib/supabaseClient'
-import { User } from '@supabase/supabase-js'
-import { useRouter } from 'next/router'
 import { UserProvider } from '@/context/UserContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-const interFont = Inter({
+const interFont = Figtree({
   subsets: ['latin'],
   weight: ['400', '700'],
 })
