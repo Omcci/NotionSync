@@ -5,6 +5,7 @@ import { User } from '@supabase/supabase-js'
 interface UserContextType {
   user: User | null
   githubToken: string | null
+  refreshSession: () => Promise<void>
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -15,30 +16,65 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null)
   const [githubToken, setGithubToken] = useState<string | null>(null)
 
+  const refreshSession = async () => {
+    const { data, error } = await supabase.auth.refreshSession()
+    if (error) {
+      console.error('Error refreshing session:', error.message)
+      await supabase.auth.signOut()
+      setUser(null)
+      setGithubToken(null)
+      localStorage.clear()
+      sessionStorage.clear()
+    } else if (data.session) {
+      setUser(data.session.user)
+      const savedToken = sessionStorage.getItem('github_token')
+      if (!savedToken) {
+        sessionStorage.setItem(
+          'github_token',
+          data.session.provider_token ?? '',
+        )
+        setGithubToken(data.session.provider_token ?? null)
+      } else {
+        setGithubToken(savedToken)
+      }
+    }
+  }
+
   useEffect(() => {
     const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      if (session?.provider_token) setGithubToken(session.provider_token)
+      const { data } = await supabase.auth.getSession()
+      const savedToken = sessionStorage.getItem('github_token')
+      if (savedToken) {
+        setGithubToken(savedToken)
+      } else {
+        setUser(data?.session?.user ?? null)
+        setGithubToken(data?.session?.provider_token ?? null)
+      }
     }
 
     getSession()
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          setUser(session.user)
+          sessionStorage.setItem('github_token', session.provider_token ?? '')
+          setGithubToken(session.provider_token ?? null)
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setGithubToken(null)
+          sessionStorage.clear()
+        }
+      },
+    )
 
     return () => {
-      subscription.unsubscribe()
+      authListener.subscription.unsubscribe()
     }
   }, [])
 
   return (
-    <UserContext.Provider value={{ user, githubToken }}>
+    <UserContext.Provider value={{ user, githubToken, refreshSession }}>
       {children}
     </UserContext.Provider>
   )
