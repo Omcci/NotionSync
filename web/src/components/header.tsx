@@ -15,6 +15,7 @@ import {
   navigationMenuTriggerStyle,
 } from './ui/navigation-menu'
 import Image from 'next/image'
+import { useRouter } from 'next/router'
 
 export function Header() {
   const links = [
@@ -27,6 +28,8 @@ export function Header() {
   }
 
   const { user } = useUser()
+  const router = useRouter()
+  const isLoginPage = router.pathname === '/login'
 
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-gray-950 shadow-sm dark:bg-gray-950 dark:text-gray-50">
@@ -84,20 +87,24 @@ export function Header() {
             <div className="flex flex-col md:flex-row items-center md:gap-2">
               <span className="text-white">Welcome,</span>
               <Link href="/profile">
-                <span className="text-white underline">{user.email}</span>
+                <span className="text-blue-400 ">{user.user_metadata.full_name}</span>
               </Link>
             </div>
-            <Image
-              src={user.user_metadata.avatar_url}
-              alt="User Avatar"
-              className="w-8 h-8 rounded-full"
-              width={32}
-              height={32}
-            />
+            <Link href="/profile">
+              <Image
+                src={user.user_metadata.avatar_url}
+                alt="User Avatar"
+                className="w-8 h-8 rounded-full"
+                width={32}
+                height={32}
+              />
+            </Link>
             <LogoutButton />
           </div>
         ) : (
-          <Button onClick={handleLogin}>Login with GitHub</Button>
+          !isLoginPage && (
+            <Button onClick={handleLogin}>Login with GitHub</Button>
+          )
         )}
       </div>
     </header>
