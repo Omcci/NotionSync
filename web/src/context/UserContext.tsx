@@ -29,7 +29,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(data.session.user)
       const savedToken = sessionStorage.getItem('github_token')
       if (!savedToken) {
-        sessionStorage.setItem('github_token', data.session.provider_token ?? '')
+        sessionStorage.setItem(
+          'github_token',
+          data.session.provider_token ?? '',
+        )
         setGithubToken(data.session.provider_token ?? null)
       } else {
         setGithubToken(savedToken)
@@ -51,17 +54,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
     getSession()
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        setUser(session.user)
-        sessionStorage.setItem('github_token', session.provider_token ?? '')
-        setGithubToken(session.provider_token ?? null)
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null)
-        setGithubToken(null)
-        sessionStorage.clear()
-      }
-    })
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          setUser(session.user)
+          sessionStorage.setItem('github_token', session.provider_token ?? '')
+          setGithubToken(session.provider_token ?? null)
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setGithubToken(null)
+          sessionStorage.clear()
+        }
+      },
+    )
 
     return () => {
       authListener.subscription.unsubscribe()

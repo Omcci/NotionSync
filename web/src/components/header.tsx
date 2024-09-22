@@ -87,7 +87,9 @@ export function Header() {
             <div className="flex flex-col md:flex-row items-center md:gap-2">
               <span className="text-white">Welcome,</span>
               <Link href="/profile">
-                <span className="text-blue-400 ">{user.user_metadata.full_name}</span>
+                <span className="text-blue-400 ">
+                  {user.user_metadata.full_name}
+                </span>
               </Link>
             </div>
             <Link href="/profile">

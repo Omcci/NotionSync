@@ -33,11 +33,11 @@ interface AppContextType {
 
 const initialState: AppContextType = {
   repos: [],
-  setRepos: () => { },
+  setRepos: () => {},
   selectedRepo: null,
-  setSelectedRepo: () => { },
+  setSelectedRepo: () => {},
   syncStatus: null,
-  setSyncStatus: () => { },
+  setSyncStatus: () => {},
 }
 
 const AppContext = createContext<AppContextType>(initialState)
@@ -61,7 +61,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
 
   const { githubToken, refreshSession } = useUser()
-
 
   const { data: fetchedRepos = [], refetch } = useQuery<Repo[], Error>({
     queryKey: ['repos', githubToken],
