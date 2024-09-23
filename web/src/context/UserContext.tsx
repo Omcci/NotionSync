@@ -43,6 +43,28 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  // useEffect(() => {
+  //   const checkAndRefreshSession = async () => {
+  //     const { data, error } = await supabase.auth.getSession();
+  //     if (data?.session) {
+  //       const isTokenExpired = (data.session.expires_at ?? 0) < Math.floor(Date.now() / 1000) + 60;
+  //       if (isTokenExpired) {
+  //         const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
+  //         if (refreshError || !refreshedData?.session?.provider_token) {
+  //           console.log("Failed to refresh GitHub token, redirecting to login...");
+  //           // Redirect to GitHub OAuth re-login
+  //           await supabase.auth.signInWithOAuth({ provider: 'github' });
+  //         } else {
+  //           setGithubToken(refreshedData.session.provider_token);
+  //         }
+  //       }
+  //     } else {
+  //       await signOutUser();
+  //     }
+  //   };
+  //   checkAndRefreshSession();
+  // }, []);
+
   return (
     <UserContext.Provider value={{ user, githubToken, isLoading, signOutUser, setGithubToken }}>
       {children}
