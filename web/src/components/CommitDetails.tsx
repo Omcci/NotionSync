@@ -66,17 +66,16 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
             </div>
             <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto sm:space-x-2 space-y-2 sm:space-y-0 mt-4 sm:mt-0">
               {commit.status === 'Verified' ? (
-                <Badge className="flex items-center space-x-1 bg-green-100 text-green-700">
+                <Badge className="flex items-center space-x-1 bg-green-100 text-green-700 hover:bg-green-200 transition-colors">
                   <CheckCircle className="h-4 w-4 text-green-500" />
                   <span>{commit.status}</span>
                 </Badge>
               ) : (
-                <Badge className="flex items-center space-x-1 bg-red-100 text-red-700">
+                <Badge className="flex items-center space-x-1 bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
                   <XCircle className="h-4 w-4 text-red-500" />
                   <span>{commit.status}</span>
                 </Badge>
               )}
-
               <div className="flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0">
                 {commit.actions?.map((action, actionIdx) => (
                   <Button
