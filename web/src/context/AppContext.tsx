@@ -62,25 +62,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
   const { githubToken, signOutUser, setGithubToken } = useUser()
 
-  useEffect(() => {
-    const checkAndRefreshSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-
-      if (!data?.session && error?.status === 401) {
-        const { error: refreshError } = await supabase.auth.refreshSession();
-
-        if (refreshError) {
-          console.error('Error refreshing session:', refreshError.message);
-          await signOutUser();
-        }
-      } else {
-        setGithubToken(data?.session?.provider_token ?? null);
-      }
-    };
-
-    checkAndRefreshSession();
-  }, []);
-
   const { data: fetchedRepos = [], refetch } = useQuery<Repo[], Error>({
     queryKey: ['repos', githubToken],
     queryFn: () => fetchRepos(githubToken!),
