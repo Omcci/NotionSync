@@ -73,7 +73,7 @@ const CalendarPage = () => {
     queryFn: () => fetchCommits(repoName!, orgName!, dateRange, selectedDate),
     enabled: !!repoName && !!orgName && !!dateRange.start && !!dateRange.end,
     refetchOnWindowFocus: false,
-    refetchOnMount: true
+    refetchOnMount: false,
   })
 
   useEffect(() => {
@@ -163,12 +163,13 @@ const CalendarPage = () => {
           disabled={!user.user}
         />
       </div>
-      {isLoading ?
-        <div className='flex justify-center mt-10'>
-          <LoadingSpinner />
-        </div>
-
-        : <Card className="bg-gray-50 shadow-lg rounded-lg overflow-hidden py-4">
+      <div className="relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-opacity-50 bg-gray-100 z-10">
+            <LoadingSpinner />
+          </div>
+        )}
+        <Card className="bg-gray-50 shadow-lg rounded-lg overflow-hidden py-4">
           <CardContent>
             <FullCalendar
               plugins={[dayGridPlugin, interactionPlugin]}
@@ -192,7 +193,8 @@ const CalendarPage = () => {
               height="auto"
             />
           </CardContent>
-        </Card>}
+        </Card>
+      </div>
 
       <ModalCommits
         open={open}
