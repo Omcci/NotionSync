@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import { Commit } from '../../types/types'
 import { useEffect, useState } from 'react'
 import CommitDetails from './CommitDetails'
+import { LoadingSpinner } from './ui/loadingspinner'
 
 type ModalCommitsProps = {
   open: boolean
@@ -29,18 +30,6 @@ const ModalCommits = ({
   isError,
   error,
 }: ModalCommitsProps) => {
-  const [progress, setProgress] = useState(0)
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (isLoading) {
-      interval = setInterval(() => {
-        setProgress((prev) => (prev >= 100 ? 0 : prev + 10))
-      }, 100)
-    } else {
-      setProgress(0)
-    }
-    return () => clearInterval(interval)
-  }, [isLoading])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -58,7 +47,7 @@ const ModalCommits = ({
         </DialogHeader>
         {isLoading ? (
           <div className="flex justify-center items-center py-4">
-            <Progress className="w-full" value={progress} />
+            <LoadingSpinner />
           </div>
         ) : isError ? (
           <p className="text-red-500">
