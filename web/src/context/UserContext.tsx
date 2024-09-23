@@ -9,6 +9,7 @@ interface UserContextType {
   githubToken: string | null
   isLoading: boolean
   signOutUser: () => Promise<void>
+  setGithubToken: (token: string | null) => void
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -43,7 +44,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <UserContext.Provider value={{ user, githubToken, isLoading, signOutUser }}>
+    <UserContext.Provider value={{ user, githubToken, isLoading, signOutUser, setGithubToken }}>
       {children}
     </UserContext.Provider>
   )
