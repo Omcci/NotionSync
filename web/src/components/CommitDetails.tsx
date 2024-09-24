@@ -3,6 +3,14 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from './ui/button'
 import { CheckCircle, XCircle } from 'lucide-react'
 import { AvatarImage } from './ui/avatar'
+import { useEffect, useState } from 'react'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from './ui/select'
 
 type CommitDetailsProps = {
   commitDetails: {
@@ -19,23 +27,60 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   if (commitDetails.length === 0) {
     return <p className="text-gray-500">No commits found for this date.</p>
   }
+  const [filteredCommits, setFilteredCommits] = useState(commitDetails)
+  const [selectedUser, setSelectedUser] = useState<string | null>(null)
+  const [uniqueUsers, setUniqueUsers] = useState<string[]>([])
+
+  useEffect(() => {
+    const users = Array.from(
+      new Set(commitDetails.map((commit) => commit.author))
+    )
+    setUniqueUsers(users)
+  }, [commitDetails])
+
+  useEffect(() => {
+    if (selectedUser) {
+      setFilteredCommits(
+        commitDetails.filter((commit) => commit.author === selectedUser)
+      )
+    } else {
+      setFilteredCommits(commitDetails)
+    }
+  }, [selectedUser, commitDetails])
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="font-bold text-gray-500">
-          {' '}
-          Summarize your commits with AI here
-        </h3>
+      <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+        <div className='w-full flex flex-row justify-around items-center'>
+          <h3 className="font-bold text-gray-500">
+            {' '}
+            Summarize your commits with AI here
+          </h3>
 
-        <button className="text-blue-500">Click Here</button>
-        <span className="text-gray-600">
-          {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
-        </span>
+          <button className="text-blue-500">Click Here</button>
+          <span className="text-gray-600">
+            {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
+          </span>
+        </div>
+        <div className="w-full max-w-32 ">
+          <Select onValueChange={(value) => setSelectedUser(value === 'all' ? null : value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by User" />
+            </SelectTrigger>
+            <SelectContent>
+              {uniqueUsers.map((user, idx) => (
+                <SelectItem key={idx} value={user}>
+                  {user}
+                </SelectItem>
+              ))}
+              <SelectItem value="all">Show All</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <ul className="space-y-2">
-        {commitDetails.map((commit, idx) => (
+        {filteredCommits.map((commit, idx) => (
           <li
             key={idx}
             className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 bg-gray-50 rounded-md shadow-sm hover:bg-gray-100 transition-colors"
@@ -43,7 +88,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
             <div className="flex items-start space-x-4">
               <Avatar>
                 <AvatarImage
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="min-w-8 h-8 rounded-full "
                   src={commit.avatar_url || '/default-avatar.png'}
                   alt={commit.author}
                 />
