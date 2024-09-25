@@ -32,6 +32,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (data) {
       setUser(data.user)
       setGithubToken(data?.provider_token ?? null)
+      // if (data?.expires_at) {
+      //   const isTokenExpired = data.expires_at < Math.floor(Date.now() / 1000) 
+      //   if (isTokenExpired) {
+      //     console.log('Token expired, signing out...')
+      //     signOutUser()
+      //   }
+      // }
     }
   }, [data])
 
