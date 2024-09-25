@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback } from '@radix-ui/react-avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from './ui/button'
-import { CheckCircle, XCircle } from 'lucide-react'
+import { CheckCircle, XCircle, Sparkles } from 'lucide-react'
 import { AvatarImage } from './ui/avatar'
 import { useEffect, useState } from 'react'
 import {
@@ -11,15 +11,18 @@ import {
   SelectContent,
   SelectItem,
 } from './ui/select'
+import { LoadingSpinner } from './ui/loadingspinner'
 
 type CommitDetailsProps = {
   commitDetails: {
     commit: string
+    commitSha: string
     author: string
     date: string
     status?: string
     actions: { name: string; url: string }[]
     avatar_url?: string
+    diff?: { filename: string; additions: number; deletions: number }[]
   }[]
 }
 
@@ -30,6 +33,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   const [filteredCommits, setFilteredCommits] = useState(commitDetails)
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [uniqueUsers, setUniqueUsers] = useState<string[]>([])
+  const [summary, setSummary] = useState<string | null>(null)
+  const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(false);
 
   useEffect(() => {
     const users = Array.from(
@@ -48,16 +53,82 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     }
   }, [selectedUser, commitDetails])
 
+  const formatMistralSummary = (summary: string) => {
+    const lines = summary.split('\n').filter(line => line.trim() !== '');
+    let isInBulletList = false;
+    let formattedSummary = '';
+
+    lines.forEach((line) => {
+      const trimmedLine = line.trim();
+
+      if (trimmedLine.startsWith('**')) {
+        formattedSummary += `<strong>${trimmedLine.replace(/\*\*/g, '').trim()}</strong><br />`;
+      } else if (trimmedLine.startsWith('-')) {
+        if (!isInBulletList) {
+          formattedSummary += '<ul>';
+          isInBulletList = true;
+        }
+        formattedSummary += `<li>${trimmedLine.replace('-', '').trim()}</li>`;
+      } else {
+        if (isInBulletList) {
+          formattedSummary += '</ul>';
+          isInBulletList = false;
+        }
+        formattedSummary += `<p>${trimmedLine}</p>`;
+      }
+    });
+
+    if (isInBulletList) {
+      formattedSummary += '</ul>';
+    }
+
+    return formattedSummary;
+  };
+
+  const generateSummaryForAllCommits = async () => {
+    setIsLoadingSummary(true);
+
+    const commits = filteredCommits.map(commit => ({
+      commitMessage: commit.commit,
+      diff: Array.isArray(commit.diff) && commit.diff.length > 0
+        ? commit.diff.map(d => `${d.filename}: +${d.additions}, -${d.deletions}`).join('\n')
+        : '',
+    }));
+
+    try {
+      const response = await fetch('/api/mistral', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          commits,
+        }),
+      });
+
+      const data = await response.json();
+      const formattedSummary = formatMistralSummary(data.summary);
+      setSummary(formattedSummary);
+    } catch (error) {
+      console.error('Failed to generate summary:', error);
+    } finally {
+      setIsLoadingSummary(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
         <div className='w-full flex flex-row justify-around items-center'>
-          <h3 className="font-bold text-gray-500">
+          <h3 className="font-bold text-gray-500 flex">
             {' '}
-            Summarize your commits with AI here
+            Summarize your commits here <Sparkles className='ml-4 cursor-pointer' onClick={generateSummaryForAllCommits} />
           </h3>
-
-          <button className="text-blue-500">Click Here</button>
+          {isLoadingSummary && (
+            <div className="ml-4">
+              <LoadingSpinner />
+            </div>
+          )}
           <span className="text-gray-600">
             {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
           </span>
@@ -78,7 +149,12 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
           </Select>
         </div>
       </div>
-
+      {summary && (
+        <div className="bg-gray-100 p-4 rounded-md mt-4">
+          <h4 className="font-bold">Summary:</h4>
+          <div dangerouslySetInnerHTML={{ __html: summary }} />
+        </div>
+      )}
       <ul className="space-y-2">
         {filteredCommits.map((commit, idx) => (
           <li
@@ -86,16 +162,18 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
             className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 bg-gray-50 rounded-md shadow-sm hover:bg-gray-100 transition-colors"
           >
             <div className="flex items-start space-x-4">
-              <Avatar>
-                <AvatarImage
-                  className="min-w-8 h-8 rounded-full "
-                  src={commit.avatar_url || '/default-avatar.png'}
-                  alt={commit.author}
-                />
-                <AvatarFallback>
-                  {commit.author.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <div className='min-w-8 h-8 rounded-full flex justify-center items-center bg-white'>
+                <Avatar>
+                  <AvatarImage
+                    className="min-w-8 h-8 rounded-full "
+                    src={commit.avatar_url}
+                    alt={commit.author}
+                  />
+                  <AvatarFallback>
+                    {commit.author.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
               <div>
                 <h3 className="text-sm font-medium">{commit.commit}</h3>
                 <p className="text-xs text-gray-500">
