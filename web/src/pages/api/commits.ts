@@ -65,6 +65,27 @@ export const fetchAuthorDetails = async (
   return userResponse.json()
 }
 
+export const fetchCommitDiff = async (
+  commitSha: string,
+  githubToken: string,
+  orgName: string,
+  repoName: string,
+) => {
+  const diffUrl = `https://api.github.com/repos/${orgName}/${repoName}/commits/${commitSha}`
+  const response = await fetch(diffUrl, {
+    headers: {
+      Authorization: `token ${githubToken}`,
+      Accept: 'application/vnd.github.v3.diff',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Error fetching diff: ${response.status}`)
+  }
+
+  return response.text()
+}
+
 const TIMEZONE_OFFSET_PARIS = 2
 
 const parisTz = (dateString: string, formatPattern: string): string => {
@@ -182,8 +203,16 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
           }
         }
 
+        const diff = await fetchCommitDiff(
+          commit.sha,
+          token!,
+          orgName,
+          repoName,
+        )
+
         return {
           commit: commit.commit.message,
+          commitSha: commit.sha,
           branch: commit.commit.tree.sha,
           author: commit.commit.author.name,
           authorDetails: {
@@ -196,6 +225,7 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
             created_at: authorDetails.created_at,
           },
           date: formattedDate,
+          diff: diff,
           status: status,
           actions: [
             { name: 'View on GitHub', url: commit.html_url },
