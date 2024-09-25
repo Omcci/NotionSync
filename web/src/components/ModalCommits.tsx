@@ -30,7 +30,6 @@ const ModalCommits = ({
   isError,
   error,
 }: ModalCommitsProps) => {
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

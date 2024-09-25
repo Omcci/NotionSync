@@ -34,11 +34,11 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [uniqueUsers, setUniqueUsers] = useState<string[]>([])
   const [summary, setSummary] = useState<string | null>(null)
-  const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(false);
+  const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(false)
 
   useEffect(() => {
     const users = Array.from(
-      new Set(commitDetails.map((commit) => commit.author))
+      new Set(commitDetails.map((commit) => commit.author)),
     )
     setUniqueUsers(users)
   }, [commitDetails])
@@ -46,7 +46,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   useEffect(() => {
     if (selectedUser) {
       setFilteredCommits(
-        commitDetails.filter((commit) => commit.author === selectedUser)
+        commitDetails.filter((commit) => commit.author === selectedUser),
       )
     } else {
       setFilteredCommits(commitDetails)
@@ -54,46 +54,49 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   }, [selectedUser, commitDetails])
 
   const formatMistralSummary = (summary: string) => {
-    const lines = summary.split('\n').filter(line => line.trim() !== '');
-    let isInBulletList = false;
-    let formattedSummary = '';
+    const lines = summary.split('\n').filter((line) => line.trim() !== '')
+    let isInBulletList = false
+    let formattedSummary = ''
 
     lines.forEach((line) => {
-      const trimmedLine = line.trim();
+      const trimmedLine = line.trim()
 
       if (trimmedLine.startsWith('**')) {
-        formattedSummary += `<strong>${trimmedLine.replace(/\*\*/g, '').trim()}</strong><br />`;
+        formattedSummary += `<strong>${trimmedLine.replace(/\*\*/g, '').trim()}</strong><br />`
       } else if (trimmedLine.startsWith('-')) {
         if (!isInBulletList) {
-          formattedSummary += '<ul>';
-          isInBulletList = true;
+          formattedSummary += '<ul>'
+          isInBulletList = true
         }
-        formattedSummary += `<li>${trimmedLine.replace('-', '').trim()}</li>`;
+        formattedSummary += `<li>${trimmedLine.replace('-', '').trim()}</li>`
       } else {
         if (isInBulletList) {
-          formattedSummary += '</ul>';
-          isInBulletList = false;
+          formattedSummary += '</ul>'
+          isInBulletList = false
         }
-        formattedSummary += `<p>${trimmedLine}</p>`;
+        formattedSummary += `<p>${trimmedLine}</p>`
       }
-    });
+    })
 
     if (isInBulletList) {
-      formattedSummary += '</ul>';
+      formattedSummary += '</ul>'
     }
 
-    return formattedSummary;
-  };
+    return formattedSummary
+  }
 
   const generateSummaryForAllCommits = async () => {
-    setIsLoadingSummary(true);
+    setIsLoadingSummary(true)
 
-    const commits = filteredCommits.map(commit => ({
+    const commits = filteredCommits.map((commit) => ({
       commitMessage: commit.commit,
-      diff: Array.isArray(commit.diff) && commit.diff.length > 0
-        ? commit.diff.map(d => `${d.filename}: +${d.additions}, -${d.deletions}`).join('\n')
-        : '',
-    }));
+      diff:
+        Array.isArray(commit.diff) && commit.diff.length > 0
+          ? commit.diff
+              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+              .join('\n')
+          : '',
+    }))
 
     try {
       const response = await fetch('/api/mistral', {
@@ -104,25 +107,29 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
         body: JSON.stringify({
           commits,
         }),
-      });
+      })
 
-      const data = await response.json();
-      const formattedSummary = formatMistralSummary(data.summary);
-      setSummary(formattedSummary);
+      const data = await response.json()
+      const formattedSummary = formatMistralSummary(data.summary)
+      setSummary(formattedSummary)
     } catch (error) {
-      console.error('Failed to generate summary:', error);
+      console.error('Failed to generate summary:', error)
     } finally {
-      setIsLoadingSummary(false);
+      setIsLoadingSummary(false)
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-        <div className='w-full flex flex-row justify-around items-center'>
+        <div className="w-full flex flex-row justify-around items-center">
           <h3 className="font-bold text-gray-500 flex">
             {' '}
-            Summarize your commits here <Sparkles className='ml-4 cursor-pointer' onClick={generateSummaryForAllCommits} />
+            Summarize your commits here{' '}
+            <Sparkles
+              className="ml-4 cursor-pointer"
+              onClick={generateSummaryForAllCommits}
+            />
           </h3>
           {isLoadingSummary && (
             <div className="ml-4">
@@ -134,7 +141,11 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
           </span>
         </div>
         <div className="w-full max-w-32 ">
-          <Select onValueChange={(value) => setSelectedUser(value === 'all' ? null : value)}>
+          <Select
+            onValueChange={(value) =>
+              setSelectedUser(value === 'all' ? null : value)
+            }
+          >
             <SelectTrigger>
               <SelectValue placeholder="Filter by User" />
             </SelectTrigger>
@@ -162,7 +173,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
             className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 bg-gray-50 rounded-md shadow-sm hover:bg-gray-100 transition-colors"
           >
             <div className="flex items-start space-x-4">
-              <div className='min-w-8 h-8 rounded-full flex justify-center items-center bg-white'>
+              <div className="min-w-8 h-8 rounded-full flex justify-center items-center bg-white">
                 <Avatar>
                   <AvatarImage
                     className="min-w-8 h-8 rounded-full "
@@ -177,7 +188,12 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
               <div>
                 <h3 className="text-sm font-medium">{commit.commit}</h3>
                 <p className="text-xs text-gray-500">
-                  by <span className="font-bold text-blue-400"> {commit.author} </span> at{' '}
+                  by{' '}
+                  <span className="font-bold text-blue-400">
+                    {' '}
+                    {commit.author}{' '}
+                  </span>{' '}
+                  at{' '}
                   {new Date(commit.date).toLocaleString('en-US', {
                     timeZone: 'UTC',
                     hour: '2-digit',

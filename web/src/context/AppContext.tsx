@@ -33,11 +33,11 @@ interface AppContextType {
 
 const initialState: AppContextType = {
   repos: [],
-  setRepos: () => { },
+  setRepos: () => {},
   selectedRepo: null,
-  setSelectedRepo: () => { },
+  setSelectedRepo: () => {},
   syncStatus: null,
-  setSyncStatus: () => { },
+  setSyncStatus: () => {},
 }
 
 const AppContext = createContext<AppContextType>(initialState)

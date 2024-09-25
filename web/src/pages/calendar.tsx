@@ -117,7 +117,7 @@ const CalendarPage = () => {
     }
 
     const buttonEls = document.querySelectorAll<HTMLElement>('.fc-button')
-    buttonEls.forEach(button => {
+    buttonEls.forEach((button) => {
       button.style.padding = '0.3rem 0.6rem'
       button.style.fontSize = '0.8rem'
       button.style.color = '#6B7280'
@@ -126,7 +126,7 @@ const CalendarPage = () => {
     })
 
     const dayCells = document.querySelectorAll<HTMLElement>('.fc-daygrid-day')
-    dayCells.forEach(cell => {
+    dayCells.forEach((cell) => {
       cell.style.background = '#F3F4F6'
       cell.addEventListener('mouseenter', () => {
         cell.style.background = '#edeef0'
@@ -134,13 +134,13 @@ const CalendarPage = () => {
       cell.addEventListener('mouseleave', () => {
         cell.style.background = '#F3F4F6'
       })
-      cell.style.cursor = "pointer"
+      cell.style.cursor = 'pointer'
     })
 
     const eventEls = document.querySelectorAll<HTMLElement>('.fc-event')
-    eventEls.forEach(event => {
+    eventEls.forEach((event) => {
       event.style.color = 'black'
-      event.style.cursor = "crosshair"
+      event.style.cursor = 'crosshair'
     })
   }, [events])
 

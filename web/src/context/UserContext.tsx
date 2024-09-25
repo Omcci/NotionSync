@@ -14,7 +14,9 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null)
   const [githubToken, setGithubToken] = useState<string | null>(null)
 
@@ -25,7 +27,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return data?.session
     },
     staleTime: 1000 * 60 * 5,
-
   })
 
   useEffect(() => {
@@ -33,7 +34,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(data.user)
       setGithubToken(data?.provider_token ?? null)
       // if (data?.expires_at) {
-      //   const isTokenExpired = data.expires_at < Math.floor(Date.now() / 1000) 
+      //   const isTokenExpired = data.expires_at < Math.floor(Date.now() / 1000)
       //   if (isTokenExpired) {
       //     console.log('Token expired, signing out...')
       //     signOutUser()
@@ -73,7 +74,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // }, []);
 
   return (
-    <UserContext.Provider value={{ user, githubToken, isLoading, signOutUser, setGithubToken }}>
+    <UserContext.Provider
+      value={{ user, githubToken, isLoading, signOutUser, setGithubToken }}
+    >
       {children}
     </UserContext.Provider>
   )
