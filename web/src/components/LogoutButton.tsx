@@ -1,17 +1,14 @@
-import React from 'react'
 import { useRouter } from 'next/router'
 import { Button } from '@/components/ui/button'
-import { signOut } from '@/lib/logout'
+import { useUser } from '@/context/UserContext'
 
 const LogoutButton = () => {
   const router = useRouter()
+  const { signOutUser } = useUser()
 
   const handleSignOut = async () => {
-    const error = await signOut()
-
-    if (!error) {
-      router.push('/login')
-    }
+    await signOutUser()
+    router.push('/login')
   }
 
   return (

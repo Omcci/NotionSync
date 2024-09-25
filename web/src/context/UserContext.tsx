@@ -1,11 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
+import { useQuery } from '@tanstack/react-query'
+import { signOut } from '@/lib/logout'
 
 interface UserContextType {
   user: User | null
   githubToken: string | null
-  refreshSession: () => Promise<void>
+  isLoading: boolean
+  signOutUser: () => Promise<void>
+  setGithubToken: (token: string | null) => void
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -16,65 +20,63 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null)
   const [githubToken, setGithubToken] = useState<string | null>(null)
 
-  const refreshSession = async () => {
-    const { data, error } = await supabase.auth.refreshSession()
-    if (error) {
-      console.error('Error refreshing session:', error.message)
-      await supabase.auth.signOut()
+  const { data, isLoading } = useQuery({
+    queryKey: ['session'],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getSession()
+      return data?.session
+    },
+    staleTime: 1000 * 60 * 5,
+  })
+
+  useEffect(() => {
+    if (data) {
+      setUser(data.user)
+      setGithubToken(data?.provider_token ?? null)
+      // if (data?.expires_at) {
+      //   const isTokenExpired = data.expires_at < Math.floor(Date.now() / 1000)
+      //   if (isTokenExpired) {
+      //     console.log('Token expired, signing out...')
+      //     signOutUser()
+      //   }
+      // }
+    }
+  }, [data])
+
+  const signOutUser = async () => {
+    const error = await signOut()
+    if (!error) {
       setUser(null)
       setGithubToken(null)
-      localStorage.clear()
-      sessionStorage.clear()
-    } else if (data.session) {
-      setUser(data.session.user)
-      const savedToken = sessionStorage.getItem('github_token')
-      if (!savedToken) {
-        sessionStorage.setItem(
-          'github_token',
-          data.session.provider_token ?? '',
-        )
-        setGithubToken(data.session.provider_token ?? null)
-      } else {
-        setGithubToken(savedToken)
-      }
     }
   }
 
-  useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession()
-      const savedToken = sessionStorage.getItem('github_token')
-      if (savedToken) {
-        setGithubToken(savedToken)
-      } else {
-        setUser(data?.session?.user ?? null)
-        setGithubToken(data?.session?.provider_token ?? null)
-      }
-    }
-
-    getSession()
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          setUser(session.user)
-          sessionStorage.setItem('github_token', session.provider_token ?? '')
-          setGithubToken(session.provider_token ?? null)
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null)
-          setGithubToken(null)
-          sessionStorage.clear()
-        }
-      },
-    )
-
-    return () => {
-      authListener.subscription.unsubscribe()
-    }
-  }, [])
+  // useEffect(() => {
+  //   const checkAndRefreshSession = async () => {
+  //     const { data, error } = await supabase.auth.getSession();
+  //     if (data?.session) {
+  //       const isTokenExpired = (data.session.expires_at ?? 0) < Math.floor(Date.now() / 1000) + 60;
+  //       if (isTokenExpired) {
+  //         const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
+  //         if (refreshError || !refreshedData?.session?.provider_token) {
+  //           console.log("Failed to refresh GitHub token, redirecting to login...");
+  //           // Redirect to GitHub OAuth re-login
+  //           await supabase.auth.signInWithOAuth({ provider: 'github' });
+  //         } else {
+  //           setGithubToken(refreshedData.session.provider_token);
+  //         }
+  //       }
+  //     } else {
+  //       await signOutUser();
+  //     }
+  //   };
+  //   checkAndRefreshSession();
+  // }, []);
 
   return (
-    <UserContext.Provider value={{ user, githubToken, refreshSession }}>
+    <UserContext.Provider
+      value={{ user, githubToken, isLoading, signOutUser, setGithubToken }}
+    >
       {children}
     </UserContext.Provider>
   )

@@ -10,6 +10,7 @@ import { useUser } from '@/context/UserContext'
 import { supabase } from '@/lib/supabaseClient'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
+import { LoadingSpinner } from '@/components/ui/loadingspinner'
 
 //TODO : add mistral to make a summary of the day
 const fetchCommits = async (
@@ -72,6 +73,7 @@ const CalendarPage = () => {
     queryFn: () => fetchCommits(repoName!, orgName!, dateRange, selectedDate),
     enabled: !!repoName && !!orgName && !!dateRange.start && !!dateRange.end,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   })
 
   useEffect(() => {
@@ -107,35 +109,40 @@ const CalendarPage = () => {
     })
   }
 
-  // useEffect(() => {
-  //   const titleEl = document.querySelector('.fc-toolbar-title') as HTMLElement
-  //   if (titleEl) {
-  //     titleEl.style.fontSize = '1.5rem'
-  //     titleEl.style.fontWeight = 'bolder'
-  //   }
+  useEffect(() => {
+    const titleEl = document.querySelector('.fc-toolbar-title') as HTMLElement
+    if (titleEl) {
+      titleEl.style.fontSize = '1.5rem'
+      titleEl.style.fontWeight = 'bolder'
+    }
 
-  //   const buttonEls = document.querySelectorAll<HTMLElement>('.fc-button')
-  //   buttonEls.forEach(button => {
-  //     button.style.padding = '0.3rem 0.6rem'
-  //     button.style.fontSize = '0.8rem'
-  //     button.style.color = '#6B7280' // Light grey
-  //     button.style.border = '1px solid #E5E7EB' // Light border
-  //     button.style.background = '#F9FAFB' // Very light background
-  //   })
+    const buttonEls = document.querySelectorAll<HTMLElement>('.fc-button')
+    buttonEls.forEach((button) => {
+      button.style.padding = '0.3rem 0.6rem'
+      button.style.fontSize = '0.8rem'
+      button.style.color = '#6B7280'
+      button.style.border = '1px solid #E5E7EB'
+      button.style.background = '#F9FAFB'
+    })
 
-  //   const dayCells = document.querySelectorAll<HTMLElement>('.fc-daygrid-day')
-  //   dayCells.forEach(cell => {
-  //     cell.style.background = '#F3F4F6' // Very light grey for day cells
+    const dayCells = document.querySelectorAll<HTMLElement>('.fc-daygrid-day')
+    dayCells.forEach((cell) => {
+      cell.style.background = '#F3F4F6'
+      cell.addEventListener('mouseenter', () => {
+        cell.style.background = '#edeef0'
+      })
+      cell.addEventListener('mouseleave', () => {
+        cell.style.background = '#F3F4F6'
+      })
+      cell.style.cursor = 'pointer'
+    })
 
-  //   })
-
-  //   const eventEls = document.querySelectorAll<HTMLElement>('.fc-event')
-  //   eventEls.forEach(event => {
-  //     // event.style.backgroundColor = '#9CA3AF' // Muted grey for events
-  //     event.style.color = 'black' // Light text color
-  //     event.style.cursor = "crosshair"
-  //   })
-  // }, [events])
+    const eventEls = document.querySelectorAll<HTMLElement>('.fc-event')
+    eventEls.forEach((event) => {
+      event.style.color = 'black'
+      event.style.cursor = 'crosshair'
+    })
+  }, [events])
 
   return (
     <div className="container mx-auto p-4">
@@ -156,29 +163,39 @@ const CalendarPage = () => {
           disabled={!user.user}
         />
       </div>
-      <Card className="bg-gray-50 shadow-lg rounded-lg overflow-hidden py-4">
-        <CardContent>
-          <FullCalendar
-            plugins={[dayGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            events={events}
-            eventTimeFormat={{
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false,
-            }}
-            eventClassNames={() => 'text-xs truncate'}
-            dateClick={handleDateClick}
-            datesSet={handleDatesSet}
-            headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,dayGridWeek',
-            }}
-            height="auto"
-          />
-        </CardContent>
-      </Card>
+      <div className="relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-opacity-50 bg-gray-100 z-10">
+            <LoadingSpinner />
+          </div>
+        )}
+        <Card className="bg-gray-50 shadow-lg rounded-lg overflow-hidden py-4">
+          <CardContent>
+            <FullCalendar
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              events={events}
+              eventTimeFormat={{
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              }}
+              dayMaxEvents={5}
+              timeZone="Europe/Paris"
+              // eventClassNames={() => 'text-xs truncate'}
+              dateClick={handleDateClick}
+              datesSet={handleDatesSet}
+              headerToolbar={{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,dayGridWeek',
+              }}
+              height="auto"
+            />
+          </CardContent>
+        </Card>
+      </div>
+
       <ModalCommits
         open={open}
         setOpen={setOpen}

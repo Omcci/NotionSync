@@ -1,12 +1,14 @@
 // Commit type
 export type Commit = {
   commit: string
+  commitSha: string
   branch: string
   author: string
   date: string
   status: string
   actions: { name: string; url: string }[]
   avatar_url: string
+  diff: { filename: string; additions: number; deletions: number }[]
 }
 
 // Config type
