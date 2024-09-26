@@ -83,7 +83,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     if (githubToken) {
       refetch()
     }
-  }, [githubToken])
+  }, [githubToken, refetch])
 
   const value = {
     repos,
