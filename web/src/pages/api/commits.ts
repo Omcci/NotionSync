@@ -1,3 +1,4 @@
+import { format } from 'date-fns'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Action } from '../../../types/types'
 
@@ -62,6 +63,37 @@ export const fetchAuthorDetails = async (
   }
 
   return userResponse.json()
+}
+
+export const fetchCommitDiff = async (
+  commitSha: string,
+  githubToken: string,
+  orgName: string,
+  repoName: string,
+) => {
+  const diffUrl = `https://api.github.com/repos/${orgName}/${repoName}/commits/${commitSha}`
+  const response = await fetch(diffUrl, {
+    headers: {
+      Authorization: `token ${githubToken}`,
+      Accept: 'application/vnd.github.v3.diff',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Error fetching diff: ${response.status}`)
+  }
+
+  return response.text()
+}
+
+const TIMEZONE_OFFSET_PARIS = 2
+
+const parisTz = (dateString: string, formatPattern: string): string => {
+  const dateUTC = new Date(dateString)
+  const dateParis = new Date(
+    dateUTC.getTime() + TIMEZONE_OFFSET_PARIS * 60 * 60 * 1000,
+  )
+  return format(dateParis, formatPattern)
 }
 
 const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -133,15 +165,20 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (date) {
       filteredCommits = allCommits.filter((commit: any) => {
-        const commitDate = new Date(commit.commit.author.date)
-          .toISOString()
-          .split('T')[0]
-        return commitDate === date
+        const formattedCommitDate = parisTz(
+          commit.commit.author.date,
+          'yyyy-MM-dd',
+        )
+        return formattedCommitDate === date
       })
     }
 
     const formattedCommits = await Promise.all(
       filteredCommits.map(async (commit: any) => {
+        const formattedDate = parisTz(
+          commit.commit.author.date,
+          "yyyy-MM-dd'T'HH:mm:ssXXX",
+        )
         const status =
           commit.commit.verification && commit.commit.verification.verified
             ? 'Verified'
@@ -166,8 +203,16 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
           }
         }
 
+        const diff = await fetchCommitDiff(
+          commit.sha,
+          token!,
+          orgName,
+          repoName,
+        )
+
         return {
           commit: commit.commit.message,
+          commitSha: commit.sha,
           branch: commit.commit.tree.sha,
           author: commit.commit.author.name,
           authorDetails: {
@@ -179,11 +224,11 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
             avatar_url: authorDetails.avatar_url,
             created_at: authorDetails.created_at,
           },
-          date: commit.commit.author.date,
+          date: formattedDate,
+          diff: diff,
           status: status,
           actions: [
-            { name: 'View', url: `${commit.html_url}` },
-            { name: 'Github', url: commit.html_url },
+            { name: 'View on GitHub', url: commit.html_url },
           ] as Action[],
           avatar_url: commit.committer
             ? commit.committer.avatar_url
