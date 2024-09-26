@@ -53,41 +53,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     }
   }, [selectedUser, commitDetails])
 
-  const formatMistralSummary = (summary: string) => {
-    const lines = summary.split('\n').filter((line) => line.trim() !== '')
-    let isInBulletList = false
-    let formattedSummary = ''
-
-    lines.forEach((line) => {
-      const trimmedLine = line.trim()
-
-      if (trimmedLine.startsWith('**')) {
-        formattedSummary += `<strong>${trimmedLine.replace(/\*\*/g, '').trim()}</strong><br />`
-      } else if (trimmedLine.startsWith('-')) {
-        if (!isInBulletList) {
-          formattedSummary += '<ul>'
-          isInBulletList = true
-        }
-        formattedSummary += `<li>${trimmedLine.replace('-', '').trim()}</li>`
-      } else {
-        if (isInBulletList) {
-          formattedSummary += '</ul>'
-          isInBulletList = false
-        }
-        formattedSummary += `<p>${trimmedLine}</p>`
-      }
-    })
-
-    if (isInBulletList) {
-      formattedSummary += '</ul>'
-    }
-
-    return formattedSummary
-  }
-
   const generateSummaryForAllCommits = async () => {
     setIsLoadingSummary(true)
-
     const commits = filteredCommits.map((commit) => ({
       commitMessage: commit.commit,
       diff:
@@ -110,8 +77,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       })
 
       const data = await response.json()
-      const formattedSummary = formatMistralSummary(data.summary)
-      setSummary(formattedSummary)
+      // console.log(data.summary)
+      setSummary(data.summary)
     } catch (error) {
       console.error('Failed to generate summary:', error)
     } finally {

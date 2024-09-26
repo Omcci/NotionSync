@@ -21,21 +21,12 @@ export default async function handler(
   const combinedCommitMessage = commits.map((c) => c.commitMessage).join('\n\n')
   const combinedDiff = commits.map((c) => c.diff).join('\n\n')
 
-  const prompt = `
-    // Given the commit message and code changes below, provide a bullet-point summary highlighting:
-    // - The purpose of the commit based on the commit message
-    // - What functions or methods were added, deleted, or modified according to the code diff
-    // - Any significant changes in logic or functionality
-    Based on the series of commits and code changes below, provide a cohesive summary. Please format the summary with clear section headings and bullet points where applicable additionnaly to bold words if necessary, to make it easy to read. Address the following:
-    1- Overall Purpose of the changes: What is the main objective of this series of commits?
-    2- Key Code Changes: Summarize the significant changes made across files and functions. Identify any key files, methods, or components that were added, modified, or removed.
-    3- Logic Improvements: How have these changes impacted the overall logic of the application? Highlight any optimizations or bug fixes.
-    4- Impact on Performance and User Experience: What is the cumulative effect of these changes on the system’s performance or user experience?
+  const promptTemplate =
+    process.env.NEXT_PUBLIC_MISTRAL_PROMPT || 'Default prompt content'
 
-    Commit Message: ${combinedCommitMessage}
-
-    Code Changes: ${combinedDiff}
-  `
+  const prompt = promptTemplate
+    ?.replace('{COMBINED_COMMIT_MESSAGE}', combinedCommitMessage)
+    .replace('{COMBINED_DIFF}', combinedDiff)
   try {
     const chatResponse = await client.chat({
       model: 'mistral-small-latest',
