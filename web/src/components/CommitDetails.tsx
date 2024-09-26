@@ -27,9 +27,6 @@ type CommitDetailsProps = {
 }
 
 const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
-  if (commitDetails.length === 0) {
-    return <p className="text-gray-500">No commits found for this date.</p>
-  }
   const [filteredCommits, setFilteredCommits] = useState(commitDetails)
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [uniqueUsers, setUniqueUsers] = useState<string[]>([])
@@ -60,8 +57,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-              .join('\n')
+            .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+            .join('\n')
           : '',
     }))
 
@@ -84,6 +81,10 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     } finally {
       setIsLoadingSummary(false)
     }
+  }
+
+  if (commitDetails.length === 0) {
+    return <p className="text-gray-500">No commits found for this date.</p>
   }
 
   return (
