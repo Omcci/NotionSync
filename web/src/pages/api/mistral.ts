@@ -22,18 +22,25 @@ export default async function handler(
   const combinedDiff = commits.map((c) => c.diff).join('\n\n')
 
   const prompt = `
-    // Given the commit message and code changes below, provide a bullet-point summary highlighting:
-    // - The purpose of the commit based on the commit message
-    // - What functions or methods were added, deleted, or modified according to the code diff
-    // - Any significant changes in logic or functionality
-    Based on the series of commits and code changes below, provide a cohesive summary. Please format the summary with clear section headings and bullet points where applicable additionnaly to bold words if necessary, to make it easy to read. Address the following:
-    1- Overall Purpose of the changes: What is the main objective of this series of commits?
-    2- Key Code Changes: Summarize the significant changes made across files and functions. Identify any key files, methods, or components that were added, modified, or removed.
-    3- Logic Improvements: How have these changes impacted the overall logic of the application? Highlight any optimizations or bug fixes.
-    4- Impact on Performance and User Experience: What is the cumulative effect of these changes on the system’s performance or user experience?
-
+    Based on the series of commits and code changes below, provide a cohesive summary in HTML format.
+    Please ensure:
+    - Use sentence case for headings (capitalize only the first word in titles).
+    - Avoid using uppercase for every word in titles.
+    - Provide the output directly in HTML format.
+    - Use the following Tailwind CSS classes for headings:
+        - <h1 class="text-3xl font-bold"> for the main heading
+        - <h2 class="text-2xl font-semibold"> for subheadings
+        - <h3 class="text-xl font-medium"> for smaller sections
+        - <p class="text-gray-600> for paragraphs
+        - <li class="text-gray-600"> for list items
+    - Use <ul class="list-disc ml-6"> for bullet points and <strong> to bold key points.
+    
+    Summary should include:
+    - The overall purpose of the changes
+    - Key code changes, such as additions, deletions, or modifications
+    - Logic improvements, bug fixes, or optimizations made to the application
+    - Impact on performance and user experience
     Commit Message: ${combinedCommitMessage}
-
     Code Changes: ${combinedDiff}
   `
   try {
