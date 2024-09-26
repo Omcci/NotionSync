@@ -53,7 +53,6 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     }
   }, [selectedUser, commitDetails])
 
-
   const generateSummaryForAllCommits = async () => {
     setIsLoadingSummary(true)
     const commits = filteredCommits.map((commit) => ({
@@ -61,8 +60,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-            .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-            .join('\n')
+              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+              .join('\n')
           : '',
     }))
 
@@ -79,7 +78,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
 
       const data = await response.json()
       // console.log(data.summary)
-      setSummary(data.summary);
+      setSummary(data.summary)
     } catch (error) {
       console.error('Failed to generate summary:', error)
     } finally {
