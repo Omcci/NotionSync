@@ -36,6 +36,10 @@ function MyApp({ Component, pageProps }: AppProps) {
                   content="width=device-width, initial-scale=1.0"
                 />
                 <style dangerouslySetInnerHTML={{ __html: interFont.style }} />
+                <link
+                  rel="stylesheet"
+                  href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"
+                />
               </Head>
               <div className={interFont.className}>
                 <Component {...pageProps} />
