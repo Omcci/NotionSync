@@ -52,18 +52,21 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     }
   }, [selectedUser, commitDetails])
 
-  const SUMMARY_LIMIT = 5;
+  const SUMMARY_LIMIT = 5
 
   const checkSummaryLimit = () => {
-    const currentCount = parseInt(localStorage.getItem('summaryCount') || '0', 10);
-    return currentCount < SUMMARY_LIMIT;
-  };
+    const currentCount = parseInt(
+      localStorage.getItem('summaryCount') || '0',
+      10,
+    )
+    return currentCount < SUMMARY_LIMIT
+  }
 
   const incrementSummaryCount = () => {
-    let currentCount = parseInt(localStorage.getItem('summaryCount') || '0', 10);
-    currentCount += 1;
-    localStorage.setItem('summaryCount', currentCount.toString());
-  };
+    let currentCount = parseInt(localStorage.getItem('summaryCount') || '0', 10)
+    currentCount += 1
+    localStorage.setItem('summaryCount', currentCount.toString())
+  }
 
   const generateSummaryForAllCommits = async () => {
     if (!checkSummaryLimit()) {
@@ -71,8 +74,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
         title: 'Summary limit reached',
         description: 'You can only generate 5 summaries per day.',
         variant: 'destructive',
-      });
-      return;
+      })
+      return
     }
     setIsLoadingSummary(true)
     const commits = filteredCommits.map((commit) => ({
@@ -80,8 +83,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-            .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-            .join('\n')
+              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+              .join('\n')
           : '',
     }))
 
@@ -99,8 +102,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       const data = await response.json()
       // console.log(data.summary)
       setSummary(data.summary)
-      incrementSummaryCount();
-      console.log('Summary count:', localStorage.getItem('summaryCount'));
+      incrementSummaryCount()
+      console.log('Summary count:', localStorage.getItem('summaryCount'))
     } catch (error) {
       console.error('Failed to generate summary:', error)
       toast({
