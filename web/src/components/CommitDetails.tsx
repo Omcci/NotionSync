@@ -12,6 +12,7 @@ import {
   SelectItem,
 } from './ui/select'
 import { LoadingSpinner } from './ui/loadingspinner'
+import { useToast } from './ui/use-toast'
 
 type CommitDetailsProps = {
   commitDetails: {
@@ -32,6 +33,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   const [uniqueUsers, setUniqueUsers] = useState<string[]>([])
   const [summary, setSummary] = useState<string | null>(null)
   const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     const users = Array.from(
@@ -50,7 +52,31 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     }
   }, [selectedUser, commitDetails])
 
+  const SUMMARY_LIMIT = 5
+
+  const checkSummaryLimit = () => {
+    const currentCount = parseInt(
+      localStorage.getItem('summaryCount') || '0',
+      10,
+    )
+    return currentCount < SUMMARY_LIMIT
+  }
+
+  const incrementSummaryCount = () => {
+    let currentCount = parseInt(localStorage.getItem('summaryCount') || '0', 10)
+    currentCount += 1
+    localStorage.setItem('summaryCount', currentCount.toString())
+  }
+
   const generateSummaryForAllCommits = async () => {
+    if (!checkSummaryLimit()) {
+      toast({
+        title: 'Summary limit reached',
+        description: 'You can only generate 5 summaries per day.',
+        variant: 'destructive',
+      })
+      return
+    }
     setIsLoadingSummary(true)
     const commits = filteredCommits.map((commit) => ({
       commitMessage: commit.commit,
@@ -76,8 +102,15 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       const data = await response.json()
       // console.log(data.summary)
       setSummary(data.summary)
+      incrementSummaryCount()
+      console.log('Summary count:', localStorage.getItem('summaryCount'))
     } catch (error) {
       console.error('Failed to generate summary:', error)
+      toast({
+        title: 'Failed to generate summary',
+        description: 'Please try again later.',
+        variant: 'destructive',
+      })
     } finally {
       setIsLoadingSummary(false)
     }
