@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import { Button } from '@/components/ui/button'
 import { useUser } from '@/context/UserContext'
+import { LogOutIcon } from 'lucide-react'
 
 const LogoutButton = () => {
   const router = useRouter()
@@ -12,9 +13,7 @@ const LogoutButton = () => {
   }
 
   return (
-    <Button onClick={handleSignOut} variant="destructive">
-      Log out
-    </Button>
+    <LogOutIcon className='h-5 cursor-pointer' onClick={handleSignOut} />
   )
 }
 

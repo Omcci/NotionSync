@@ -16,6 +16,8 @@ import {
 } from './ui/navigation-menu'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
+import ModeToggle from './ModeToggle'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
 
 export function Header() {
   const links = [
@@ -73,6 +75,7 @@ export function Header() {
           />
           <span className="text-white hidden md:flex">NotionSync</span>
         </Link>
+        <ModeToggle />
         <nav className="hidden md:flex items-center gap-4">
           {links.map(({ href, label }) => (
             <Link key={`${href}${label}`} href={href} className="text-white">
@@ -83,16 +86,8 @@ export function Header() {
       </div>
       <div className="flex items-center gap-4">
         {user ? (
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col md:flex-row items-center md:gap-2">
-              <span className="text-white">Welcome,</span>
-              <Link href="/profile">
-                <span className="text-blue-400 ">
-                  {user.user_metadata.full_name}
-                </span>
-              </Link>
-            </div>
-            <Link href="/profile">
+          <DropdownMenu>
+            <DropdownMenuTrigger>
               <Image
                 src={user.user_metadata.avatar_url}
                 alt="User Avatar"
@@ -100,9 +95,18 @@ export function Header() {
                 width={32}
                 height={32}
               />
-            </Link>
-            <LogoutButton />
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <Link href="/profile">
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <LogoutButton />
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           !isLoginPage && (
             <Button onClick={handleLogin}>Login with GitHub</Button>
