@@ -12,6 +12,8 @@ import { useConfigContext } from '@/context/ConfigContext'
 import ConfigSettings from './config-settings/ConfigSettings'
 import signInWithGitHub from '@/lib/login'
 import { useUser } from '@/context/UserContext'
+import BranchSelector from './BranchSelector'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet'
 
 // import { signIn, signOut, useSession } from "next-auth/react";
 //TODO : add session with github oauth
@@ -91,6 +93,19 @@ const HeaderV0 = () => {
           onChange={(id) => handleRepoSelect(id)}
           disabled={!user?.user || loading || repos.length === 0 || !username}
         />
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost">Select Branch</Button>
+          </SheetTrigger>
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Select a Branch</SheetTitle>
+            </SheetHeader>
+            <BranchSelector />
+          </SheetContent>
+        </Sheet>
+      </div>
+      <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           onClick={handleSync}
@@ -104,8 +119,8 @@ const HeaderV0 = () => {
           {/* TODO : add automatic sync //  */}
           <RepeatIcon className="w-5 h-5" />
         </Toggle>
+        <ConfigSettings />
       </div>
-      <ConfigSettings />
     </header>
   )
 }

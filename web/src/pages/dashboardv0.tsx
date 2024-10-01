@@ -18,7 +18,6 @@ const DashboardV0 = () => {
       </div>
       <main className="flex-1 bg-gray-100 dark:bg-gray-800 p-6">
         <SyncStatus />
-        <BranchSelector />
         <CommitLog />
       </main>
     </div>
