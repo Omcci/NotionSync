@@ -14,6 +14,7 @@ import signInWithGitHub from '@/lib/login'
 import { useUser } from '@/context/UserContext'
 import BranchSelector from './BranchSelector'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet'
+import { GitBranchIcon } from '../../public/icon/GitBranchIcon'
 
 // import { signIn, signOut, useSession } from "next-auth/react";
 //TODO : add session with github oauth
@@ -74,18 +75,19 @@ const HeaderV0 = () => {
     label: repo.name,
   }))
   return (
-    <header className="py-4 px-6 flex items-center justify-between">
+    <header className="py-4 flex  items-center justify-between">
       {user.user ? (
         ''
       ) : (
-        <div className="flex items-center gap-4">
+        <div className="w-full sm:w-auto flex justify-center sm:justify-start">
           <Button variant="ghost" onClick={signInWithGitHub}>
             <GithubIcon className="w-5 h-5 mr-2" />
-            Login with GitHub
+            <span className="hidden sm:inline ml-2">Login with GitHub</span>
           </Button>
         </div>
       )}
-      <div className="flex items-center gap-4">
+
+      <div className="flex  w-full sm:w-auto items-center gap-4 justify-center sm:justify-start">
         <SelectComponent
           placeholder="Select a repository"
           options={repoOptions}
@@ -95,9 +97,12 @@ const HeaderV0 = () => {
         />
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost">Select Branch</Button>
+            <Button variant="ghost">
+              <GitBranchIcon className="w-5 h-5" />
+              <span className="hidden sm:inline ml-2">Select Branch</span>
+            </Button>
           </SheetTrigger>
-          <SheetContent side="right">
+          <SheetContent className="w-full sm:w-1/2">
             <SheetHeader>
               <SheetTitle>Select a Branch</SheetTitle>
             </SheetHeader>
@@ -105,23 +110,24 @@ const HeaderV0 = () => {
           </SheetContent>
         </Sheet>
       </div>
-      <div className="flex items-center gap-4">
+
+      <div className="flex w-full sm:w-auto items-center gap-4 justify-center sm:justify-end">
         <Button
           variant="ghost"
           onClick={handleSync}
           disabled={!selectedRepo || loading}
         >
           <FolderSyncIcon className="w-5 h-5 mr-2" />
-          {loading ? 'Syncing...' : 'Start Sync'}
+          <span className="hidden sm:inline ml-2">
+            {loading ? 'Syncing...' : 'Start Sync'}
+          </span>
         </Button>
         <Toggle aria-label="Automatic Sync">
-          {' '}
-          {/* TODO : add automatic sync //  */}
           <RepeatIcon className="w-5 h-5" />
         </Toggle>
         <ConfigSettings />
       </div>
     </header>
-  )
+  );
 }
 export default HeaderV0
