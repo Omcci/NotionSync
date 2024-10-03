@@ -76,25 +76,16 @@ const HeaderV0 = () => {
   }))
   return (
     <header className="py-4 flex  items-center justify-between">
-      {user.user ? (
-        ''
-      ) : (
-        <div className="w-full sm:w-auto flex justify-center sm:justify-start">
-          <Button variant="ghost" onClick={signInWithGitHub}>
-            <GithubIcon className="w-5 h-5 mr-2" />
-            <span className="hidden sm:inline ml-2">Login with GitHub</span>
-          </Button>
-        </div>
-      )}
-
       <div className="flex  w-full sm:w-auto items-center gap-4 justify-center sm:justify-start">
-        <SelectComponent
-          placeholder="Select a repository"
-          options={repoOptions}
-          value={selectedRepo ? selectedRepo.id : ''}
-          onChange={(id) => handleRepoSelect(id)}
-          disabled={!user?.user || loading || repos.length === 0 || !username}
-        />
+        <div className='className="w-[100px] sm:w-[180px]"'>
+          <SelectComponent
+            placeholder="Select a repository"
+            options={repoOptions}
+            value={selectedRepo ? selectedRepo.id : ''}
+            onChange={(id) => handleRepoSelect(id)}
+            disabled={!user?.user || loading || repos.length === 0 || !username}
+          />
+        </div>
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost">
