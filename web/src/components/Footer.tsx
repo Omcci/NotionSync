@@ -33,13 +33,6 @@ const Footer: React.FC = () => {
             <a href="https://github.com/Omcci" aria-label="GitHub">
               <Icon name="github" size={24} color="white" />
             </a>
-            <a
-              href="https://twitter.com/"
-              aria-label="Twitter"
-              className="ml-4"
-            >
-              <Icon name="twitter" size={24} color="#1DA1F2" />
-            </a>
           </div>
         </div>
         <div className="text-center text-sm mt-5">
