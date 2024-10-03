@@ -3,7 +3,6 @@ import { CalendarDaysIcon } from '../../../public/icon/CalendarDaysIcon'
 import { EyeIcon } from '../../../public/icon/EyeIcon'
 import { GitBranchIcon } from '../../../public/icon/GitBranchIcon'
 import { GitCommitVerticalIcon } from '../../../public/icon/GitCommitVerticalIcon'
-import { GithubIcon } from '../../../public/icon/GithubIcon'
 import { UserIcon } from '../../../public/icon/UserIcon'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Badge } from '../ui/badge'
@@ -23,6 +22,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabaseClient'
 import { LoadingSpinner } from '../ui/loadingspinner'
+import { GithubIcon } from '../../../public/icon/GithubIcon'
 
 export type Filter = {
   name: string
@@ -105,7 +105,7 @@ const CommitLog = () => {
     )
     : []
 
-  const theader = ['Commit', 'Sha', 'Author', 'Date', 'Status', 'Actions']
+  const theader = ['Commit', 'Branch ID', 'Author', 'Date', 'Status', 'Actions']
 
   if (!selectedRepo) {
     return (
@@ -137,7 +137,7 @@ const CommitLog = () => {
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 min-h-[400px] flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold">Commit Log</h2>
+        <h2 className="text-lg font-bold leading-4 sm:leading-none">Commit Log</h2>
         <div className='flex'>
           {selectedRepo && (
             <Link
@@ -201,7 +201,20 @@ const CommitLog = () => {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <GitBranchIcon className="w-5 h-5" />
-                      <span>{commit.branch}</span>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <span className="font-medium truncate max-w-xs">
+                              {commit.branch.length > 3
+                                ? `${commit.branch.substring(0, 3)}...`
+                                : commit.branch}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="tooltip-multiline">
+                            <span>{commit.branch}</span>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -274,10 +287,10 @@ const CommitLog = () => {
                             passHref
                           >
                             <Button size="icon" variant="ghost">
-                              {action.name === 'View' && (
+                              {/* {action.name === 'View' && (
                                 <EyeIcon className="w-5 h-5" />
-                              )}
-                              {action.name === 'Github' && (
+                              )} */}
+                              {action.name === "View on GitHub" && (
                                 <GithubIcon className="w-5 h-5" />
                               )}
                             </Button>
