@@ -4,10 +4,9 @@ import SyncStatus from '@/components/SyncStatus'
 import BranchSelector from '@/components/BranchSelector'
 import CommitLog from '@/components/commit-log/CommitLog'
 
-// TODO : Move the github login in header outside of the dashboard
 const DashboardV0 = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col sm:container">
       <HeaderV0 />
       <div className="px-4">
         <h1 className="text-2xl font-bold ">Dashboard.</h1>
