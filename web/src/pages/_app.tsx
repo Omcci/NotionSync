@@ -9,6 +9,7 @@ import { ConfigProvider } from '@/context/ConfigContext'
 import { UserProvider } from '@/context/UserContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/components/theme-provider'
+import { useEffect, useState } from 'react'
 
 const figTreeFont = Figtree({
   subsets: ['latin'],
@@ -24,12 +25,26 @@ const queryClient = new QueryClient({
   },
 })
 function MyApp({ Component, pageProps }: AppProps) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return null
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <UserProvider>
         <AppProvider>
           <ConfigProvider>
-            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem={false}
+            >
               <Layout>
                 <Head>
                   <meta
