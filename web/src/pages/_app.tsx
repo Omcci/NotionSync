@@ -25,14 +25,14 @@ const queryClient = new QueryClient({
   },
 })
 function MyApp({ Component, pageProps }: AppProps) {
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
   if (!mounted) {
-    return null;
+    return null
   }
 
   return (
@@ -40,7 +40,11 @@ function MyApp({ Component, pageProps }: AppProps) {
       <UserProvider>
         <AppProvider>
           <ConfigProvider>
-            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} >
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem={false}
+            >
               <Layout>
                 <Head>
                   <meta
