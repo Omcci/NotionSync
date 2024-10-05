@@ -83,8 +83,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-            .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-            .join('\n')
+              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+              .join('\n')
           : '',
     }))
 
@@ -187,7 +187,9 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
                 </Avatar>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">{commit.commit}</h3>
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {commit.commit}
+                </h3>
                 <p className="text-xs text-gray-500">
                   by{' '}
                   <span className="font-bold text-blue-400 dark:text-blue-300">

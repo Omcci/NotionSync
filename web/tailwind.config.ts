@@ -105,7 +105,6 @@ const config = {
         glow: 'glow 1s infinite alternate',
         'spin-light': 'spin-light 3s linear infinite',
         steam: 'steam 20s linear infinite',
-
       },
       variables: {
         '--clip-size': 'calc(200px * 1.1)',

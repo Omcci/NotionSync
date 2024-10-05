@@ -19,7 +19,8 @@ const LogoutButton = () => {
     >
       <LogOutIcon className="h-5 mr-2" />
       Logout
-    </button>)
+    </button>
+  )
 }
 
 export default LogoutButton

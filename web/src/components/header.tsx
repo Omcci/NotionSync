@@ -17,7 +17,12 @@ import {
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import ModeToggle from './ModeToggle'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 import ProfileButton from './ProfileButton'
 
 export function Header() {

@@ -43,8 +43,13 @@ function MyApp({ Component, pageProps }: AppProps) {
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} >
               <Layout>
                 <Head>
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                  <style dangerouslySetInnerHTML={{ __html: figTreeFont.style }} />
+                  <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1.0"
+                  />
+                  <style
+                    dangerouslySetInnerHTML={{ __html: figTreeFont.style }}
+                  />
                   <link
                     rel="stylesheet"
                     href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"
@@ -59,7 +64,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         </AppProvider>
       </UserProvider>
     </QueryClientProvider>
-  );
+  )
 }
 
 export default MyApp

@@ -128,11 +128,13 @@ const CalendarPage = () => {
         'border-gray-300',
         'dark:border-gray-600',
         'hover:bg-gray-200',
-        'dark:hover:bg-gray-600'
+        'dark:hover:bg-gray-600',
       )
     })
 
-    const headerEls = document.querySelectorAll<HTMLElement>('.fc-col-header-cell')
+    const headerEls = document.querySelectorAll<HTMLElement>(
+      '.fc-col-header-cell',
+    )
     headerEls.forEach((header) => {
       header.classList.remove('text-white')
       header.classList.add('text-gray-800', 'dark:text-gray-800')
@@ -158,7 +160,9 @@ const CalendarPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold light:text-gray-800 dark:text-white">Calendar</h1>
+      <h1 className="text-2xl font-bold light:text-gray-800 dark:text-white">
+        Calendar
+      </h1>
       <h3 className="text-lg light:text-gray-500 dark:text-gray-400 mb-4">
         Deep dive into your GitHub commits by selecting a repository and a date.
       </h3>

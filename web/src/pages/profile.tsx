@@ -5,12 +5,18 @@ export default function ProfilePage() {
   const { user } = useUser()
 
   if (!user) {
-    return <p className="text-gray-700 dark:text-gray-300">You need to be logged in to view this page.</p>
+    return (
+      <p className="text-gray-700 dark:text-gray-300">
+        You need to be logged in to view this page.
+      </p>
+    )
   }
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">User Profile</h1>
+      <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">
+        User Profile
+      </h1>
       <div className="bg-white dark:bg-[#1c1c1e] shadow-md dark:shadow-lg rounded-lg p-4">
         <Image
           src={user.user_metadata.avatar_url}
