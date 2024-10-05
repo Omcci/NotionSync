@@ -52,7 +52,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     }
   }, [selectedUser, commitDetails])
 
-  const SUMMARY_LIMIT = 5
+  const SUMMARY_LIMIT = 15
 
   const checkSummaryLimit = () => {
     const currentCount = parseInt(
@@ -151,11 +151,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
               onClick={generateSummaryForAllCommits}
             />
           </h3>
-          {isLoadingSummary && (
-            <div className="ml-4">
-              <LoadingSpinner />
-            </div>
-          )}
+          <div className="ml-4">{isLoadingSummary && <LoadingSpinner />}</div>
           <span className="text-gray-600 dark:text-gray-400">
             {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
           </span>
