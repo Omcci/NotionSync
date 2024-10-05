@@ -7,7 +7,6 @@ const config = {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
-    './node_modules/@fullcalendar/**/*.{js,ts,jsx,tsx}',
   ],
   prefix: '',
   theme: {
@@ -77,11 +76,39 @@ const config = {
             textShadow: '0 0 10px #ff00ff, 0 0 20px #00ffff, 0 0 40px #ff00ff',
           },
         },
+        'spin-light': {
+          '0%': {
+            clipPath: 'inset(0% 0% 100% 0%)',
+          },
+          '25%': {
+            clipPath: 'inset(0% 0% 0% 0%)',
+          },
+          '50%': {
+            clipPath: 'inset(0% 0% 0% 100%)',
+          },
+          '75%': {
+            clipPath: 'inset(100% 0% 0% 0%)',
+          },
+          '100%': {
+            clipPath: 'inset(0% 0% 100% 0%)',
+          },
+        },
+        steam: {
+          '0%': { backgroundPosition: '0 0' },
+          '50%': { backgroundPosition: '400% 0' },
+          '100%': { backgroundPosition: '0 0' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         glow: 'glow 1s infinite alternate',
+        'spin-light': 'spin-light 3s linear infinite',
+        steam: 'steam 20s linear infinite',
+      },
+      variables: {
+        '--clip-size': 'calc(200px * 1.1)',
+        '--path-width': '2px',
       },
     },
   },

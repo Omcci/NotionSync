@@ -1,32 +1,33 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  AccordionItem,
-  Accordion,
-  AccordionTrigger,
-  AccordionContent,
-} from '@/components/ui/accordion'
 import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import Link from 'next/link'
-import { GithubIcon } from '../../public/icon/GithubIcon'
 import signInWithGitHub from '@/lib/login'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import EeDial from '@/components/EeDial'
+import { motion } from 'framer-motion'
+import SteamButton from '@/components/SteamButton'
+import { GithubIcon } from '../../public/icon/GithubIcon'
+import { ArrowRight } from 'lucide-react'
+import LandingBackground from '@/components/LandingBackground'
+import { useTheme } from 'next-themes'
+import Faq from '@/components/Faq'
+import { Separator } from '@/components/ui/separator'
 
-// TODO : refactor user state to get it from context
 const Home = () => {
   const [user, setUser] = useState<User | null>(null)
   const [triggerEe, setTriggerEe] = useState(false)
   const [iconSize, setIconSize] = useState(10)
+
+  useEffect(() => {
+    if (!triggerEe) {
+      setIconSize(10)
+    }
+  }, [triggerEe])
 
   useEffect(() => {
     const getSession = async () => {
@@ -47,184 +48,172 @@ const Home = () => {
     }
   }
 
-  useEffect(() => {
-    if (!triggerEe) {
-      setIconSize(10)
-    }
-  }, [triggerEe])
+  const features = [
+    {
+      title: 'Monitor your workflow',
+      description:
+        'Stay up-to-date and monitor your workflow directly through the calendar view where you can summarize your daily, weekly, and monthly tasks.',
+      image: '/calendar.webp',
+      link: '/calendar',
+      button: 'Calendar',
+    },
+    {
+      title: 'Automate Your Workflow',
+      description:
+        'Automatically sync GitHub commits to Notion. No more manual updates. Ensure your Notion workspace is always up-to-date with the latest changes from your repositories.',
+      image: '/neural.jpg',
+      link: '/dashboardV0',
+      button: 'Dashboard',
+    },
+    {
+      title: 'Enhance Collaboration',
+      description:
+        'Keep your team on the same page. Share real-time updates with your team and enhance collaboration by integrating commit messages and branch updates directly into your Notion pages.',
+      image: '/collab1.jpg',
+      button: 'Learn More',
+    },
+  ]
+
+  const { theme } = useTheme()
+
+  const isDarkMode = theme === 'dark'
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 bg-gray-50 dark:bg-gray-900 ">
-      <header className="w-full max-w-3xl text-sm font-mono">
-        <p className="mb-6 text-4xl font-bold text-gray-800 dark:text-gray-100">
-          Welcome to NotionSync
-        </p>
-        <p className="mb-8 text-lg text-gray-600">
-          Seamlessly sync your GitHub commits with Notion to keep your project
-          management up-to-date and effortless.
+    <main className="relative flex min-h-screen flex-col items-center justify-between ">
+      <LandingBackground />
+      <motion.header
+        className="relative w-full max-w-5xl text-center py-16 px-6 sm:py-20 sm:px-8 md:py-24 md:px-10 lg:py-28 lg:px-12 xl:py-32 xl:px-16"
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="relative w-full flex justify-center">
+          <img
+            src="/NotionSync.svg"
+            alt="NotionSync Background"
+            className="absolute w-32 md:w-36 h-auto z-[-1] opacity-10 dark:opacity-35 right-12"
+          />
+          <h1 className="mb-4 text-6xl font-black text-gray-800 dark:text-gray-100 md:text-5xl lg:text-6xl relative z-10">
+            <span
+              className={`bg-clip-text text-transparent from-blue-200 via-blue-300 to-blue-400 bg-gradient-to-r animate-steam drop-shadow-[1px__1px_1px_var(--tw-shadow-color)] ${isDarkMode ? 'shadow-white' : 'shadow-black'}`}
+            >
+              {''} NotionSync
+            </span>
+          </h1>
+        </div>
+        <p className="mb-6 font-black text-gray-600 dark:text-gray-400 text-2xl lg:text-3xl">
+          Take control of your workflow. <br />
+          Track your tasks with ease. <br />
+          Enhance team collaboration.
         </p>
         {user ? (
-          <>
-            Get started by visiting your{' '}
-            <Link href="/dashboardv0">
-              <code className="font-bold text-gray-900 dark:text-gray-100">
-                Dashboard
-              </code>
-            </Link>
-          </>
+          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+            <SteamButton
+              onClick={() => (window.location.href = '/dashboardv0')}
+            >
+              Go to Dashboard
+            </SteamButton>
+          </motion.div>
         ) : (
-          <div className="flex items-center">
-            Get started by signing in to{' '}
-            <code className="font-bold text-gray-900 dark:text-gray-100">
-              <Button variant="ghost" onClick={signInWithGitHub}>
-                <GithubIcon className="w-5 h-5 mr-2" />
-                GitHub
-              </Button>
-            </code>
-          </div>
+          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+            <SteamButton onClick={signInWithGitHub}>
+              <div className="flex items-center">
+                <GithubIcon className="w-4 h-4 mr-2 sm:w-5 sm:h-5" />
+                Sign in with GitHub
+              </div>
+            </SteamButton>
+          </motion.div>
         )}
-      </header>
-      <section className="max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
-        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu filter grayscale hover:grayscale-0 ">
-          <Image
-            src="/neural.jpg"
-            alt="Workflow Image"
-            width={400}
-            height={200}
-            className="rounded-t-lg w-full h-32 object-cover transition-all duration-300"
-          />
-          <CardHeader>
-            <CardTitle>Automate Your Workflow</CardTitle>
-            <CardDescription>
-              Automatically sync GitHub commits to Notion.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 dark:text-gray-300">
-              No more manual updates. Ensure your Notion workspace is always
-              up-to-date with the latest changes from your repositories.
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu filter grayscale hover:grayscale-0 ">
-          <Image
-            src="/collab1.jpg"
-            alt="Collaboration Image"
-            width={400}
-            height={200}
-            className="rounded-t-lg w-full h-32 object-cover transition-all duration-300"
-          />
-          <CardHeader>
-            <CardTitle>Enhance Collaboration</CardTitle>
-            <CardDescription>Keep your team on the same page.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 dark:text-gray-300">
-              Share real-time updates with your team and enhance collaboration
-              by integrating commit messages and branch updates directly into
-              your Notion pages.
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="flex flex-col transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu ">
-          <Image
-            src="/gh.webp"
-            alt="Repository Image"
-            width={400}
-            height={200}
-            className="rounded-t-lg w-full h-32 object-cover"
-          />
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
-              GitHub Repository &rarr;
-            </CardTitle>
-            <CardDescription className="mt-2 text-base text-gray-600 dark:text-gray-300">
-              Explore the source code and contribute to the project.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild>
-              <Link href="https://github.com/Omcci/NotionSync">Explore</Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card className="flex flex-col md:col-span-2 transition-transform duration-500 hover:rotate-1 hover:scale-105 transform-gpu filter grayscale hover:grayscale-0">
-          <Image
-            src="/document1.jpg"
-            alt="Documentation Image"
-            width={400}
-            height={200}
-            className="rounded-t-lg w-full h-32 object-cover transition-all duration-300"
-          />
-          <CardHeader>
-            <CardTitle>Documentation & Guides</CardTitle>
-            <CardDescription>
-              Find in-depth information and guides to help you get started.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+      </motion.header>
+
+      <section className="w-full">
+        {features.map((feature, index) => (
+          <motion.div
+            key={index}
+            className={`flex flex-col md:flex-row items-center justify-between py-16 px-8 md:max-w-[76%] mx-auto backdrop-blur-sm`}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <div
+              className={`md:w-1/2 ${index % 2 === 0 ? 'md:pr-8' : 'md:pl-8 md:order-2'}`}
+            >
+              <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-100">
+                {feature.title}
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                {feature.description}
+              </p>
+              <Button asChild>
+                <Link href={feature?.link ? feature?.link : '/docs'}>
+                  <p>{feature.button}</p>
+                </Link>
+              </Button>
+            </div>
+            <div
+              className={`md:w-1/2 mt-8 md:mt-0 ${index % 2 === 0 ? '' : 'md:order-1'}`}
+            >
+              <Image
+                src={feature.image}
+                alt={feature.title}
+                width={500}
+                height={300}
+                className="rounded-lg shadow-lg object-cover w-full h-64"
+              />
+            </div>
+          </motion.div>
+        ))}
+      </section>
+
+      <motion.section
+        className="w-full max-w-3xl my-16 px-8 backdrop-blur-sm backdrop-filter dark:backdrop-filter-dark dark:bg-opacity-20 dark:bg-[#1c1c1e] rounded-lg shadow-lg"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <div className="p-8">
+          <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-200">
+            Documentation & Guides
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+            Find in-depth information and guides to help you get started.
+          </p>
+          <div className="flex flex-col md:flex-row gap-4 items-center my-6">
+            <Input
+              type="text"
+              placeholder="Search documentation..."
+              className="flex-grow bg-gray-100 dark:bg-[#2c2c2e] dark:text-gray-200 border-none focus:outline-none placeholder-gray-500 dark:placeholder-gray-400"
+            />
             <Button asChild>
               <Link href="/docs">View Documentation</Link>
             </Button>
-            <div className="mt-4">
-              <Input
-                type="text"
-                placeholder="Search documentation..."
-                className="w-full p-2 border border-gray-300 rounded-md"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-      <section>
+          </div>
+          <Separator className="my-6" />
+          <Faq />
+          <EeDial triggerEe={triggerEe} setTriggerEe={setTriggerEe} />
+        </div>
+      </motion.section>
+
+      <motion.div
+        className="fixed bottom-4 right-4"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.5 }}
+      >
         <div
           onClick={handleClickOpenEe}
-          className="transition-transform duration-500 ease-in-out"
+          className="transition-transform duration-500 ease-in-out cursor-pointer"
           style={{ width: iconSize, height: iconSize }}
         >
           <Image
             src="/what.png"
-            alt="?"
+            alt="Easter egg trigger"
             width={iconSize}
             height={iconSize}
-            className="cursor-pointer"
+            className="rounded-full shadow-lg"
           />
         </div>
-      </section>
-      <EeDial triggerEe={triggerEe} setTriggerEe={setTriggerEe} />
-
-      <section className="w-full max-w-3xl mt-12">
-        <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6">
-          FAQ
-        </h2>
-        <Accordion type="single" collapsible>
-          <AccordionItem value="item-1">
-            <AccordionTrigger>What is NotionSync?</AccordionTrigger>
-            <AccordionContent>
-              NotionSync is a tool that helps you automatically sync your GitHub
-              commits with Notion. It keeps your project management up-to-date
-              by integrating commit messages and branch updates directly into
-              your Notion pages.
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-2">
-            <AccordionTrigger>How does NotionSync work?</AccordionTrigger>
-            <AccordionContent>
-              NotionSync connects to your GitHub repositories and monitors for
-              new commits. When a new commit is detected, it fetches the commit
-              details and updates your Notion workspace with this information.
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-4">
-            <AccordionTrigger>Can I contribute to NotionSync?</AccordionTrigger>
-            <AccordionContent>
-              Absolutely! NotionSync is an open-source project. You can explore
-              the source code, report issues, and contribute to the project by
-              visiting our GitHub repository.
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </section>
+      </motion.div>
     </main>
   )
 }

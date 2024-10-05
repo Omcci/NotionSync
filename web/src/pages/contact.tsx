@@ -56,6 +56,7 @@ const ContactPage: React.FC = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="John Doe"
+            className="my-2"
           />
         </div>
         <div>
@@ -66,6 +67,7 @@ const ContactPage: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
+            className="my-2"
           />
         </div>
         <div>
@@ -75,6 +77,7 @@ const ContactPage: React.FC = () => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="How can we help you?"
+            className="my-2"
           />
         </div>
         <Button type="submit" disabled={loading}>
