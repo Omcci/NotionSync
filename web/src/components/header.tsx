@@ -18,6 +18,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/router'
 import ModeToggle from './ModeToggle'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
+import ProfileButton from './ProfileButton'
 
 export function Header() {
   const links = [
@@ -97,12 +98,10 @@ export function Header() {
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
-                <Link href="/profile">
-                  Profile
-                </Link>
+              <DropdownMenuItem asChild>
+                <ProfileButton />
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <LogoutButton />
               </DropdownMenuItem>
             </DropdownMenuContent>
