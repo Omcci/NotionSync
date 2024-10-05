@@ -52,7 +52,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     }
   }, [selectedUser, commitDetails])
 
-  const SUMMARY_LIMIT = 5
+  const SUMMARY_LIMIT = 15
 
   const checkSummaryLimit = () => {
     const currentCount = parseInt(
@@ -83,8 +83,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-              .join('\n')
+            .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+            .join('\n')
           : '',
     }))
 
@@ -151,11 +151,11 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
               onClick={generateSummaryForAllCommits}
             />
           </h3>
-          {isLoadingSummary && (
-            <div className="ml-4">
+          <div className="ml-4">
+            {isLoadingSummary && (
               <LoadingSpinner />
-            </div>
-          )}
+            )}
+          </div>
           <span className="text-gray-600 dark:text-gray-400">
             {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
           </span>
