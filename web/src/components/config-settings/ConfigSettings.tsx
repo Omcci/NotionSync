@@ -16,9 +16,7 @@ const ConfigSettings = () => {
       <DialogTrigger asChild>
         <Button className="flex items-center gap-2" variant="outline">
           <SettingsIcon className="w-5 h-5" />
-          <span className='hidden sm:inline'>
-            Edit Settings
-          </span>
+          <span className="hidden sm:inline">Edit Settings</span>
         </Button>
       </DialogTrigger>
       <DialogContent>

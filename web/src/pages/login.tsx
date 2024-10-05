@@ -36,9 +36,7 @@ const LoginPage = () => {
     <div className="flex flex-col items-center min-h-screen">
       <h1 className="text-3xl font-bold mb-6 mt-12">Sign in to Your Account</h1>
       <div className="flex items-center">
-        <Button
-          onClick={handleLogin}
-        >
+        <Button onClick={handleLogin}>
           <GithubIcon className="w-4 h-4 mr-2 sm:w-5 sm:h-5" />
           Sign in with GitHub
         </Button>

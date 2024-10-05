@@ -50,30 +50,33 @@ const Home = () => {
 
   const features = [
     {
-      title: "Monitor your workflow",
-      description: "Stay up-to-date and monitor your workflow directly through the calendar view where you can summarize your daily, weekly, and monthly tasks.",
-      image: "/calendar.webp",
-      link: "/calendar",
-      button: "Calendar"
+      title: 'Monitor your workflow',
+      description:
+        'Stay up-to-date and monitor your workflow directly through the calendar view where you can summarize your daily, weekly, and monthly tasks.',
+      image: '/calendar.webp',
+      link: '/calendar',
+      button: 'Calendar',
     },
     {
-      title: "Automate Your Workflow",
-      description: "Automatically sync GitHub commits to Notion. No more manual updates. Ensure your Notion workspace is always up-to-date with the latest changes from your repositories.",
-      image: "/neural.jpg",
-      link: "/dashboardV0",
-      button: "Dashboard"
+      title: 'Automate Your Workflow',
+      description:
+        'Automatically sync GitHub commits to Notion. No more manual updates. Ensure your Notion workspace is always up-to-date with the latest changes from your repositories.',
+      image: '/neural.jpg',
+      link: '/dashboardV0',
+      button: 'Dashboard',
     },
     {
-      title: "Enhance Collaboration",
-      description: "Keep your team on the same page. Share real-time updates with your team and enhance collaboration by integrating commit messages and branch updates directly into your Notion pages.",
-      image: "/collab1.jpg",
-      button: "Learn More",
+      title: 'Enhance Collaboration',
+      description:
+        'Keep your team on the same page. Share real-time updates with your team and enhance collaboration by integrating commit messages and branch updates directly into your Notion pages.',
+      image: '/collab1.jpg',
+      button: 'Learn More',
     },
   ]
 
-  const { theme } = useTheme();
+  const { theme } = useTheme()
 
-  const isDarkMode = theme === 'dark';
+  const isDarkMode = theme === 'dark'
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-between ">
@@ -92,7 +95,7 @@ const Home = () => {
           />
           <h1 className="mb-4 text-6xl font-black text-gray-800 dark:text-gray-100 md:text-5xl lg:text-6xl relative z-10">
             <span
-              className={`bg-clip-text text-transparent from-blue-200 via-blue-300 to-blue-400 bg-gradient-to-r animate-steam drop-shadow-[1px__1px_1px_var(--tw-shadow-color)] ${isDarkMode ? "shadow-white" : 'shadow-black'}`}
+              className={`bg-clip-text text-transparent from-blue-200 via-blue-300 to-blue-400 bg-gradient-to-r animate-steam drop-shadow-[1px__1px_1px_var(--tw-shadow-color)] ${isDarkMode ? 'shadow-white' : 'shadow-black'}`}
             >
               {''} NotionSync
             </span>
@@ -105,7 +108,9 @@ const Home = () => {
         </p>
         {user ? (
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-            <SteamButton onClick={() => (window.location.href = '/dashboardv0')}>
+            <SteamButton
+              onClick={() => (window.location.href = '/dashboardv0')}
+            >
               Go to Dashboard
             </SteamButton>
           </motion.div>
@@ -130,16 +135,24 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            <div className={`md:w-1/2 ${index % 2 === 0 ? 'md:pr-8' : 'md:pl-8 md:order-2'}`}>
-              <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-100">{feature.title}</h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">{feature.description}</p>
+            <div
+              className={`md:w-1/2 ${index % 2 === 0 ? 'md:pr-8' : 'md:pl-8 md:order-2'}`}
+            >
+              <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-100">
+                {feature.title}
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                {feature.description}
+              </p>
               <Button asChild>
                 <Link href={feature?.link ? feature?.link : '/docs'}>
                   <p>{feature.button}</p>
                 </Link>
               </Button>
             </div>
-            <div className={`md:w-1/2 mt-8 md:mt-0 ${index % 2 === 0 ? '' : 'md:order-1'}`}>
+            <div
+              className={`md:w-1/2 mt-8 md:mt-0 ${index % 2 === 0 ? '' : 'md:order-1'}`}
+            >
               <Image
                 src={feature.image}
                 alt={feature.title}
@@ -159,7 +172,9 @@ const Home = () => {
         transition={{ duration: 0.5, delay: 0.3 }}
       >
         <div className="p-8">
-          <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-200">Documentation & Guides</h2>
+          <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-200">
+            Documentation & Guides
+          </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
             Find in-depth information and guides to help you get started.
           </p>
@@ -170,12 +185,10 @@ const Home = () => {
               className="flex-grow bg-gray-100 dark:bg-[#2c2c2e] dark:text-gray-200 border-none focus:outline-none placeholder-gray-500 dark:placeholder-gray-400"
             />
             <Button asChild>
-              <Link href="/docs">
-                View Documentation
-              </Link>
+              <Link href="/docs">View Documentation</Link>
             </Button>
           </div>
-          <Separator className='my-6' />
+          <Separator className="my-6" />
           <Faq />
           <EeDial triggerEe={triggerEe} setTriggerEe={setTriggerEe} />
         </div>

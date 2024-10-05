@@ -101,8 +101,8 @@ const CommitLog = () => {
 
   const filteredCommits = Array.isArray(commits)
     ? commits.filter((commit: Commit) =>
-      commit.commit.toLowerCase().includes(searchInput.toLowerCase()),
-    )
+        commit.commit.toLowerCase().includes(searchInput.toLowerCase()),
+      )
     : []
 
   const theader = ['Commit', 'Branch ID', 'Author', 'Date', 'Status', 'Actions']
@@ -137,14 +137,16 @@ const CommitLog = () => {
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 min-h-[400px] flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold leading-4 sm:leading-none">Commit Log</h2>
-        <div className='flex'>
+        <h2 className="text-lg font-bold leading-4 sm:leading-none">
+          Commit Log
+        </h2>
+        <div className="flex">
           {selectedRepo && (
             <Link
               href={`/calendar?orgName=${selectedRepo.org}&repoName=${selectedRepo.name}`}
               passHref
             >
-              <Button variant="ghost" className='mr-2'>
+              <Button variant="ghost" className="mr-2">
                 <CalendarDaysIcon className="w-5 h-5" />
               </Button>
             </Link>
@@ -231,7 +233,9 @@ const CommitLog = () => {
                       <HoverCardContent>
                         <div className="flex items-center gap-2">
                           <Avatar>
-                            <AvatarImage src={commit.authorDetails.avatar_url} />
+                            <AvatarImage
+                              src={commit.authorDetails.avatar_url}
+                            />
                             <AvatarFallback>{commit.author[0]}</AvatarFallback>
                           </Avatar>
                           <div>
@@ -258,10 +262,11 @@ const CommitLog = () => {
                     {commit.status && (
                       <div>
                         <Badge
-                          className={`${commit.status === 'Verified'
-                            ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
-                            : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
-                            }`}
+                          className={`${
+                            commit.status === 'Verified'
+                              ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                              : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
+                          }`}
                           variant="outline"
                         >
                           {commit.status}
@@ -290,7 +295,7 @@ const CommitLog = () => {
                               {/* {action.name === 'View' && (
                                 <EyeIcon className="w-5 h-5" />
                               )} */}
-                              {action.name === "View on GitHub" && (
+                              {action.name === 'View on GitHub' && (
                                 <GithubIcon className="w-5 h-5" />
                               )}
                             </Button>
@@ -303,7 +308,8 @@ const CommitLog = () => {
               ))}
             </tbody>
           </table>
-        </div>)}
+        </div>
+      )}
       <div className="flex justify-center mt-4">
         <Button
           className="mr-4"

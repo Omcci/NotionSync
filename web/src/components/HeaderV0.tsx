@@ -13,7 +13,13 @@ import ConfigSettings from './config-settings/ConfigSettings'
 import signInWithGitHub from '@/lib/login'
 import { useUser } from '@/context/UserContext'
 import BranchSelector from './BranchSelector'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from './ui/sheet'
 import { GitBranchIcon } from '../../public/icon/GitBranchIcon'
 
 // import { signIn, signOut, useSession } from "next-auth/react";
@@ -119,6 +125,6 @@ const HeaderV0 = () => {
         <ConfigSettings />
       </div>
     </header>
-  );
+  )
 }
 export default HeaderV0

@@ -1,15 +1,15 @@
-import { motion } from 'framer-motion';
-import { useTheme } from 'next-themes';
+import { motion } from 'framer-motion'
+import { useTheme } from 'next-themes'
 
 type GlowingButtonProps = {
-  children: React.ReactNode;
-  onClick: () => void;
-};
+  children: React.ReactNode
+  onClick: () => void
+}
 
 const SteamButton = ({ children, onClick }: GlowingButtonProps) => {
-  const { theme } = useTheme();
+  const { theme } = useTheme()
 
-  const isDarkMode = theme === 'dark';
+  const isDarkMode = theme === 'dark'
 
   return (
     <motion.button
@@ -35,10 +35,13 @@ const SteamButton = ({ children, onClick }: GlowingButtonProps) => {
         bg-blue-300
         `}
       ></span>
-      <span className={`relative z-10 ${isDarkMode ? 'drop-shadow-[1px__1px_1px_var(--tw-shadow-color)] shadow-black' : ""}`}
-      >{children}</span>
+      <span
+        className={`relative z-10 ${isDarkMode ? 'drop-shadow-[1px__1px_1px_var(--tw-shadow-color)] shadow-black' : ''}`}
+      >
+        {children}
+      </span>
     </motion.button>
-  );
-};
+  )
+}
 
-export default SteamButton;
+export default SteamButton
