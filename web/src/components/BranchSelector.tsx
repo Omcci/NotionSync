@@ -1,15 +1,12 @@
-import { use, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { EyeIcon } from '../../public/icon/EyeIcon'
 import { GitBranchIcon } from '../../public/icon/GitBranchIcon'
 import { GithubIcon } from '../../public/icon/GithubIcon'
-import { NotebookIcon } from '../../public/icon/NotebookIcon'
 import SelectComponent from './SelectComponent'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
-import { Checkbox } from './ui/checkbox'
 import { Label } from './ui/label'
 import { useAppContext } from '@/context/AppContext'
-import ErrorMessage from './ErrorMessage'
 import { useUser } from '@/context/UserContext'
 import { useQuery } from '@tanstack/react-query'
 
@@ -125,7 +122,7 @@ const BranchSelector = () => {
   }))
 
   const renderContent = (message: string) => (
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-6">
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 my-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold">Branch Selector</h2>
       </div>
