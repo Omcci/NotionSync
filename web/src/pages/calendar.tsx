@@ -12,7 +12,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loadingspinner'
 
-//TODO : add mistral to make a summary of the day
 const fetchCommits = async (
   repoName: string,
   orgName: string,
@@ -114,43 +113,56 @@ const CalendarPage = () => {
     if (titleEl) {
       titleEl.style.fontSize = '1.5rem'
       titleEl.style.fontWeight = 'bolder'
+      titleEl.classList.add('text-gray-800', 'dark:text-gray-100')
     }
 
     const buttonEls = document.querySelectorAll<HTMLElement>('.fc-button')
     buttonEls.forEach((button) => {
       button.style.padding = '0.3rem 0.6rem'
       button.style.fontSize = '0.8rem'
-      button.style.color = '#6B7280'
-      button.style.border = '1px solid #E5E7EB'
-      button.style.background = '#F9FAFB'
+      button.classList.add(
+        'text-gray-800',
+        'dark:text-gray-200',
+        'bg-gray-100',
+        'dark:bg-gray-700',
+        'border-gray-300',
+        'dark:border-gray-600',
+        'hover:bg-gray-200',
+        'dark:hover:bg-gray-600'
+      )
+    })
+
+    const headerEls = document.querySelectorAll<HTMLElement>('.fc-col-header-cell')
+    headerEls.forEach((header) => {
+      header.classList.remove('text-white')
+      header.classList.add('text-gray-800', 'dark:text-gray-800')
     })
 
     const dayCells = document.querySelectorAll<HTMLElement>('.fc-daygrid-day')
     dayCells.forEach((cell) => {
-      cell.style.background = '#F3F4F6'
+      cell.classList.add('bg-gray-50', 'dark:bg-gray-800')
       cell.addEventListener('mouseenter', () => {
-        cell.style.background = '#edeef0'
+        cell.classList.add('bg-gray-200', 'dark:bg-gray-700')
       })
       cell.addEventListener('mouseleave', () => {
-        cell.style.background = '#F3F4F6'
+        cell.classList.remove('bg-gray-200', 'dark:bg-gray-700')
       })
       cell.style.cursor = 'pointer'
     })
 
     const eventEls = document.querySelectorAll<HTMLElement>('.fc-event')
     eventEls.forEach((event) => {
-      event.style.color = 'black'
-      event.style.cursor = 'crosshair'
+      event.classList.add('text-black', 'dark:text-white', 'cursor-pointer')
     })
   }, [events])
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold text-gray-800">Calendar</h1>
-      <h3 className="text-lg text-gray-500 mb-4">
+      <h1 className="text-2xl font-bold light:text-gray-800 dark:text-white">Calendar</h1>
+      <h3 className="text-lg light:text-gray-500 dark:text-gray-400 mb-4">
         Deep dive into your GitHub commits by selecting a repository and a date.
       </h3>
-      <div className="mb-4">
+      <div className="mb-4 max-w-52">
         <SelectComponent
           placeholder="Select a repository"
           options={
@@ -165,11 +177,11 @@ const CalendarPage = () => {
       </div>
       <div className="relative">
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-opacity-50 bg-gray-100 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-opacity-50 bg-gray-100 dark:bg-gray-900 z-10">
             <LoadingSpinner />
           </div>
         )}
-        <Card className="bg-gray-50 shadow-lg rounded-lg overflow-hidden py-4">
+        <Card className="bg-gray-50 dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden py-4">
           <CardContent>
             <FullCalendar
               plugins={[dayGridPlugin, interactionPlugin]}

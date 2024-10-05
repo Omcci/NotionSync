@@ -83,8 +83,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-              .join('\n')
+            .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+            .join('\n')
           : '',
     }))
 
@@ -123,24 +123,6 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-        <div className="w-full flex flex-row justify-around items-center">
-          <h3 className="font-bold text-gray-500 flex">
-            {' '}
-            Summarize your commits here{' '}
-            <Sparkles
-              className="ml-4 cursor-pointer"
-              onClick={generateSummaryForAllCommits}
-            />
-          </h3>
-          {isLoadingSummary && (
-            <div className="ml-4">
-              <LoadingSpinner />
-            </div>
-          )}
-          <span className="text-gray-600">
-            {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
-          </span>
-        </div>
         <div className="w-full max-w-32 ">
           <Select
             onValueChange={(value) =>
@@ -160,10 +142,28 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-full flex flex-row justify-around items-center">
+          <h3 className="font-bold text-gray-500 dark:text-gray-300 flex">
+            {' '}
+            Summarize your commits here{' '}
+            <Sparkles
+              className="ml-4 cursor-pointer"
+              onClick={generateSummaryForAllCommits}
+            />
+          </h3>
+          {isLoadingSummary && (
+            <div className="ml-4">
+              <LoadingSpinner />
+            </div>
+          )}
+          <span className="text-gray-600 dark:text-gray-400">
+            {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
+          </span>
+        </div>
       </div>
       {summary && (
-        <div className="bg-gray-100 p-4 rounded-md mt-4">
-          <h4 className="font-bold">Summary:</h4>
+        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md mt-4">
+          {/* <h4 className="font-bold">Summary:</h4> */}
           <div dangerouslySetInnerHTML={{ __html: summary }} />
         </div>
       )}
@@ -171,10 +171,10 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
         {filteredCommits.map((commit, idx) => (
           <li
             key={idx}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 bg-gray-50 rounded-md shadow-sm hover:bg-gray-100 transition-colors"
+            className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-md shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <div className="flex items-start space-x-4">
-              <div className="min-w-8 h-8 rounded-full flex justify-center items-center bg-white">
+              <div className="min-w-8 h-8 rounded-full flex justify-center items-center bg-white dark:bg-gray-900">
                 <Avatar>
                   <AvatarImage
                     className="min-w-8 h-8 rounded-full "
@@ -187,10 +187,10 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
                 </Avatar>
               </div>
               <div>
-                <h3 className="text-sm font-medium">{commit.commit}</h3>
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">{commit.commit}</h3>
                 <p className="text-xs text-gray-500">
                   by{' '}
-                  <span className="font-bold text-blue-400">
+                  <span className="font-bold text-blue-400 dark:text-blue-300">
                     {' '}
                     {commit.author}{' '}
                   </span>{' '}
@@ -206,12 +206,12 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
             </div>
             <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto sm:space-x-2 space-y-2 sm:space-y-0 mt-4 sm:mt-0">
               {commit.status === 'Verified' ? (
-                <Badge className="flex items-center space-x-1 bg-green-100 text-green-700 hover:bg-green-200 transition-colors">
+                <Badge className="flex items-center space-x-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 transition-colors">
                   <CheckCircle className="h-4 w-4 text-green-500" />
                   <span>{commit.status}</span>
                 </Badge>
               ) : (
-                <Badge className="flex items-center space-x-1 bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
+                <Badge className="flex items-center space-x-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors">
                   <XCircle className="h-4 w-4 text-red-500" />
                   <span>{commit.status}</span>
                 </Badge>

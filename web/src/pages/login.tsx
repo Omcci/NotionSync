@@ -4,6 +4,7 @@ import { useUser } from '@/context/UserContext'
 import signInWithGitHub from '@/lib/login' // Import the method from login.ts
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loadingspinner'
+import { GithubIcon } from '../../public/icon/GithubIcon'
 
 const LoginPage = () => {
   const router = useRouter()
@@ -32,14 +33,16 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-3xl font-bold mb-6">Sign in to Your Account</h1>
-      <Button
-        onClick={handleLogin}
-        className="text-white bg-black hover:bg-gray-800 px-4 py-2 rounded-md"
-      >
-        Sign in with GitHub
-      </Button>
+    <div className="flex flex-col items-center min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 mt-12">Sign in to Your Account</h1>
+      <div className="flex items-center">
+        <Button
+          onClick={handleLogin}
+        >
+          <GithubIcon className="w-4 h-4 mr-2 sm:w-5 sm:h-5" />
+          Sign in with GitHub
+        </Button>
+      </div>
     </div>
   )
 }

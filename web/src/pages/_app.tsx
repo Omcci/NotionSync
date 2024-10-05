@@ -29,7 +29,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <UserProvider>
         <AppProvider>
           <ConfigProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
               <Layout>
                 <Head>
                   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
