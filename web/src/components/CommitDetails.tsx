@@ -173,11 +173,13 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
               <div className="min-w-8 h-8 rounded-full flex justify-center items-center bg-white dark:bg-gray-900">
                 <Avatar>
                   <AvatarImage
-                    className="min-w-8 h-8 rounded-full "
+                    className="w-8 h-8 rounded-full "
                     src={commit.avatar_url}
                     alt={commit.author}
                   />
-                  <AvatarFallback>
+                  <AvatarFallback
+                    className="w-8 h-8 rounded-full "
+                  >
                     {commit.author.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
