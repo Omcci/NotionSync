@@ -27,9 +27,6 @@ const fetchCommits = async (
   }
 
   let commitsUrl = `/api/commits?repoName=${repoName}&orgName=${orgName}&startDate=${dateRange.start}&endDate=${dateRange.end}&allPages=true&githubToken=${githubToken}`
-  if (selectedDate) {
-    commitsUrl += `&date=${selectedDate}`
-  }
   const response = await fetch(commitsUrl, {
     headers: {
       Authorization: `Bearer ${githubToken}`,
@@ -67,27 +64,33 @@ const CalendarPage = () => {
       orgName,
       dateRange.start,
       dateRange.end,
-      selectedDate,
     ],
-    queryFn: () => fetchCommits(repoName!, orgName!, dateRange, selectedDate),
+    queryFn: () => fetchCommits(repoName!, orgName!, dateRange),
     enabled: !!repoName && !!orgName && !!dateRange.start && !!dateRange.end,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   })
 
   useEffect(() => {
-    if (!commitData || isError) return
+    if (!commitData || isError) return;
+
+    const formattedEvents = commitData.map((commit: Commit) => ({
+      title: commit.commit,
+      date: commit.date,
+    }));
+    setEvents(formattedEvents);
 
     if (selectedDate) {
-      setCommitDetails(commitData)
-    } else {
-      const formattedEvents = commitData.map((commit: Commit) => ({
-        title: commit.commit,
-        date: commit.date,
-      }))
-      setEvents(formattedEvents)
+      const filteredCommits = commitData.filter(
+        (commit: Commit) => {
+          const commitDate = commit.date.split('T')[0];
+          return commitDate === selectedDate;
+        }
+      );
+      setCommitDetails(filteredCommits);
     }
-  }, [commitData, selectedDate, isError])
+  }, [commitData, selectedDate, isError]);
+
 
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
