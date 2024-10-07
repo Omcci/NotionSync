@@ -177,9 +177,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
                     src={commit.avatar_url}
                     alt={commit.author}
                   />
-                  <AvatarFallback
-                    className="w-8 h-8 rounded-full "
-                  >
+                  <AvatarFallback className="w-8 h-8 rounded-full ">
                     {commit.author.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>

@@ -58,13 +58,7 @@ const CalendarPage = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: [
-      'commits',
-      repoName,
-      orgName,
-      dateRange.start,
-      dateRange.end,
-    ],
+    queryKey: ['commits', repoName, orgName, dateRange.start, dateRange.end],
     queryFn: () => fetchCommits(repoName!, orgName!, dateRange),
     enabled: !!repoName && !!orgName && !!dateRange.start && !!dateRange.end,
     refetchOnWindowFocus: false,
@@ -72,25 +66,22 @@ const CalendarPage = () => {
   })
 
   useEffect(() => {
-    if (!commitData || isError) return;
+    if (!commitData || isError) return
 
     const formattedEvents = commitData.map((commit: Commit) => ({
       title: commit.commit,
       date: commit.date,
-    }));
-    setEvents(formattedEvents);
+    }))
+    setEvents(formattedEvents)
 
     if (selectedDate) {
-      const filteredCommits = commitData.filter(
-        (commit: Commit) => {
-          const commitDate = commit.date.split('T')[0];
-          return commitDate === selectedDate;
-        }
-      );
-      setCommitDetails(filteredCommits);
+      const filteredCommits = commitData.filter((commit: Commit) => {
+        const commitDate = commit.date.split('T')[0]
+        return commitDate === selectedDate
+      })
+      setCommitDetails(filteredCommits)
     }
-  }, [commitData, selectedDate, isError]);
-
+  }, [commitData, selectedDate, isError])
 
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
