@@ -1,15 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-
-export type Repo = {
-  id: string
-  name: string
-  org: string
-}
-
-export type ReposResponse = {
-  repos?: Repo[]
-  error?: string
-}
+import { ReposResponse } from '../../../types/types'
 
 export const fetchUserRepos = async (githubToken: string) => {
   const url = `https://api.github.com/user/repos`

@@ -29,3 +29,14 @@ export type SyncStatus = {
   errorBranch: string | null
   statusMessage: string
 }
+
+export type Repo = {
+  id: string
+  name: string
+  org: string
+}
+
+export type ReposResponse = {
+  repos?: Repo[]
+  error?: string
+}

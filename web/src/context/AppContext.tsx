@@ -1,5 +1,3 @@
-import { supabase } from '@/lib/supabaseClient'
-import { ReposResponse } from '@/pages/api/repos'
 import { useQuery } from '@tanstack/react-query'
 import React, {
   createContext,
@@ -8,6 +6,7 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react'
+import { ReposResponse } from '../../types/types'
 import { useUser } from './UserContext'
 
 interface Repo {
