@@ -1,14 +1,41 @@
 // Commit type
+// export type Commit = {
+//   commit: string
+//   commitSha: string
+//   branch: string
+//   author: string
+//   date: string
+//   status: string
+//   actions: { name: string; url: string }[]
+//   avatar_url: string
+//   diff: { filename: string; additions: number; deletions: number }[]
+//   repoName: string
+// }
+
 export type Commit = {
-  commit: string
-  commitSha: string
-  branch: string
-  author: string
-  date: string
-  status: string
-  actions: { name: string; url: string }[]
-  avatar_url: string
-  diff: { filename: string; additions: number; deletions: number }[]
+  sha: string
+  commit: {
+    author: {
+      name: string
+      date: string
+    }
+    message: string
+    verification?: {
+      verified: boolean
+    }
+    tree: {
+      sha: string
+    }
+  }
+  author: {
+    login?: string
+  } | null
+  committer: {
+    avatar_url?: string
+  } | null
+  html_url: string
+  repoName?: string 
+  date?: string
 }
 
 // Config type
@@ -33,7 +60,7 @@ export type SyncStatus = {
 export type Repo = {
   id: string
   name: string
-  org: string
+  owner: string
 }
 
 export type ReposResponse = {
