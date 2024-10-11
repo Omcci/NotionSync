@@ -1,6 +1,6 @@
 <table>
   <tr>
-    <td><img src="https://github.com/Omcci/NotionSync/assets/119880787/ed46dda5-2e5d-4ae1-ba81-0d48a14ba369" alt="NotionSyncLogoWhite" width="40" /></td>
+    <td><img src="https://github.com/user-attachments/assets/1dbc1c57-6a05-41ac-8df4-8f425a6cdb25" alt="NotionSyncLogoWhite" width="160" /></td>
     <td><h1>NotionSync</h1></td>
   </tr>
 </table>
