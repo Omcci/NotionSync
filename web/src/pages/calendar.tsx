@@ -12,36 +12,38 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loadingspinner'
 
-const fetchCommits = async (
-  repoName: string,
-  orgName: string,
-  dateRange: { start: string; end: string },
-  selectedDate?: string,
-) => {
+const fetchCommits = async (repos: { name: string; owner: string }[], dateRange: { start: string; end: string }) => {
   const {
     data: { session },
   } = await supabase.auth.getSession()
-  const githubToken = session?.provider_token
+
+  const githubToken = session?.provider_token;
   if (!githubToken) {
-    throw new Error('Unauthorized: No GitHub token available')
+    throw new Error('Unauthorized: No GitHub token available');
   }
 
-  let commitsUrl = `/api/commits?repoName=${repoName}&orgName=${orgName}&startDate=${dateRange.start}&endDate=${dateRange.end}&allPages=true&githubToken=${githubToken}`
+  const commitsUrl = `/api/commits?repos=${encodeURIComponent(JSON.stringify(repos))}&startDate=${dateRange.start}&endDate=${dateRange.end}&githubToken=${githubToken}`;
+
   const response = await fetch(commitsUrl, {
     headers: {
       Authorization: `Bearer ${githubToken}`,
     },
-  })
+  });
 
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Error fetching commits: ${response.status} - ${errorText}`)
+    const errorText = await response.text();
+    throw new Error(`Error fetching commits: ${response.status} - ${errorText}`);
   }
-  return await response.json()
-}
+
+  const data = await response.json();
+  return data;
+};
+
 
 const CalendarPage = () => {
-  const [events, setEvents] = useState([])
+  const [events, setEvents] = useState<any[]>([])
+  const [filteredCommits, setFilteredCommits] = useState<Commit[]>([])
+
   const [selectedDate, setSelectedDate] = useState('')
   const [commitDetails, setCommitDetails] = useState<Commit[]>([])
   const [open, setOpen] = useState(false)
@@ -49,46 +51,63 @@ const CalendarPage = () => {
   const user = useUser()
 
   const { repos, selectedRepo, setSelectedRepo } = useAppContext()
-  // console.log('repos', repos)
-  const { org: orgName, name: repoName } = selectedRepo || {}
+  console.log('repos', repos)
+  // const orgName = repos.length > 0 ? repos[0].org : ""
+
+  console.log('Repos in CalendarPage:', repos.map(repo => ({ name: repo.name, owner: repo.owner })));
 
   const {
-    data: commitData,
+    data: commitData = [],
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ['commits', repoName, orgName, dateRange.start, dateRange.end],
-    queryFn: () => fetchCommits(repoName!, orgName!, dateRange),
-    enabled: !!repoName && !!orgName && !!dateRange.start && !!dateRange.end,
+    queryKey: ['commits', repos, dateRange.start, dateRange.end],
+    queryFn: () => fetchCommits(repos.map(repo => ({ name: repo.name, owner: repo.owner })), dateRange),
+    enabled: !!repos.length && !!dateRange.start && !!dateRange.end,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   })
+  console.log('Commit dataINCALENDAR:', commitData)
 
   useEffect(() => {
-    if (!commitData || isError) return
+    if (!commitData || isError) return;
 
-    const formattedEvents = commitData.map((commit: Commit) => ({
-      title: commit.commit,
-      date: commit.date,
-    }))
-    setEvents(formattedEvents)
+    let commitsToUse = commitData;
 
-    if (selectedDate) {
-      const filteredCommits = commitData.filter((commit: Commit) => {
-        const commitDate = commit.date.split('T')[0]
-        return commitDate === selectedDate
-      })
-      setCommitDetails(filteredCommits)
+    if (selectedRepo) {
+      commitsToUse = commitData.filter((commit: Commit) => commit.repoName === selectedRepo.name);
     }
-  }, [commitData, selectedDate, isError])
+
+    const formattedEvents = commitsToUse.map((commit: Commit) => ({
+      title: `[${commit.repoName}] ${commit.commit}`,
+      date: commit.date,
+    }));
+
+
+    setEvents(formattedEvents);
+    setFilteredCommits(commitsToUse);
+  }, [commitData, selectedRepo, isError]);
+
+  useEffect(() => {
+    if (!selectedDate) return;
+
+    const selectedCommits = filteredCommits.filter((commit: Commit) => {
+      const commitDate = commit.date?.split('T')[0];
+      return commitDate === selectedDate;
+    });
+
+    setCommitDetails(selectedCommits);
+  }, [selectedDate, filteredCommits]);
 
   const handleRepoSelect = (repoId: string) => {
-    const repo = repos.find((r) => r.id === repoId)
-    if (repo) {
-      setSelectedRepo(repo)
+    if (repoId === 'all') {
+      setSelectedRepo(null);
+    } else {
+      const repo = repos.find((r) => r.id === repoId);
+      setSelectedRepo(repo || null);
     }
-  }
+  };
 
   const handleDateClick = (info: any) => {
     setSelectedDate(info.dateStr)
@@ -165,10 +184,10 @@ const CalendarPage = () => {
           placeholder="Select a repository"
           options={
             user.user
-              ? repos?.map((repo) => ({ value: repo.id, label: repo.name }))
+              ? [{ value: 'all', label: 'All Repositories' }, ...repos?.map((repo) => ({ value: repo.id, label: repo.name }))]
               : []
           }
-          value={selectedRepo ? selectedRepo.id : ''}
+          value={selectedRepo ? selectedRepo.id : 'all'}
           onChange={handleRepoSelect}
           disabled={!user.user}
         />
