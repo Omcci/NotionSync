@@ -14,7 +14,7 @@ export const fetchUserRepos = async (githubToken: string) => {
     return data.map((repo: any) => ({
       id: repo.id,
       name: repo.name,
-      org: repo.owner.login,
+      owner: repo.owner.login,
     }))
   } catch (error) {
     console.error((error as Error).message)
@@ -38,7 +38,6 @@ export default async function handler(
 
   try {
     const repos = await fetchUserRepos(githubToken)
-    console.log('Fetched repos:', repos)
     res.status(200).json({ repos })
   } catch (error: any) {
     console.error('Error fetching repos:', error.message)
