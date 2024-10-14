@@ -6,14 +6,8 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react'
-import { ReposResponse } from '../../types/types'
+import { Repo, ReposResponse } from '../../types/types'
 import { useUser } from './UserContext'
-
-interface Repo {
-  id: string
-  name: string
-  org: string
-}
 
 interface SyncStatus {
   lastSyncDate: string | null
@@ -32,11 +26,11 @@ interface AppContextType {
 
 const initialState: AppContextType = {
   repos: [],
-  setRepos: () => {},
+  setRepos: () => { },
   selectedRepo: null,
-  setSelectedRepo: () => {},
+  setSelectedRepo: () => { },
   syncStatus: null,
-  setSyncStatus: () => {},
+  setSyncStatus: () => { },
 }
 
 const AppContext = createContext<AppContextType>(initialState)
@@ -59,7 +53,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null)
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
 
-  const { githubToken, signOutUser, setGithubToken } = useUser()
+  const { githubToken } = useUser()
 
   const { data: fetchedRepos = [], refetch } = useQuery<Repo[], Error>({
     queryKey: ['repos', githubToken],
