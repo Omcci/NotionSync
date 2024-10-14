@@ -85,9 +85,11 @@ const CalendarPage = () => {
     }));
 
 
-    setEvents(formattedEvents);
-    setFilteredCommits(commitsToUse);
-  }, [commitData, selectedRepo, isError]);
+    if (JSON.stringify(formattedEvents) !== JSON.stringify(events)) {
+      setEvents(formattedEvents);
+      setFilteredCommits(commitsToUse);
+    }
+  }, [commitData, selectedRepo, isError, events]);
 
   useEffect(() => {
     if (!selectedDate) return;
