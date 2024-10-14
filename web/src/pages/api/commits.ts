@@ -248,43 +248,60 @@
 
 import { format } from 'date-fns'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { Action } from '../../../types/types'
+import { Action, Commit, Repo } from '../../../types/types'
 
 const TIMEZONE_OFFSET_PARIS = 2
 
-const fetchCommitsAndPRs = async (
+const fetchCommits = async (
   githubToken: string,
-  orgName: string,
+  owner: string,
   repoName: string,
   page: string,
   per_page: string,
   since?: string,
   until?: string,
 ) => {
-  const commitsUrl = `https://api.github.com/repos/${orgName}/${repoName}/commits?page=${page}&per_page=${per_page}${
+  const commitsUrl = `https://api.github.com/repos/${owner}/${repoName}/commits?page=${page}&per_page=${per_page}${
     since && until ? `&since=${since}&until=${until}` : ''
   }`
-  const pullRequestsUrl = `https://api.github.com/repos/${orgName}/${repoName}/pulls?state=open`
 
-  const [commitsResponse, pullRequestsResponse] = await Promise.all([
-    fetch(commitsUrl, { headers: { Authorization: `token ${githubToken}` } }),
-    fetch(pullRequestsUrl, {
-      headers: { Authorization: `token ${githubToken}` },
-    }),
-  ])
+  const response = await fetch(commitsUrl, {
+    headers: { Authorization: `token ${githubToken}` },
+  })
 
-  if (!commitsResponse.ok || !pullRequestsResponse.ok) {
-    throw new Error(
-      `Error fetching commits or pull requests: ${commitsResponse.status}, ${pullRequestsResponse.status}`,
-    )
+  if (!response.ok) {
+    throw new Error(`Error fetching commits: ${response.status}`)
   }
 
-  const [commits, pullRequests] = await Promise.all([
-    commitsResponse.json(),
-    pullRequestsResponse.json(),
-  ])
+  const commits = await response.json()
+  if (!commits || !Array.isArray(commits)) {
+    throw new Error(`Invalid commits response: ${JSON.stringify(commits)}`)
+  }
+  return commits
+}
 
-  return { commits, pullRequests }
+const fetchPullRequests = async (
+  githubToken: string,
+  owner: string,
+  repoName: string,
+) => {
+  const pullRequestsUrl = `https://api.github.com/repos/${owner}/${repoName}/pulls?state=open`
+
+  const response = await fetch(pullRequestsUrl, {
+    headers: { Authorization: `token ${githubToken}` },
+  })
+
+  if (!response.ok) {
+    console.error(
+      `Error fetching pull requests: ${
+        response.status
+      } - ${await response.text()}`,
+    )
+    throw new Error(`Error fetching pull requests: ${response.status}`)
+  }
+
+  const pullRequests = await response.json()
+  return pullRequests
 }
 
 const fetchAuthorDetails = async (githubToken: string, username: string) => {
@@ -301,10 +318,10 @@ const fetchAuthorDetails = async (githubToken: string, username: string) => {
 const fetchCommitDiff = async (
   commitSha: string,
   githubToken: string,
-  orgName: string,
+  owner: string,
   repoName: string,
 ) => {
-  const diffUrl = `https://api.github.com/repos/${orgName}/${repoName}/commits/${commitSha}`
+  const diffUrl = `https://api.github.com/repos/${owner}/${repoName}/commits/${commitSha}`
   const response = await fetch(diffUrl, {
     headers: {
       Authorization: `token ${githubToken}`,
@@ -325,13 +342,13 @@ const parisTz = (dateString: string, formatPattern: string): string => {
 }
 
 const processCommits = async (
-  commits: any[],
+  commits: Commit[],
   githubToken: string,
-  orgName: string,
+  owner: string,
   repoName: string,
 ) => {
   return Promise.all(
-    commits.map(async (commit: any) => {
+    commits.map(async (commit: Commit) => {
       const formattedDate = parisTz(
         commit.commit.author.date,
         "yyyy-MM-dd'T'HH:mm:ssXXX",
@@ -357,12 +374,13 @@ const processCommits = async (
         )
       }
 
-      const diff = await fetchCommitDiff(
-        commit.sha,
-        githubToken,
-        orgName,
-        repoName,
-      )
+      let diff = ''
+      try {
+        diff = await fetchCommitDiff(commit.sha, githubToken, owner, repoName)
+      } catch (error) {
+        console.error(`Error fetching diff for commit ${commit.sha}: ${error}`)
+        diff = 'Diff not available'
+      }
 
       return {
         commit: commit.commit.message,
@@ -373,6 +391,7 @@ const processCommits = async (
         date: formattedDate,
         diff,
         status,
+        repoName,
         actions: [{ name: 'View on GitHub', url: commit.html_url }] as Action[],
         avatar_url:
           commit.committer?.avatar_url ||
@@ -388,30 +407,78 @@ const filterCommitsByDate = (commits: any[], date: string) => {
   )
 }
 
-const fetchAllPagesCommits = async (
+// const fetchCalendarCommits = async (
+//   token: string,
+//   owner: string,
+//   repoName: string,
+//   startDate?: string,
+//   endDate?: string,
+// ) => {
+//   const allCommits = []
+//   let page = 1
+//   const perPage = 100
+
+//   while (true) {
+//     const commits = await fetchCommits(
+//       token,
+//       owner,
+//       repoName,
+//       page.toString(),
+//       perPage.toString(),
+//       startDate,
+//       endDate,
+//     )
+
+//     if (!commits || commits.length === 0) {
+//       console.log('No more commits to fetch')
+//       break
+//     }
+//     allCommits.push(...commits)
+//     page++
+//   }
+
+//   return allCommits
+// }
+const fetchCommitsForMultipleRepos = async (
   token: string,
-  orgName: string,
-  repoName: string,
+  repos: { owner: string; name: string }[],
   startDate?: string,
   endDate?: string,
 ) => {
   const allCommits = []
-  let page = 1
-  const perPage = 100
 
-  while (true) {
-    const { commits } = await fetchCommitsAndPRs(
-      token,
-      orgName,
-      repoName,
-      page.toString(),
-      perPage.toString(),
-      startDate,
-      endDate,
-    )
-    if (commits.length === 0) break
-    allCommits.push(...commits)
-    page++
+  for (const repo of repos) {
+    try {
+      let page = 1
+      const perPage = 100
+
+      while (true) {
+        const commits = await fetchCommits(
+          token,
+          repo.owner,
+          repo.name,
+          page.toString(),
+          perPage.toString(),
+          startDate,
+          endDate,
+        )
+
+        if (!commits || commits.length === 0) {
+          break
+        }
+
+        const commitsWithRepoName = commits.map((commit) => ({
+          ...commit,
+          repoName: repo.name,
+        }))
+
+        allCommits.push(...commitsWithRepoName)
+        page++
+      }
+    } catch (error) {
+      console.error(`Error fetching commits for repo ${repo.name}: ${error}`)
+      continue
+    }
   }
 
   return allCommits
@@ -419,8 +486,8 @@ const fetchAllPagesCommits = async (
 
 const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
   const {
-    repoName,
-    orgName,
+    repos,
+    // owner,
     startDate,
     endDate,
     date,
@@ -429,8 +496,8 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
     page = '1',
     per_page = '10',
   } = req.query as {
-    repoName: string
-    orgName: string
+    repos: string
+    // owner: string
     date?: string
     startDate?: string
     endDate?: string
@@ -447,37 +514,36 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
       .json({ error: 'Unauthorized: No GitHub token available' })
 
   try {
-    let allCommits =
-      allPages === 'true'
-        ? await fetchAllPagesCommits(
-            token,
-            orgName,
-            repoName,
-            startDate,
-            endDate,
-          )
-        : (
-            await fetchCommitsAndPRs(
-              token,
-              orgName,
-              repoName,
-              page,
-              per_page,
-              startDate,
-              endDate,
-            )
-          ).commits
+    const repoList = JSON.parse(repos) // Parse the JSON string from the frontend
 
-    if (date) allCommits = filterCommitsByDate(allCommits, date)
-
-    const formattedCommits = await processCommits(
-      allCommits,
+    const allCommits = await fetchCommitsForMultipleRepos(
       token,
-      orgName,
-      repoName,
+      repoList,
+      startDate,
+      endDate,
     )
 
-    res.status(200).json(formattedCommits)
+    // Fetch pull requests for each repo
+    // const pullRequests = await fetchPullRequests(token, owner, repoName)
+
+    // if (date) commits = filterCommitsByDate(commits, date)
+
+    const formattedCommits = await Promise.all(
+      repoList.map(async (repo: Repo) => {
+        const repoCommits = allCommits.filter(
+          (commit) => commit.repoName === repo.name,
+        )
+        return processCommits(repoCommits, token, repo.owner, repo.name)
+      }),
+    )
+
+    // allCommits.push(...formattedCommits)
+    // allPullRequests.push(...pullRequests)
+
+    // res.status(200).json(formattedCommits)
+    const flattenedCommits = formattedCommits.flat()
+
+    res.status(200).json(flattenedCommits)
   } catch (error: any) {
     console.error(error.message)
     res.status(500).json({ error: error.message })
