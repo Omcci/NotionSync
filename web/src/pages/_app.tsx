@@ -1,6 +1,7 @@
 import type { AppProps } from 'next/app'
 import Layout from '../components/Layout'
 import '../../styles/globals.css'
+import '../../styles/calendar-styles.css';
 
 import { Inter, Figtree } from 'next/font/google'
 import Head from 'next/head'
