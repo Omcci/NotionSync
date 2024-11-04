@@ -27,6 +27,7 @@ export type Commit = {
       sha: string
     }
   }
+  commitSha?: string
   author: {
     login?: string
   } | null
@@ -36,6 +37,8 @@ export type Commit = {
   html_url: string
   repoName?: string
   date?: string
+  actions?: { name: string; url: string }[]
+  diff?: { filename: string; additions: number; deletions: number }[]
 }
 
 // Config type
