@@ -41,11 +41,11 @@ const LandingBackground: React.FC = () => {
                 />
                 <stop
                   offset="50%"
-                  style={{ stopColor: '#E0E0E0', stopOpacity: 1 }}
+                  style={{ stopColor: '#ffffff', stopOpacity: 1 }}
                 />
                 <stop
                   offset="100%"
-                  style={{ stopColor: '#C0C0C0', stopOpacity: 1 }}
+                  style={{ stopColor: '#ffffff', stopOpacity: 1 }}
                 />
               </>
             )}
