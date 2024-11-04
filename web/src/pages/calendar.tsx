@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
@@ -11,6 +11,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loadingspinner'
 import { getGitHubToken } from '@/lib/auth'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { CalendarDaysIcon } from '../../public/icon/CalendarDaysIcon'
+import { format } from 'date-fns'
 
 const fetchCommits = async (repos: { name: string; owner: string }[], dateRange: { start: string; end: string }) => {
   const githubToken = await getGitHubToken();
@@ -42,6 +47,7 @@ const CalendarPage = () => {
   const [open, setOpen] = useState(false)
   const [dateRange, setDateRange] = useState({ start: '', end: '' })
   const user = useUser()
+  const calendarRef = useRef<FullCalendar>(null);
 
   const { repos, selectedRepo, setSelectedRepo } = useAppContext()
   console.log('repos', repos)
@@ -171,6 +177,14 @@ const CalendarPage = () => {
     })
   }
 
+  const handleDateSelect = (date?: Date) => {
+    const newDate = date ? date.toISOString().split('T')[0] : '';
+    setSelectedDate(newDate);
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.gotoDate(new Date(newDate));
+    }
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -220,6 +234,7 @@ const CalendarPage = () => {
               </PopoverContent>
             </Popover>
             <FullCalendar
+              ref={calendarRef}
               plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
               events={events}
