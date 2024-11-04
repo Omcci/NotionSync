@@ -34,11 +34,7 @@ const SteamButton = ({ children, onClick }: GlowingButtonProps) => {
         dark:bg-black bg-white
         `}
       ></span>
-      <span
-        className={`relative z-10 `}
-      >
-        {children}
-      </span>
+      <span className={`relative z-10 `}>{children}</span>
     </motion.button>
   )
 }

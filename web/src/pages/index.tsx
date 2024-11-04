@@ -94,9 +94,7 @@ const Home = () => {
             className="absolute w-32 md:w-36 h-auto z-[-1] opacity-10 dark:opacity-35 right-12"
           />
           <h1 className="mb-4 text-6xl font-black text-gray-800 dark:text-gray-100 md:text-5xl lg:text-6xl relative z-10">
-            <span
-              className={`bg-clip-text dark:font-white font-black `}
-            >
+            <span className={`bg-clip-text dark:font-white font-black `}>
               {''} NotionSync
             </span>
           </h1>
