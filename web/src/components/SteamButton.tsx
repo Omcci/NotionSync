@@ -15,7 +15,7 @@ const SteamButton = ({ children, onClick }: GlowingButtonProps) => {
     <motion.button
       whileTap={{ scale: 0.98 }}
       className={`relative inline-flex items-center justify-center px-6 py-3 font-semibold rounded-[calc(0.375rem+4px)] shadow-lg overflow-hidden 
-        ${isDarkMode ? 'text-white bg-blue-200' : 'text-gray-800 bg-white'}
+        ${isDarkMode ? 'text-white bg-black' : 'text-gray-800 bg-white'}
       `}
       onClick={onClick}
     >
@@ -31,11 +31,11 @@ const SteamButton = ({ children, onClick }: GlowingButtonProps) => {
       ></span>
       <span
         className={`absolute inset-0.5 rounded-lg 
-        dark:bg-blue-300 bg-white
+        dark:bg-black bg-white
         `}
       ></span>
       <span
-        className={`relative z-10 ${isDarkMode ? 'drop-shadow-[1px__1px_1px_var(--tw-shadow-color)] shadow-black' : ''}`}
+        className={`relative z-10 `}
       >
         {children}
       </span>
