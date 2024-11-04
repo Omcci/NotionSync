@@ -76,7 +76,7 @@ const Home = () => {
 
   const { theme } = useTheme()
 
-  const isDarkMode = theme === 'dark'
+  // const isDarkMode = theme === 'dark'
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-between ">
@@ -94,9 +94,7 @@ const Home = () => {
             className="absolute w-32 md:w-36 h-auto z-[-1] opacity-10 dark:opacity-35 right-12"
           />
           <h1 className="mb-4 text-6xl font-black text-gray-800 dark:text-gray-100 md:text-5xl lg:text-6xl relative z-10">
-            <span
-              className={`bg-clip-text text-transparent from-blue-200 via-blue-300 to-blue-400 bg-gradient-to-r animate-steam drop-shadow-[1px__1px_1px_var(--tw-shadow-color)] ${isDarkMode ? 'shadow-white' : 'shadow-black'}`}
-            >
+            <span className={`bg-clip-text dark:font-white font-black `}>
               {''} NotionSync
             </span>
           </h1>
@@ -107,7 +105,7 @@ const Home = () => {
           Enhance team collaboration.
         </p>
         {user ? (
-          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+          <motion.div whileTap={{ scale: 0.98 }}>
             <SteamButton
               onClick={() => (window.location.href = '/dashboardv0')}
             >
