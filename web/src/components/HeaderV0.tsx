@@ -70,7 +70,7 @@ const HeaderV0 = () => {
     const repo = repos.find((r) => r.id === repoId)
     if (repo) {
       setSelectedRepo(repo)
-      updateFormValues(repo.name, repo.org)
+      updateFormValues(repo.name, repo.owner)
     } else {
       setSelectedRepo(null)
     }
