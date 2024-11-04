@@ -103,10 +103,10 @@ export function Header() {
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem>
                 <ProfileButton />
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem>
                 <LogoutButton />
               </DropdownMenuItem>
             </DropdownMenuContent>

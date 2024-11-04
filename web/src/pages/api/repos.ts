@@ -1,15 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-
-export type Repo = {
-  id: string
-  name: string
-  org: string
-}
-
-export type ReposResponse = {
-  repos?: Repo[]
-  error?: string
-}
+import { ReposResponse } from '../../../types/types'
 
 export const fetchUserRepos = async (githubToken: string) => {
   const url = `https://api.github.com/user/repos`
@@ -24,7 +14,7 @@ export const fetchUserRepos = async (githubToken: string) => {
     return data.map((repo: any) => ({
       id: repo.id,
       name: repo.name,
-      org: repo.owner.login,
+      owner: repo.owner.login,
     }))
   } catch (error) {
     console.error((error as Error).message)
@@ -48,7 +38,6 @@ export default async function handler(
 
   try {
     const repos = await fetchUserRepos(githubToken)
-    console.log('Fetched repos:', repos)
     res.status(200).json({ repos })
   } catch (error: any) {
     console.error('Error fetching repos:', error.message)

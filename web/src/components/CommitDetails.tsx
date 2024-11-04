@@ -128,6 +128,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
             onValueChange={(value) =>
               setSelectedUser(value === 'all' ? null : value)
             }
+            disabled={uniqueUsers.length === 0 || uniqueUsers.length === 1}
           >
             <SelectTrigger>
               <SelectValue placeholder="Filter by User" />
