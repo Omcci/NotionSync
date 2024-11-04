@@ -74,7 +74,7 @@ const BranchSelector = () => {
     queryKey: [
       'branches',
       selectedRepo?.name,
-      selectedRepo?.org,
+      selectedRepo?.owner,
       githubToken,
       trackedBranch,
       page,
@@ -83,7 +83,7 @@ const BranchSelector = () => {
     queryFn: () =>
       fetchBranches(
         selectedRepo!.name,
-        selectedRepo!.org,
+        selectedRepo!.owner,
         githubToken!,
         trackedBranch,
         page,
