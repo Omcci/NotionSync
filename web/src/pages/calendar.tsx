@@ -201,6 +201,24 @@ const CalendarPage = () => {
         )} */}
         <Card className="bg-gray-50 dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden py-4">
           <CardContent>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="my-3 w-[280px] justify-start text-left font-normal">
+                  <CalendarDaysIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(new Date(selectedDate), "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-auto p-2 sm:w-[300px] flex justify-center items-center">
+                <div className="flex justify-center items-center w-full">
+                  <Calendar
+                    mode="single"
+                    selected={new Date(selectedDate)}
+                    onSelect={handleDateSelect}
+                    className="border rounded-md shadow-sm dark:bg-gray-800"
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
             <FullCalendar
               plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
