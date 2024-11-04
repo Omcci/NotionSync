@@ -34,7 +34,7 @@ export type Commit = {
     avatar_url?: string
   } | null
   html_url: string
-  repoName?: string 
+  repoName?: string
   date?: string
 }
 

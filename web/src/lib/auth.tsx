@@ -1,14 +1,14 @@
-import { supabase } from "./supabaseClient";
+import { supabase } from './supabaseClient'
 
 export const getGitHubToken = async (): Promise<string> => {
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getSession()
 
-  const githubToken = session?.provider_token;
+  const githubToken = session?.provider_token
   if (!githubToken) {
-    throw new Error('Unauthorized: No GitHub token available');
+    throw new Error('Unauthorized: No GitHub token available')
   }
 
-  return githubToken;
-};
+  return githubToken
+}

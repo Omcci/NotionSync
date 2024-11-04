@@ -2,10 +2,13 @@ import { useRouter } from 'next/router'
 import { UserIcon } from '../../public/icon/UserIcon'
 import React from 'react'
 
-const ProfileButton = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>((props, ref) => {
+const ProfileButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>((props, ref) => {
   const router = useRouter()
   const handleShowProfile = () => {
-    console.log("Profile button clicked");
+    console.log('Profile button clicked')
 
     router.push('/profile')
   }

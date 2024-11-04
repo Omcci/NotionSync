@@ -1,9 +1,12 @@
 import { useRouter } from 'next/router'
 import { useUser } from '@/context/UserContext'
 import { LogOutIcon } from 'lucide-react'
-import React from 'react';
+import React from 'react'
 
-const LogoutButton = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>((props, ref) => {
+const LogoutButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>((props, ref) => {
   const router = useRouter()
   const { signOutUser } = useUser()
 
@@ -22,9 +25,9 @@ const LogoutButton = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttribu
       <LogOutIcon className="h-5 mr-2" />
       Logout
     </button>
-  );
-});
+  )
+})
 
-LogoutButton.displayName = 'LogoutButton';
+LogoutButton.displayName = 'LogoutButton'
 
-export default LogoutButton;
+export default LogoutButton
