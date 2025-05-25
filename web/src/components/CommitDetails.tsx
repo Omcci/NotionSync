@@ -13,18 +13,10 @@ import {
 } from './ui/select'
 import { LoadingSpinner } from './ui/loadingspinner'
 import { useToast } from './ui/use-toast'
+import { Commit } from '../../types/types'
 
 type CommitDetailsProps = {
-  commitDetails: {
-    commit: string
-    commitSha: string
-    author: string
-    date: string
-    status?: string
-    actions: { name: string; url: string }[]
-    avatar_url?: string
-    diff?: { filename: string; additions: number; deletions: number }[]
-  }[]
+  commitDetails: Commit[]
 }
 
 const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
@@ -37,7 +29,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
 
   useEffect(() => {
     const users = Array.from(
-      new Set(commitDetails.map((commit) => commit.author)),
+      new Set(commitDetails.map((commit) => commit.commit.author.name)),
     )
     setUniqueUsers(users)
   }, [commitDetails])
@@ -45,7 +37,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   useEffect(() => {
     if (selectedUser) {
       setFilteredCommits(
-        commitDetails.filter((commit) => commit.author === selectedUser),
+        commitDetails.filter((commit) => commit.commit.author.name === selectedUser),
       )
     } else {
       setFilteredCommits(commitDetails)
@@ -79,12 +71,12 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     }
     setIsLoadingSummary(true)
     const commits = filteredCommits.map((commit) => ({
-      commitMessage: commit.commit,
+      commitMessage: commit.commit.message,
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-              .join('\n')
+            .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+            .join('\n')
           : '',
     }))
 
@@ -100,7 +92,6 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       })
 
       const data = await response.json()
-      // console.log(data.summary)
       setSummary(data.summary)
       incrementSummaryCount()
       console.log('Summary count:', localStorage.getItem('summaryCount'))
@@ -160,76 +151,80 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       </div>
       {summary && (
         <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md mt-4">
-          {/* <h4 className="font-bold">Summary:</h4> */}
           <div dangerouslySetInnerHTML={{ __html: summary }} />
         </div>
       )}
       <ul className="space-y-2">
-        {filteredCommits.map((commit, idx) => (
-          <li
-            key={idx}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-md shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            <div className="flex items-start space-x-4">
-              <div className="min-w-8 h-8 rounded-full flex justify-center items-center bg-white dark:bg-gray-900">
-                <Avatar>
-                  <AvatarImage
-                    className="w-8 h-8 rounded-full "
-                    src={commit.avatar_url}
-                    alt={commit.author}
-                  />
-                  <AvatarFallback className="w-8 h-8 rounded-full ">
-                    {commit.author.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+        {filteredCommits.map((commit, idx) => {
+          const status = commit.status || (commit.commit.verification?.verified ? 'Verified' : 'Unverified');
+          const avatarUrl = commit.avatar_url || commit.committer?.avatar_url || commit.authorDetails?.avatar_url;
+
+          return (
+            <li
+              key={idx}
+              className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-md shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <div className="flex items-start space-x-4">
+                <div className="min-w-8 h-8 rounded-full flex justify-center items-center bg-white dark:bg-gray-900">
+                  <Avatar>
+                    <AvatarImage
+                      className="w-8 h-8 rounded-full "
+                      src={avatarUrl}
+                      alt={commit.commit.author.name}
+                    />
+                    <AvatarFallback className="w-8 h-8 rounded-full ">
+                      {commit.commit.author.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {commit.commit.message}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    by{' '}
+                    <span className="font-bold text-blue-400 dark:text-blue-300">
+                      {' '}
+                      {commit.commit.author.name}{' '}
+                    </span>{' '}
+                    at{' '}
+                    {new Date(commit.commit.author.date).toLocaleString('en-US', {
+                      timeZone: 'UTC',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                    })}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {commit.commit}
-                </h3>
-                <p className="text-xs text-gray-500">
-                  by{' '}
-                  <span className="font-bold text-blue-400 dark:text-blue-300">
-                    {' '}
-                    {commit.author}{' '}
-                  </span>{' '}
-                  at{' '}
-                  {new Date(commit.date).toLocaleString('en-US', {
-                    timeZone: 'UTC',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false,
-                  })}
-                </p>
+              <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto sm:space-x-2 space-y-2 sm:space-y-0 mt-4 sm:mt-0">
+                {status === 'Verified' ? (
+                  <Badge className="flex items-center space-x-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 transition-colors">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>{status}</span>
+                  </Badge>
+                ) : (
+                  <Badge className="flex items-center space-x-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors">
+                    <XCircle className="h-4 w-4 text-red-500" />
+                    <span>{status}</span>
+                  </Badge>
+                )}
+                <div className="flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0">
+                  {commit.actions?.map((action, actionIdx) => (
+                    <Button
+                      key={actionIdx}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => window.open(action.url, '_blank')}
+                    >
+                      {action.name}
+                    </Button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto sm:space-x-2 space-y-2 sm:space-y-0 mt-4 sm:mt-0">
-              {commit.status === 'Verified' ? (
-                <Badge className="flex items-center space-x-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 transition-colors">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>{commit.status}</span>
-                </Badge>
-              ) : (
-                <Badge className="flex items-center space-x-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors">
-                  <XCircle className="h-4 w-4 text-red-500" />
-                  <span>{commit.status}</span>
-                </Badge>
-              )}
-              <div className="flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0">
-                {commit.actions?.map((action, actionIdx) => (
-                  <Button
-                    key={actionIdx}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => window.open(action.url, '_blank')}
-                  >
-                    {action.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

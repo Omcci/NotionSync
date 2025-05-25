@@ -102,8 +102,9 @@ const CalendarPage = () => {
 
     // group commits by date and repo
     for (const commit of commitsToUse) {
-      if (commit.date && commit.repoName) {
-        const date = commit.date.split('T')[0]
+      const commitDate = commit.date || commit.commit.author.date;
+      if (commitDate && commit.repoName) {
+        const date = commitDate.split('T')[0]
 
         if (!groupedCommits[date]) {
           groupedCommits[date] = {}
@@ -129,8 +130,7 @@ const CalendarPage = () => {
 
         // function to truncate commit message
         const getTruncatedCommitMessage = (commit: any, length: number) => {
-          const message =
-            typeof commit === 'string' ? commit : commit?.message || ''
+          const message = commit.commit?.message || commit.commit || ''
           return message.length > length
             ? `${message.substring(0, length)}...`
             : message
@@ -144,12 +144,12 @@ const CalendarPage = () => {
         if (selectedRepo) {
           title =
             displayed.length === 1
-              ? `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${getTruncatedCommitMessage(displayed[0].commit, 30)}</span>`
+              ? `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${getTruncatedCommitMessage(displayed[0], 30)}</span>`
               : `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${total} commits</span>`
         } else {
           title =
             displayed.length === 1
-              ? `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${truncate(repoName, 15)}</span> <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap overflow-hidden text-ellipsis">${getTruncatedCommitMessage(displayed[0].commit, 30)}</span>`
+              ? `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${truncate(repoName, 15)}</span> <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap overflow-hidden text-ellipsis">${getTruncatedCommitMessage(displayed[0], 30)}</span>`
               : `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${truncate(repoName, 15)}</span> <span class="text-sm text-gray-500 dark:text-gray-400">${total} commits</span>`
         }
 
@@ -157,7 +157,7 @@ const CalendarPage = () => {
           title,
           date,
           allDay: true,
-          displayOrder: formattedEvents.length, // Use the current length for display order
+          displayOrder: formattedEvents.length,
         })
       }
     }
@@ -172,7 +172,7 @@ const CalendarPage = () => {
     if (!selectedDate) return
 
     const selectedCommits = filteredCommits.filter((commit: Commit) => {
-      const commitDate = commit.date?.split('T')[0]
+      const commitDate = (commit.date || commit.commit.author.date)?.split('T')[0]
       return commitDate === selectedDate
     })
 
@@ -223,12 +223,12 @@ const CalendarPage = () => {
           options={
             user.user
               ? [
-                  { value: 'all', label: 'All Repositories' },
-                  ...repos?.map((repo) => ({
-                    value: repo.id,
-                    label: repo.name,
-                  })),
-                ]
+                { value: 'all', label: 'All Repositories' },
+                ...repos?.map((repo) => ({
+                  value: repo.id,
+                  label: repo.name,
+                })),
+              ]
               : []
           }
           value={selectedRepo ? selectedRepo.id : 'all'}
