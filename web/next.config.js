@@ -1,21 +1,16 @@
-const withTM = require('next-transpile-modules')(['lucide-react']) // Include your package here
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
 
+  // This is the new, built-in way to do what next-transpile-modules did
+  transpilePackages: ['lucide-react'],
+
   images: {
-    domains: ['avatars.githubusercontent.com'], // Add the external domain here
+    domains: ['avatars.githubusercontent.com'],
   },
 
-  // async rewrites() {
-  //   return [
-  //     {
-  //       source: '/api/:path*',
-  //       destination: 'http://localhost:4001/:path*', // Proxy to Backend
-  //     },
-  //   ]
-  // },
-}
+  // This is the key for creating an optimized production Docker image
+  output: 'standalone',
+};
 
-module.exports = withTM(nextConfig)
+module.exports = nextConfig;
