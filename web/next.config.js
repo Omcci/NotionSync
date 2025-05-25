@@ -11,6 +11,6 @@ const nextConfig = {
 
   // This is the key for creating an optimized production Docker image
   output: 'standalone',
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

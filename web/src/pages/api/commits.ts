@@ -13,8 +13,9 @@ const fetchCommits = async (
   since?: string,
   until?: string,
 ) => {
-  const commitsUrl = `https://api.github.com/repos/${owner}/${repoName}/commits?page=${page}&per_page=${per_page}${since && until ? `&since=${since}&until=${until}` : ''
-    }`
+  const commitsUrl = `https://api.github.com/repos/${owner}/${repoName}/commits?page=${page}&per_page=${per_page}${
+    since && until ? `&since=${since}&until=${until}` : ''
+  }`
 
   const response = await fetch(commitsUrl, {
     headers: { Authorization: `token ${githubToken}` },
@@ -105,9 +106,15 @@ const processCommits = async (
         }
       }
 
-      let diff: { filename: string; additions: number; deletions: number }[] = []
+      let diff: { filename: string; additions: number; deletions: number }[] =
+        []
       try {
-        const diffText = await fetchCommitDiff(commit.sha, githubToken, owner, repoName)
+        const diffText = await fetchCommitDiff(
+          commit.sha,
+          githubToken,
+          owner,
+          repoName,
+        )
         // Parse diff text to extract file changes (simplified)
         diff = [{ filename: 'diff.txt', additions: 0, deletions: 0 }]
       } catch (error) {
@@ -156,7 +163,12 @@ const fetchCommitsForMultipleRepos = async (
           break
         }
 
-        const processedCommits = await processCommits(commits, token, repo.owner, repo.name)
+        const processedCommits = await processCommits(
+          commits,
+          token,
+          repo.owner,
+          repo.name,
+        )
         allCommits.push(...processedCommits)
         page++
       }
@@ -191,12 +203,7 @@ export const fetchCommitsForUserInRepo = async (
 }
 
 const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
-  const {
-    repos,
-    startDate,
-    endDate,
-    githubToken,
-  } = req.query as {
+  const { repos, startDate, endDate, githubToken } = req.query as {
     repos: string
     startDate?: string
     endDate?: string

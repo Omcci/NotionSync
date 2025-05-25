@@ -103,8 +103,8 @@ const CommitLog = () => {
 
   const filteredCommits = Array.isArray(commits)
     ? commits.filter((commit: Commit) =>
-      commit.commit.message.toLowerCase().includes(searchInput.toLowerCase()),
-    )
+        commit.commit.message.toLowerCase().includes(searchInput.toLowerCase()),
+      )
     : []
 
   const theader = ['Commit', 'Branch ID', 'Author', 'Date', 'Status', 'Actions']
@@ -227,7 +227,9 @@ const CommitLog = () => {
                         <div className="flex items-center gap-2 cursor-pointer">
                           <Avatar>
                             <AvatarImage src={commit.avatar_url} />
-                            <AvatarFallback>{commit.commit.author.name[0]}</AvatarFallback>
+                            <AvatarFallback>
+                              {commit.commit.author.name[0]}
+                            </AvatarFallback>
                           </Avatar>
                           <span>{commit.commit.author.name}</span>
                         </div>
@@ -238,7 +240,9 @@ const CommitLog = () => {
                             <AvatarImage
                               src={commit.authorDetails?.avatar_url}
                             />
-                            <AvatarFallback>{commit.commit.author.name[0]}</AvatarFallback>
+                            <AvatarFallback>
+                              {commit.commit.author.name[0]}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="font-bold">
@@ -251,7 +255,10 @@ const CommitLog = () => {
                               <p>{commit.authorDetails?.blog}</p>
                               <p>
                                 Membre depuis:{' '}
-                                {commit.authorDetails?.created_at && formatedDate(commit.authorDetails.created_at)}{' '}
+                                {commit.authorDetails?.created_at &&
+                                  formatedDate(
+                                    commit.authorDetails.created_at,
+                                  )}{' '}
                               </p>
                             </div>
                           </div>
@@ -259,15 +266,18 @@ const CommitLog = () => {
                       </HoverCardContent>
                     </HoverCard>
                   </td>
-                  <td className="px-4 py-3">{formatedDate(commit.date || commit.commit.author.date)}</td>
+                  <td className="px-4 py-3">
+                    {formatedDate(commit.date || commit.commit.author.date)}
+                  </td>
                   <td className="px-4 py-3">
                     {commit.status && (
                       <div>
                         <Badge
-                          className={`${commit.status === 'Verified'
-                            ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
-                            : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
-                            }`}
+                          className={`${
+                            commit.status === 'Verified'
+                              ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                              : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
+                          }`}
                           variant="outline"
                         >
                           {commit.status}
@@ -280,7 +290,9 @@ const CommitLog = () => {
                       {commit.actions && commit.actions.length > 0 ? (
                         commit.actions.map((action: Action, idx: number) => {
                           return (
-                            <TooltipProvider key={`${action.name}-${commit.sha}-${idx}`}>
+                            <TooltipProvider
+                              key={`${action.name}-${commit.sha}-${idx}`}
+                            >
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Link
@@ -288,7 +300,11 @@ const CommitLog = () => {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                   >
-                                    <Button size="icon" variant="ghost" className="h-8 w-8">
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8"
+                                    >
                                       {action.name === 'View on GitHub' ? (
                                         <GithubIcon className="w-4 h-4" />
                                       ) : (
@@ -313,7 +329,11 @@ const CommitLog = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
-                                <Button size="icon" variant="ghost" className="h-8 w-8">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                >
                                   <GithubIcon className="w-4 h-4" />
                                 </Button>
                               </Link>

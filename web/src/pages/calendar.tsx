@@ -102,7 +102,7 @@ const CalendarPage = () => {
 
     // group commits by date and repo
     for (const commit of commitsToUse) {
-      const commitDate = commit.date || commit.commit.author.date;
+      const commitDate = commit.date || commit.commit.author.date
       if (commitDate && commit.repoName) {
         const date = commitDate.split('T')[0]
 
@@ -172,7 +172,9 @@ const CalendarPage = () => {
     if (!selectedDate) return
 
     const selectedCommits = filteredCommits.filter((commit: Commit) => {
-      const commitDate = (commit.date || commit.commit.author.date)?.split('T')[0]
+      const commitDate = (commit.date || commit.commit.author.date)?.split(
+        'T',
+      )[0]
       return commitDate === selectedDate
     })
 
@@ -223,12 +225,12 @@ const CalendarPage = () => {
           options={
             user.user
               ? [
-                { value: 'all', label: 'All Repositories' },
-                ...repos?.map((repo) => ({
-                  value: repo.id,
-                  label: repo.name,
-                })),
-              ]
+                  { value: 'all', label: 'All Repositories' },
+                  ...repos?.map((repo) => ({
+                    value: repo.id,
+                    label: repo.name,
+                  })),
+                ]
               : []
           }
           value={selectedRepo ? selectedRepo.id : 'all'}

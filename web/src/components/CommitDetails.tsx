@@ -37,7 +37,9 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   useEffect(() => {
     if (selectedUser) {
       setFilteredCommits(
-        commitDetails.filter((commit) => commit.commit.author.name === selectedUser),
+        commitDetails.filter(
+          (commit) => commit.commit.author.name === selectedUser,
+        ),
       )
     } else {
       setFilteredCommits(commitDetails)
@@ -75,8 +77,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-            .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-            .join('\n')
+              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+              .join('\n')
           : '',
     }))
 
@@ -156,8 +158,13 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       )}
       <ul className="space-y-2">
         {filteredCommits.map((commit, idx) => {
-          const status = commit.status || (commit.commit.verification?.verified ? 'Verified' : 'Unverified');
-          const avatarUrl = commit.avatar_url || commit.committer?.avatar_url || commit.authorDetails?.avatar_url;
+          const status =
+            commit.status ||
+            (commit.commit.verification?.verified ? 'Verified' : 'Unverified')
+          const avatarUrl =
+            commit.avatar_url ||
+            commit.committer?.avatar_url ||
+            commit.authorDetails?.avatar_url
 
           return (
             <li
@@ -188,12 +195,15 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
                       {commit.commit.author.name}{' '}
                     </span>{' '}
                     at{' '}
-                    {new Date(commit.commit.author.date).toLocaleString('en-US', {
-                      timeZone: 'UTC',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: false,
-                    })}
+                    {new Date(commit.commit.author.date).toLocaleString(
+                      'en-US',
+                      {
+                        timeZone: 'UTC',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                      },
+                    )}
                   </p>
                 </div>
               </div>
