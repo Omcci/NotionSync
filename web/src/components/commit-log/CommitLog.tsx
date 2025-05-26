@@ -45,7 +45,7 @@ const filters: Filter[] = [
 ]
 
 const fetchCommits = async (
-  orgName: string,
+  owner: string,
   repoName: string,
   page: number,
   perPage: number,
@@ -58,8 +58,10 @@ const fetchCommits = async (
     throw new Error('Error: No GitHub token available')
   }
 
+  const repos = [{ owner, name: repoName }]
+
   const response = await fetch(
-    `/api/commits?orgName=${orgName}&repoName=${repoName}&page=${page}&per_page=${perPage}`,
+    `/api/commits?repos=${encodeURIComponent(JSON.stringify(repos))}&page=${page}&per_page=${perPage}`,
     {
       headers: {
         Authorization: `Bearer ${githubToken}`,
@@ -86,10 +88,10 @@ const CommitLog = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ['commits', selectedRepo?.org, selectedRepo?.name, page],
+    queryKey: ['commits', selectedRepo?.owner, selectedRepo?.name, page],
     queryFn: () =>
       fetchCommits(
-        selectedRepo?.org!,
+        selectedRepo?.owner!,
         selectedRepo?.name!,
         page,
         commitsPerPage,
@@ -101,7 +103,7 @@ const CommitLog = () => {
 
   const filteredCommits = Array.isArray(commits)
     ? commits.filter((commit: Commit) =>
-        commit.commit.toLowerCase().includes(searchInput.toLowerCase()),
+        commit.commit.message.toLowerCase().includes(searchInput.toLowerCase()),
       )
     : []
 
@@ -129,7 +131,7 @@ const CommitLog = () => {
     )
   }
 
-  const formatedDate = (date: string) => {
+  const formattedDate = (date: string) => {
     const d = new Date(date)
     return `${d.toLocaleDateString()}`
   }
@@ -143,7 +145,7 @@ const CommitLog = () => {
         <div className="flex">
           {selectedRepo && (
             <Link
-              href={`/calendar?orgName=${selectedRepo.org}&repoName=${selectedRepo.name}`}
+              href={`/calendar?orgName=${selectedRepo.owner}&repoName=${selectedRepo.name}`}
               passHref
             >
               <Button variant="ghost" className="mr-2">
@@ -178,7 +180,7 @@ const CommitLog = () => {
             <tbody>
               {filteredCommits.map((commit, idx) => (
                 <tr
-                  key={`${commit.branch}-${commit.sha}-${idx}`}
+                  key={`${commit.commit.tree.sha}-${commit.sha}-${idx}`}
                   className="border-b dark:border-gray-700"
                 >
                   <td className="px-4 py-3">
@@ -188,13 +190,13 @@ const CommitLog = () => {
                         <Tooltip>
                           <TooltipTrigger>
                             <span className="font-medium truncate max-w-xs">
-                              {commit.commit.length > 20
-                                ? `${commit.commit.substring(0, 20)}...`
-                                : commit.commit}
+                              {commit.commit.message.length > 20
+                                ? `${commit.commit.message.substring(0, 20)}...`
+                                : commit.commit.message}
                             </span>
                           </TooltipTrigger>
                           <TooltipContent className="tooltip-multiline">
-                            <span>{commit.commit}</span>
+                            <span>{commit.commit.message}</span>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -207,13 +209,13 @@ const CommitLog = () => {
                         <Tooltip>
                           <TooltipTrigger>
                             <span className="font-medium truncate max-w-xs">
-                              {commit.branch.length > 3
-                                ? `${commit.branch.substring(0, 3)}...`
-                                : commit.branch}
+                              {commit.commit.tree.sha.length > 3
+                                ? `${commit.commit.tree.sha.substring(0, 3)}...`
+                                : commit.commit.tree.sha}
                             </span>
                           </TooltipTrigger>
                           <TooltipContent className="tooltip-multiline">
-                            <span>{commit.branch}</span>
+                            <span>{commit.commit.tree.sha}</span>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -225,31 +227,38 @@ const CommitLog = () => {
                         <div className="flex items-center gap-2 cursor-pointer">
                           <Avatar>
                             <AvatarImage src={commit.avatar_url} />
-                            <AvatarFallback>{commit.author[0]}</AvatarFallback>
+                            <AvatarFallback>
+                              {commit.commit.author.name[0]}
+                            </AvatarFallback>
                           </Avatar>
-                          <span>{commit.author}</span>
+                          <span>{commit.commit.author.name}</span>
                         </div>
                       </HoverCardTrigger>
                       <HoverCardContent>
                         <div className="flex items-center gap-2">
                           <Avatar>
                             <AvatarImage
-                              src={commit.authorDetails.avatar_url}
+                              src={commit.authorDetails?.avatar_url}
                             />
-                            <AvatarFallback>{commit.author[0]}</AvatarFallback>
+                            <AvatarFallback>
+                              {commit.commit.author.name[0]}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="font-bold">
-                              {commit.authorDetails.name}
+                              {commit.authorDetails?.name}
                             </p>
                             <div className="font-medium text-xs">
-                              <p>{commit.authorDetails.bio}</p>
-                              <p>{commit.authorDetails.location}</p>
-                              <p>{commit.authorDetails.company}</p>
-                              <p>{commit.authorDetails.blog}</p>
+                              <p>{commit.authorDetails?.bio}</p>
+                              <p>{commit.authorDetails?.location}</p>
+                              <p>{commit.authorDetails?.company}</p>
+                              <p>{commit.authorDetails?.blog}</p>
                               <p>
                                 Membre depuis:{' '}
-                                {formatedDate(commit.authorDetails.created_at)}{' '}
+                                {commit.authorDetails?.created_at &&
+                                  formattedDate(
+                                    commit.authorDetails.created_at,
+                                  )}{' '}
                               </p>
                             </div>
                           </div>
@@ -257,7 +266,9 @@ const CommitLog = () => {
                       </HoverCardContent>
                     </HoverCard>
                   </td>
-                  <td className="px-4 py-3">{formatedDate(commit.date)}</td>
+                  <td className="px-4 py-3">
+                    {formattedDate(commit.date || commit.commit.author.date)}
+                  </td>
                   <td className="px-4 py-3">
                     {commit.status && (
                       <div>
@@ -271,37 +282,68 @@ const CommitLog = () => {
                         >
                           {commit.status}
                         </Badge>
-                        {commit.pullRequestStatus && (
-                          <Badge
-                            className={`ml-2 ${commit.pullRequestStatus === 'Open PR' ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-900 dark:text-gray-400'}`}
-                            variant="outline"
-                          >
-                            {commit.pullRequestStatus}
-                          </Badge>
-                        )}
                       </div>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      {commit.actions.map((action: any, idx: number) => {
-                        return (
-                          <Link
-                            key={`${action.name}-${commit.sha}-${idx}`}
-                            href={action.url}
-                            passHref
-                          >
-                            <Button size="icon" variant="ghost">
-                              {/* {action.name === 'View' && (
-                                <EyeIcon className="w-5 h-5" />
-                              )} */}
-                              {action.name === 'View on GitHub' && (
-                                <GithubIcon className="w-5 h-5" />
-                              )}
-                            </Button>
-                          </Link>
-                        )
-                      })}
+                      {commit.actions && commit.actions.length > 0 ? (
+                        commit.actions.map((action: Action, idx: number) => {
+                          return (
+                            <TooltipProvider
+                              key={`${action.name}-${commit.sha}-${idx}`}
+                            >
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Link
+                                    href={action.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8"
+                                    >
+                                      {action.name === 'View on GitHub' ? (
+                                        <GithubIcon className="w-4 h-4" />
+                                      ) : (
+                                        <EyeIcon className="w-4 h-4" />
+                                      )}
+                                    </Button>
+                                  </Link>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{action.name}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )
+                        })
+                      ) : (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link
+                                href={commit.html_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                >
+                                  <GithubIcon className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View on GitHub</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </div>
                   </td>
                 </tr>

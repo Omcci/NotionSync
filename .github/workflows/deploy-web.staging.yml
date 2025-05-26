@@ -1,8 +1,8 @@
-name: Build and Deploy to Production
+name: Build and Deploy to Staging
 
 on:
   pull_request:
-    branches: ['main']
+    branches: ['dev']
     types:
       - closed
   workflow_dispatch:
@@ -24,20 +24,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Production image
+      - name: Build and push Staging image
         uses: docker/build-push-action@v5
         with:
           context: ./web
           file: ./web/Dockerfile
           push: true
-          tags: omci/notionsync:latest
-          cache-from: type=registry,ref=omci/notionsync:buildcache 
-          cache-to: type=registry,ref=omci/notionsync:buildcache,mode=max
+          tags: omci/notionsync:staging
           build-args: |
-            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL_PROD }}
-            NEXT_PUBLIC_SUPABASE_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_KEY_PROD }}
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_KEY }}
 
       - name: Invoke deployment hook
         if: success()
         run: |
-          curl -X POST ${{ secrets.WEBHOOK_URL_PROD }}
+          curl -X POST ${{ secrets.WEBHOOK_URL_DEV }}

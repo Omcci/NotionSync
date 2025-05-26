@@ -1,16 +1,7 @@
-// Commit type
-// export type Commit = {
-//   commit: string
-//   commitSha: string
-//   branch: string
-//   author: string
-//   date: string
-//   status: string
-//   actions: { name: string; url: string }[]
-//   avatar_url: string
-//   diff: { filename: string; additions: number; deletions: number }[]
-//   repoName: string
-// }
+export type Action = {
+  name: string
+  url: string
+}
 
 export type Commit = {
   sha: string
@@ -27,7 +18,6 @@ export type Commit = {
       sha: string
     }
   }
-  commitSha?: string
   author: {
     login?: string
   } | null
@@ -35,10 +25,22 @@ export type Commit = {
     avatar_url?: string
   } | null
   html_url: string
+  // extended prop
   repoName?: string
   date?: string
-  actions?: { name: string; url: string }[]
+  actions?: Action[]
   diff?: { filename: string; additions: number; deletions: number }[]
+  authorDetails?: {
+    name: string
+    bio: string
+    location: string
+    blog: string
+    company: string
+    avatar_url: string
+    created_at: string
+  }
+  status?: string
+  avatar_url?: string
 }
 
 // Config type
@@ -47,11 +49,6 @@ export type Config = {
   notionToken: string
   repoName: string
   orgName: string
-}
-
-export type Action = {
-  name: string
-  url: string
 }
 
 export type SyncStatus = {
