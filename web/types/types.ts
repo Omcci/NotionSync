@@ -1,3 +1,8 @@
+export type Action = {
+  name: string
+  url: string
+}
+
 export type Commit = {
   sha: string
   commit: {
@@ -44,11 +49,6 @@ export type Config = {
   notionToken: string
   repoName: string
   orgName: string
-}
-
-export type Action = {
-  name: string
-  url: string
 }
 
 export type SyncStatus = {

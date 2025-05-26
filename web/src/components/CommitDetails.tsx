@@ -153,7 +153,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       </div>
       {summary && (
         <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md mt-4">
-          <div dangerouslySetInnerHTML={{ __html: summary }} />
+          <div className="whitespace-pre-wrap">{summary}</div>
         </div>
       )}
       <ul className="space-y-2">
