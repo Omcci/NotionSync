@@ -130,9 +130,10 @@ const CalendarPage = () => {
 
         // function to truncate commit message
         const getTruncatedCommitMessage = (commit: any, length: number) => {
-          const message = typeof commit.commit?.message === 'string'
-            ? commit.commit.message
-            : '';
+          const message =
+            typeof commit.commit?.message === 'string'
+              ? commit.commit.message
+              : ''
           return message.length > length
             ? `${message.substring(0, length)}...`
             : message
@@ -227,12 +228,12 @@ const CalendarPage = () => {
           options={
             user.user
               ? [
-                { value: 'all', label: 'All Repositories' },
-                ...repos?.map((repo) => ({
-                  value: repo.id,
-                  label: repo.name,
-                })),
-              ]
+                  { value: 'all', label: 'All Repositories' },
+                  ...repos?.map((repo) => ({
+                    value: repo.id,
+                    label: repo.name,
+                  })),
+                ]
               : []
           }
           value={selectedRepo ? selectedRepo.id : 'all'}
