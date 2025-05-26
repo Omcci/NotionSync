@@ -61,7 +61,7 @@ const fetchCommits = async (
   const repos = [{ owner, name: repoName }]
 
   const response = await fetch(
-    `/api/commits?repos=${encodeURIComponent(JSON.stringify(repos))}`,
+    `/api/commits?repos=${encodeURIComponent(JSON.stringify(repos))}&page=${page}&per_page=${perPage}`,
     {
       headers: {
         Authorization: `Bearer ${githubToken}`,
@@ -274,8 +274,8 @@ const CommitLog = () => {
                       <div>
                         <Badge
                           className={`${commit.status === 'Verified'
-                              ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
-                              : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
+                            ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                            : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
                             }`}
                           variant="outline"
                         >

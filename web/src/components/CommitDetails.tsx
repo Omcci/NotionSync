@@ -77,8 +77,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-              .join('\n')
+            .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+            .join('\n')
           : '',
     }))
 
@@ -158,9 +158,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       )}
       <ul className="space-y-2">
         {filteredCommits.map((commit, idx) => {
-          const status =
-            commit.status ||
-            (commit.commit.verification?.verified ? 'Verified' : 'Unverified')
+          const status = commit.status || 'Unverified'
           const avatarUrl =
             commit.avatar_url ||
             commit.committer?.avatar_url ||
