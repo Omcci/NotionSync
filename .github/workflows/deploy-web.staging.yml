@@ -31,6 +31,9 @@ jobs:
           file: ./web/Dockerfile
           push: true
           tags: omci/notionsync:staging
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_KEY }}
 
       - name: Invoke deployment hook
         if: success()
