@@ -37,9 +37,9 @@ const initialConfig: ConfigSettings = {
 
 const ConfigContext = createContext<ConfigContextType>({
   config: initialConfig,
-  setConfig: () => {},
-  fetchConfig: () => {},
-  updateFormValues: () => {},
+  setConfig: () => { },
+  fetchConfig: () => { },
+  updateFormValues: () => { },
   fetchUserRepos: async () => [],
 })
 
