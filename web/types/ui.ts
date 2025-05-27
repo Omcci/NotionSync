@@ -1,0 +1,96 @@
+import { ReactNode } from 'react'
+
+// Component Props Types
+export interface SelectOption {
+    value: string
+    label: string
+}
+
+export interface SelectComponentProps {
+    placeholder: string
+    options: SelectOption[]
+    value: string
+    onChange: (value: string) => void
+    disabled?: boolean
+}
+
+export interface OnboardingFlowProps {
+    onComplete: () => void
+}
+
+export interface GitHubAuthGuideProps {
+    onComplete: () => void
+}
+
+export interface ModalCommitsProps {
+    commits: any[]
+    isOpen: boolean
+    onClose: () => void
+    selectedDate: string
+}
+
+export interface ErrorMessageProps {
+    message: string
+}
+
+export interface CommitDetailsProps {
+    commit: any
+    onClose: () => void
+}
+
+export interface LoadingSpinnerProps {
+    size?: 'sm' | 'md' | 'lg'
+    className?: string
+}
+
+export interface EeDialProps {
+    children: ReactNode
+}
+
+export interface GlowingButtonProps {
+    children: ReactNode
+    onClick?: () => void
+    className?: string
+}
+
+// Filter Types
+export interface Filter {
+    author: string
+    dateRange: { start: string; end: string }
+    repository: string
+}
+
+export interface CommitLogFiltersProps {
+    onFilterChange: (filters: Filter) => void
+    repositories: string[]
+}
+
+// Feature Types
+export interface FeatureItemProps {
+    number: string
+    title: string
+    description: string
+    imageSource: string
+    link: string
+    button: string
+    gradient: string
+    icon: ReactNode
+}
+
+// Organization Types
+export interface Organization {
+    id: number
+    login: string
+    name: string | null
+    description: string | null
+    avatar_url: string
+    html_url: string
+    public_repos: number
+    created_at: string
+}
+
+export interface OrganizationSummary {
+    totalOrgs: number
+    publicRepos: number
+    organizations: Organization[]
+} 
