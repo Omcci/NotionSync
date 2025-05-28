@@ -6,29 +6,9 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react'
+import { ConfigRepo, ContextConfigSettings, ConfigContextType } from '../../types/context'
 
-interface Repo {
-  id: string
-  name: string
-  org: string
-}
-
-interface ConfigSettings {
-  repository: string
-  organization: string
-  githubToken: string
-  notionToken: string
-}
-
-interface ConfigContextType {
-  config: ConfigSettings
-  setConfig: (config: ConfigSettings) => void
-  fetchConfig: () => void
-  updateFormValues: (repo: string, org: string) => void
-  fetchUserRepos: (username: string) => Promise<Repo[]>
-}
-
-const initialConfig: ConfigSettings = {
+const initialConfig: ContextConfigSettings = {
   repository: '',
   organization: '',
   githubToken: '',
@@ -37,13 +17,13 @@ const initialConfig: ConfigSettings = {
 
 const ConfigContext = createContext<ConfigContextType>({
   config: initialConfig,
-  setConfig: () => {},
-  fetchConfig: () => {},
-  updateFormValues: () => {},
+  setConfig: () => { },
+  fetchConfig: () => { },
+  updateFormValues: () => { },
   fetchUserRepos: async () => [],
 })
 
-const fetchConfig = async (): Promise<ConfigSettings> => {
+const fetchConfig = async (): Promise<ContextConfigSettings> => {
   const response = await fetch('/api/config')
   if (!response.ok) {
     throw new Error('Error fetching config')
@@ -51,7 +31,7 @@ const fetchConfig = async (): Promise<ConfigSettings> => {
   return await response.json()
 }
 
-const fetchUserRepos = async (username: string): Promise<Repo[]> => {
+const fetchUserRepos = async (username: string): Promise<ConfigRepo[]> => {
   const response = await fetch(`/api/repos?username=${username}`)
   if (!response.ok) throw new Error('Error fetching repos')
   const data = await response.json()
@@ -61,13 +41,13 @@ const fetchUserRepos = async (username: string): Promise<Repo[]> => {
 export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [config, setConfig] = useState<ConfigSettings>(initialConfig)
+  const [config, setConfig] = useState<ContextConfigSettings>(initialConfig)
 
   const { data: fetchedConfig, refetch: refetchConfig } = useQuery({
     queryKey: ['config'],
     queryFn: () => fetchConfig(),
     enabled: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   })
 
   useEffect(() => {
@@ -88,6 +68,11 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
     }))
   }
 
+  // Wrapper function that uses React Query for fetching user repos
+  const fetchUserReposWithQuery = async (username: string): Promise<ConfigRepo[]> => {
+    return fetchUserRepos(username)
+  }
+
   return (
     <ConfigContext.Provider
       value={{
@@ -95,7 +80,7 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
         setConfig,
         fetchConfig,
         updateFormValues,
-        fetchUserRepos,
+        fetchUserRepos: fetchUserReposWithQuery,
       }}
     >
       {children}
