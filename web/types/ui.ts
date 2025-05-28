@@ -1,4 +1,5 @@
 import { ReactNode } from 'react'
+import { Commit } from './types'
 
 // Component Props Types
 export interface SelectOption {
@@ -30,8 +31,7 @@ export interface ErrorMessageProps {
 }
 
 export interface CommitDetailsProps {
-    commit: any
-    onClose: () => void
+    commitDetails: Commit[]
 }
 
 export interface LoadingSpinnerProps {
@@ -71,4 +71,9 @@ export interface FeatureItemProps {
     button: string
     gradient: string
     icon: ReactNode
+}
+
+export interface ReauthenticatePromptProps {
+    reason?: string
+    onReauthenticate?: () => void
 }
