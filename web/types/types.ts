@@ -1,69 +1,37 @@
-export type Action = {
-  name: string
-  url: string
-}
+// Legacy types file - redirects to new organized structure
+// This file is kept for backward compatibility
+// New code should import from specific type files or from './index'
 
-export type Commit = {
-  sha: string
-  commit: {
-    author: {
-      name: string
-      date: string
-    }
-    message: string
-    verification?: {
-      verified: boolean
-    }
-    tree: {
-      sha: string
-    }
-  }
-  author: {
-    login?: string
-  } | null
-  committer: {
-    avatar_url?: string
-  } | null
-  html_url: string
-  // extended prop
-  repoName?: string
-  date?: string
-  actions?: Action[]
-  diff?: { filename: string; additions: number; deletions: number }[]
-  authorDetails?: {
-    name: string
-    bio: string
-    location: string
-    blog: string
-    company: string
-    avatar_url: string
-    created_at: string
-  }
-  status?: string
-  avatar_url?: string
-}
+export * from './index'
 
-// Config type
-export type Config = {
-  githubToken: string
-  notionToken: string
-  repoName: string
-  orgName: string
-}
+// Explicit legacy exports for clarity
+export type {
+  // GitHub types
+  Action,
+  Commit,
+  GitHubRepo,
+  GitHubUser,
+  GitHubCommit,
+  GitHubAction,
 
-export type SyncStatus = {
-  lastSyncDate: Date | null
-  errorBranch: string | null
-  statusMessage: string
-}
+  // Repository types
+  Repo,
+  SyncRepo,
+  ReposResponse,
 
-export type Repo = {
-  id: string
-  name: string
-  owner: string
-}
+  // Sync types
+  SyncStatus,
+  Config,
 
-export type ReposResponse = {
-  repos?: Repo[]
-  error?: string
-}
+  // User types
+  SupabaseUser,
+
+  // UI types
+  SelectOption,
+  Filter,
+
+  // Context types
+  AppContextType,
+  UserContextType,
+  ConfigContextType,
+} from './index'
