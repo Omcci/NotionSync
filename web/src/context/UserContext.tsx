@@ -14,7 +14,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null)
   const [githubToken, setGithubToken] = useState<string | null>(null)
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null)
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<
+    boolean | null
+  >(null)
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
 
   const { data, isLoading } = useQuery({
@@ -75,7 +77,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
             await UserService.storeGitHubToken(
               data.user.id,
               githubToken,
-              data.provider_refresh_token || undefined
+              data.provider_refresh_token || undefined,
             )
           } catch (error) {
             console.error('Error storing GitHub token:', error)
@@ -91,7 +93,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
           } catch (error) {
             // Fallback: check onboarding status directly
             try {
-              const onboardingStatus = await UserService.getOnboardingStatus(data.user.id)
+              const onboardingStatus = await UserService.getOnboardingStatus(
+                data.user.id,
+              )
               setHasCompletedOnboarding(onboardingStatus)
             } catch (fallbackError) {
               setHasCompletedOnboarding(false)
@@ -137,7 +141,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         setGithubToken,
         hasCompletedOnboarding,
         markOnboardingComplete,
-        supabaseUser
+        supabaseUser,
       }}
     >
       {children}

@@ -27,7 +27,14 @@ import { GitBranchIcon } from '../../public/icon/GitBranchIcon'
 //TODO : display user friendly message of sync status
 
 const HeaderV0 = () => {
-  const { repos, setRepos, selectedRepo, setSelectedRepo, tokenValidationError, isLoadingRepos } = useAppContext()
+  const {
+    repos,
+    setRepos,
+    selectedRepo,
+    setSelectedRepo,
+    tokenValidationError,
+    isLoadingRepos,
+  } = useAppContext()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const { updateFormValues } = useConfigContext()
@@ -53,7 +60,7 @@ const HeaderV0 = () => {
         body: JSON.stringify({
           repoName: selectedRepo.name,
           orgName: selectedRepo.owner,
-          githubToken: githubToken
+          githubToken: githubToken,
         }),
       })
       const data = await response.json()
@@ -100,7 +107,8 @@ const HeaderV0 = () => {
     return 'Select a repository'
   }
 
-  const isSelectDisabled = !githubToken || isLoadingRepos || repos.length === 0 || loading
+  const isSelectDisabled =
+    !githubToken || isLoadingRepos || repos.length === 0 || loading
 
   return (
     <header className="py-4 flex  items-center justify-between">

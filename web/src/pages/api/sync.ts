@@ -18,8 +18,11 @@ let syncStatus: SyncStatus = {
   statusMessage: 'No sync performed yet',
 }
 
-async function sync(repoName: string, orgName: string, userGithubToken?: string) {
-
+async function sync(
+  repoName: string,
+  orgName: string,
+  userGithubToken?: string,
+) {
   // Use user's GitHub token if provided, otherwise fall back to environment token
   const tokenToUse = userGithubToken || githubToken
 
@@ -103,7 +106,7 @@ export default async function handler(
 
           if (!repoName || !orgName) {
             return res.status(400).json({
-              error: 'Repository name and organization name are required'
+              error: 'Repository name and organization name are required',
             })
           }
 

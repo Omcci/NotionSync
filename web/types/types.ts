@@ -33,5 +33,5 @@ export type {
   // Context types
   AppContextType,
   UserContextType,
-  ConfigContextType
+  ConfigContextType,
 } from './index'

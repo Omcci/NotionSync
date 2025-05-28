@@ -9,4 +9,4 @@ export { default as OnboardingHeader } from './OnboardingHeader'
 export { default as OnboardingNavigation } from './OnboardingNavigation'
 export { default as OnboardingProgressBar } from './OnboardingProgressBar'
 
-export * from './types' 
+export * from './types'

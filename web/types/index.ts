@@ -9,4 +9,4 @@ export * from './context'
 // Legacy exports for backward compatibility
 export type { Action, Commit } from './github'
 export type { Repo, SyncRepo, ReposResponse } from './repository'
-export type { SyncStatus, Config } from './sync' 
+export type { SyncStatus, Config } from './sync'

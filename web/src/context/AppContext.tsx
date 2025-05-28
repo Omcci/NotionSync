@@ -34,7 +34,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({
   const [repos, setRepos] = useState<SyncRepo[]>([])
   const [selectedRepo, setSelectedRepo] = useState<SyncRepo | null>(null)
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
-  const [tokenValidationError, setTokenValidationError] = useState<string | null>(null)
+  const [tokenValidationError, setTokenValidationError] = useState<
+    string | null
+  >(null)
 
   const {
     data: fetchedRepos,
@@ -51,7 +53,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({
     refetchOnReconnect: true,
     refetchOnMount: true,
     retry: (failureCount, error) => {
-      if (error?.message?.includes('401') || error?.message?.includes('Bad credentials')) {
+      if (
+        error?.message?.includes('401') ||
+        error?.message?.includes('Bad credentials')
+      ) {
         setTokenValidationError('GitHub token is invalid or expired')
         return false
       }
@@ -84,7 +89,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [githubToken, refetchRepos])
 
   // Always provide the context, let individual components handle authentication requirements

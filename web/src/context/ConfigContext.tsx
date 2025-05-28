@@ -6,7 +6,11 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react'
-import { ConfigRepo, ContextConfigSettings, ConfigContextType } from '../../types/context'
+import {
+  ConfigRepo,
+  ContextConfigSettings,
+  ConfigContextType,
+} from '../../types/context'
 
 const initialConfig: ContextConfigSettings = {
   repository: '',
@@ -17,9 +21,9 @@ const initialConfig: ContextConfigSettings = {
 
 const ConfigContext = createContext<ConfigContextType>({
   config: initialConfig,
-  setConfig: () => { },
-  fetchConfig: () => { },
-  updateFormValues: () => { },
+  setConfig: () => {},
+  fetchConfig: () => {},
+  updateFormValues: () => {},
   fetchUserRepos: async () => [],
 })
 
@@ -69,7 +73,9 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   // Wrapper function that uses React Query for fetching user repos
-  const fetchUserReposWithQuery = async (username: string): Promise<ConfigRepo[]> => {
+  const fetchUserReposWithQuery = async (
+    username: string,
+  ): Promise<ConfigRepo[]> => {
     return fetchUserRepos(username)
   }
 

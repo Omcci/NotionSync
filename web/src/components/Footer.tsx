@@ -26,7 +26,11 @@ const Footer: React.FC = () => {
       { name: 'GDPR', href: '/gdpr' },
     ],
     resources: [
-      { name: 'GitHub', href: 'https://github.com/omci-dev/NotionSync', external: true },
+      {
+        name: 'GitHub',
+        href: 'https://github.com/omci-dev/NotionSync',
+        external: true,
+      },
       { name: 'Support', href: '/support' },
       { name: 'Community', href: '/community' },
       { name: 'API Docs', href: '/api-docs' },
@@ -35,7 +39,11 @@ const Footer: React.FC = () => {
 
   const socialLinks = [
     { name: 'GitHub', href: 'https://github.com/Omcci', icon: GithubIcon },
-    { name: 'Twitter', href: 'https://twitter.com/notionsync', icon: TwitterIcon },
+    {
+      name: 'Twitter',
+      href: 'https://twitter.com/notionsync',
+      icon: TwitterIcon,
+    },
     { name: 'Email', href: 'mailto:contact@notionsync.com', icon: Mail },
   ]
 
@@ -55,8 +63,9 @@ const Footer: React.FC = () => {
               <span className="text-xl font-bold text-white">NotionSync</span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-sm">
-              Bridge your development workflow seamlessly. Automatically sync GitHub activity
-              with Notion workspaces for enhanced team collaboration.
+              Bridge your development workflow seamlessly. Automatically sync
+              GitHub activity with Notion workspaces for enhanced team
+              collaboration.
             </p>
 
             <div className="flex items-center gap-4">

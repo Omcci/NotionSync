@@ -221,12 +221,12 @@ const CalendarPage = () => {
           options={
             user.user
               ? [
-                { value: 'all', label: 'All Repositories' },
-                ...repos?.map((repo) => ({
-                  value: repo.id,
-                  label: repo.name,
-                })),
-              ]
+                  { value: 'all', label: 'All Repositories' },
+                  ...repos?.map((repo) => ({
+                    value: repo.id,
+                    label: repo.name,
+                  })),
+                ]
               : []
           }
           value={selectedRepo ? selectedRepo.id : 'all'}
