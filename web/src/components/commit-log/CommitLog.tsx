@@ -1,27 +1,32 @@
-import { useEffect, useState } from 'react'
-import { CalendarDaysIcon } from '../../../public/icon/CalendarDaysIcon'
-import { EyeIcon } from '../../../public/icon/EyeIcon'
-import { GitBranchIcon } from '../../../public/icon/GitBranchIcon'
-import { GitCommitVerticalIcon } from '../../../public/icon/GitCommitVerticalIcon'
-import { UserIcon } from '../../../public/icon/UserIcon'
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { Badge } from '../ui/badge'
-import { Button } from '../ui/button'
-import CommitLogFilters from './CommitLogFilters'
+import React, { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useAppContext } from '@/context/AppContext'
+import { getGitHubToken } from '@/lib/auth'
+import { Button } from '@/components/ui/button'
+import { LoadingSpinner } from '@/components/ui/loadingspinner'
+import ErrorMessage from '@/components/ErrorMessage'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { useAppContext } from '@/context/AppContext'
-import { Action, Commit } from '../../../types/types'
+import { CalendarDaysIcon } from '../../../public/icon/CalendarDaysIcon'
+import { GitBranchIcon } from '../../../public/icon/GitBranchIcon'
+import { GitCommitVerticalIcon } from '../../../public/icon/GitCommitVerticalIcon'
+import { UserIcon } from '../../../public/icon/UserIcon'
+import { Commit } from '../../../types/github'
+import CommitLogFilters from './CommitLogFilters'
 import Link from 'next/link'
-import ErrorMessage from '../ErrorMessage'
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card'
-import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabaseClient'
-import { LoadingSpinner } from '../ui/loadingspinner'
+import { EyeIcon } from '../../../public/icon/EyeIcon'
+import { Badge } from '@/components/ui/badge'
+import { Action } from '../../../types/types'
 import { GithubIcon } from '../../../public/icon/GithubIcon'
 
 export type Filter = {
@@ -50,13 +55,7 @@ const fetchCommits = async (
   page: number,
   perPage: number,
 ) => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  const githubToken = session?.provider_token
-  if (!githubToken) {
-    throw new Error('Error: No GitHub token available')
-  }
+  const githubToken = await getGitHubToken()
 
   const repos = [{ owner, name: repoName }]
 
@@ -68,7 +67,7 @@ const fetchCommits = async (
       },
     },
   )
-  console.log('Response:', response)
+
   if (!response.ok) {
     throw new Error(`Error fetching commits: ${response.statusText}`)
   }
@@ -97,14 +96,14 @@ const CommitLog = () => {
         commitsPerPage,
       ),
     enabled: !!selectedRepo,
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: true,
   })
 
   const filteredCommits = Array.isArray(commits)
     ? commits.filter((commit: Commit) =>
-        commit.commit.message.toLowerCase().includes(searchInput.toLowerCase()),
-      )
+      commit.commit.message.toLowerCase().includes(searchInput.toLowerCase()),
+    )
     : []
 
   const theader = ['Commit', 'Branch ID', 'Author', 'Date', 'Status', 'Actions']
@@ -273,11 +272,10 @@ const CommitLog = () => {
                     {commit.status && (
                       <div>
                         <Badge
-                          className={`${
-                            commit.status === 'Verified'
-                              ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
-                              : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
-                          }`}
+                          className={`${commit.status === 'Verified'
+                            ? 'bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-400'
+                            : 'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400'
+                            }`}
                           variant="outline"
                         >
                           {commit.status}

@@ -7,6 +7,8 @@ import { FormProvider, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useToast } from '../ui/use-toast'
 
 const githubTokenPattern = /^ghp_[A-Za-z0-9]{36}$/
 const notionTokenPattern = /^secret_[A-Za-z0-9]{41}$/
@@ -26,8 +28,25 @@ const configSchema = z.object({
 
 type ConfigSchema = z.infer<typeof configSchema>
 
+const saveConfig = async (data: ConfigSchema): Promise<void> => {
+  const response = await fetch('/api/config', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to save configuration')
+  }
+}
+
 const ConfigSettingsForm = () => {
   const { config, setConfig } = useConfigContext()
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+
   const methods = useForm<ConfigSchema>({
     resolver: zodResolver(configSchema),
     defaultValues: config,
@@ -35,16 +54,29 @@ const ConfigSettingsForm = () => {
 
   const { control, handleSubmit, reset } = methods
 
+  const saveConfigMutation = useMutation({
+    mutationFn: saveConfig,
+    onSuccess: (_, variables) => {
+      setConfig(variables)
+      reset(variables)
+      // Invalidate and refetch config
+      queryClient.invalidateQueries({ queryKey: ['config'] })
+      toast({
+        title: 'Success',
+        description: 'Configuration saved successfully',
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to save configuration',
+        variant: 'destructive',
+      })
+    },
+  })
+
   const onSubmit = async (data: ConfigSchema) => {
-    setConfig(data)
-    await fetch('/api/config', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-    reset(data)
+    saveConfigMutation.mutate(data)
   }
 
   useEffect(() => {
@@ -120,9 +152,10 @@ const ConfigSettingsForm = () => {
         <div className="flex justify-end">
           <Button
             type="submit"
+            disabled={saveConfigMutation.isPending}
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 "
           >
-            Save Settings
+            {saveConfigMutation.isPending ? 'Saving...' : 'Save Settings'}
           </Button>
         </div>
       </form>
