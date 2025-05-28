@@ -11,7 +11,7 @@ import { UserProvider, useUser } from '@/context/UserContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/components/theme-provider'
 import { useEffect, useState } from 'react'
-import OnboardingFlow from '@/components/OnboardingFlow'
+import { OnboardingFlow } from '@/components/onboarding'
 import { LoadingSpinner } from '@/components/ui/loadingspinner'
 import { ReauthenticatePrompt } from '@/components/ReauthenticatePrompt'
 
