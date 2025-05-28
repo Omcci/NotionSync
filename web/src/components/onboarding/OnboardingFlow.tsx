@@ -13,7 +13,9 @@ import RepositorySelectionStep from './steps/RepositorySelectionStep'
 import ConfigurationStep from './steps/ConfigurationStep'
 import CompletionStep from './steps/CompletionStep'
 
-const fetchAllRepositories = async (githubToken: string): Promise<SyncRepo[]> => {
+const fetchAllRepositories = async (
+    githubToken: string,
+): Promise<SyncRepo[]> => {
     const response = await fetch('/api/repos/all', {
         headers: {
             Authorization: `Bearer ${githubToken}`,
@@ -35,7 +37,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
     const {
         data: availableRepos = [],
         isLoading,
-        error
+        error,
     } = useQuery({
         queryKey: ['onboarding-repos', githubToken],
         queryFn: () => fetchAllRepositories(githubToken!),
@@ -47,25 +49,25 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
 
     const steps: OnboardingStep[] = [
         {
-            title: "Welcome to NotionSync! 👋",
+            title: 'Welcome to NotionSync! 👋',
             description: "Let's get you set up in just a few steps",
-            component: WelcomeStep
+            component: WelcomeStep,
         },
         {
-            title: "Select Repositories 📚",
-            description: "Choose which repositories to sync with Notion",
-            component: RepositorySelectionStep
+            title: 'Select Repositories 📚',
+            description: 'Choose which repositories to sync with Notion',
+            component: RepositorySelectionStep,
         },
         {
-            title: "Configure Settings ⚙️",
-            description: "Set up your sync preferences",
-            component: ConfigurationStep
+            title: 'Configure Settings ⚙️',
+            description: 'Set up your sync preferences',
+            component: ConfigurationStep,
         },
         {
             title: "You're All Set! 🚀",
-            description: "Start syncing your GitHub activity with Notion",
-            component: CompletionStep
-        }
+            description: 'Start syncing your GitHub activity with Notion',
+            component: CompletionStep,
+        },
     ]
 
     const handleRepoToggle = (repoId: string) => {
@@ -83,8 +85,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
             setCurrentStep(currentStep + 1)
         } else {
             const selectedRepoObjects: SyncRepo[] = availableRepos
-                .filter(repo => selectedRepos.has(repo.id))
-                .map(repo => ({
+                .filter((repo) => selectedRepos.has(repo.id))
+                .map((repo) => ({
                     ...repo,
                     syncEnabled: true, // Enable sync for selected repos
                 }))
@@ -173,4 +175,4 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
     )
 }
 
-export default OnboardingFlow 
+export default OnboardingFlow

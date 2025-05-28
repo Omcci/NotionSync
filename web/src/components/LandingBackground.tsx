@@ -22,21 +22,29 @@ const LandingBackground: React.FC = () => {
         style={{ y: y1, opacity }}
         className="absolute top-20 left-20 w-96 h-96 rounded-full opacity-20"
       >
-        <div className={`w-full h-full rounded-full ${isDarkMode ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'bg-gradient-to-r from-blue-200 to-purple-200'} blur-3xl animate-pulse`}></div>
+        <div
+          className={`w-full h-full rounded-full ${isDarkMode ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'bg-gradient-to-r from-blue-200 to-purple-200'} blur-3xl animate-pulse`}
+        ></div>
       </motion.div>
 
       <motion.div
         style={{ y: y2, opacity }}
         className="absolute top-40 right-20 w-80 h-80 rounded-full opacity-15"
       >
-        <div className={`w-full h-full rounded-full ${isDarkMode ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-gradient-to-r from-purple-200 to-pink-200'} blur-3xl animate-pulse`} style={{ animationDelay: '2s' }}></div>
+        <div
+          className={`w-full h-full rounded-full ${isDarkMode ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-gradient-to-r from-purple-200 to-pink-200'} blur-3xl animate-pulse`}
+          style={{ animationDelay: '2s' }}
+        ></div>
       </motion.div>
 
       <motion.div
         style={{ y: y3, opacity }}
         className="absolute bottom-40 left-1/3 w-72 h-72 rounded-full opacity-10"
       >
-        <div className={`w-full h-full rounded-full ${isDarkMode ? 'bg-gradient-to-r from-cyan-600 to-blue-600' : 'bg-gradient-to-r from-cyan-200 to-blue-200'} blur-3xl animate-pulse`} style={{ animationDelay: '4s' }}></div>
+        <div
+          className={`w-full h-full rounded-full ${isDarkMode ? 'bg-gradient-to-r from-cyan-600 to-blue-600' : 'bg-gradient-to-r from-cyan-200 to-blue-200'} blur-3xl animate-pulse`}
+          style={{ animationDelay: '4s' }}
+        ></div>
       </motion.div>
 
       {/* Enhanced SVG with parallax layers */}
@@ -154,17 +162,57 @@ const LandingBackground: React.FC = () => {
 
         {/* Additional decorative elements */}
         <g filter="url(#softGlow)" opacity="0.1">
-          <circle cx="200" cy="200" r="3" fill={isDarkMode ? '#3b82f6' : '#60a5fa'}>
-            <animate attributeName="opacity" values="0.1;0.3;0.1" dur="3s" repeatCount="indefinite" />
+          <circle
+            cx="200"
+            cy="200"
+            r="3"
+            fill={isDarkMode ? '#3b82f6' : '#60a5fa'}
+          >
+            <animate
+              attributeName="opacity"
+              values="0.1;0.3;0.1"
+              dur="3s"
+              repeatCount="indefinite"
+            />
           </circle>
-          <circle cx="800" cy="150" r="2" fill={isDarkMode ? '#8b5cf6' : '#a78bfa'}>
-            <animate attributeName="opacity" values="0.1;0.4;0.1" dur="4s" repeatCount="indefinite" />
+          <circle
+            cx="800"
+            cy="150"
+            r="2"
+            fill={isDarkMode ? '#8b5cf6' : '#a78bfa'}
+          >
+            <animate
+              attributeName="opacity"
+              values="0.1;0.4;0.1"
+              dur="4s"
+              repeatCount="indefinite"
+            />
           </circle>
-          <circle cx="1400" cy="300" r="4" fill={isDarkMode ? '#06b6d4' : '#67e8f9'}>
-            <animate attributeName="opacity" values="0.1;0.2;0.1" dur="5s" repeatCount="indefinite" />
+          <circle
+            cx="1400"
+            cy="300"
+            r="4"
+            fill={isDarkMode ? '#06b6d4' : '#67e8f9'}
+          >
+            <animate
+              attributeName="opacity"
+              values="0.1;0.2;0.1"
+              dur="5s"
+              repeatCount="indefinite"
+            />
           </circle>
-          <circle cx="1600" cy="500" r="2" fill={isDarkMode ? '#f59e0b' : '#fbbf24'}>
-            <animate attributeName="opacity" values="0.1;0.3;0.1" dur="6s" repeatCount="indefinite" />
+          <circle
+            cx="1600"
+            cy="500"
+            r="2"
+            fill={isDarkMode ? '#f59e0b' : '#fbbf24'}
+          >
+            <animate
+              attributeName="opacity"
+              values="0.1;0.3;0.1"
+              dur="6s"
+              repeatCount="indefinite"
+            />
           </circle>
         </g>
       </motion.svg>
@@ -174,14 +222,20 @@ const LandingBackground: React.FC = () => {
         style={{ y: y2 }}
         className="absolute top-1/4 left-1/4 opacity-5"
       >
-        <div className={`w-16 h-16 ${isDarkMode ? 'border-blue-400' : 'border-blue-300'} border-2 rotate-45 animate-spin`} style={{ animationDuration: '20s' }}></div>
+        <div
+          className={`w-16 h-16 ${isDarkMode ? 'border-blue-400' : 'border-blue-300'} border-2 rotate-45 animate-spin`}
+          style={{ animationDuration: '20s' }}
+        ></div>
       </motion.div>
 
       <motion.div
         style={{ y: y3 }}
         className="absolute top-3/4 right-1/4 opacity-5"
       >
-        <div className={`w-12 h-12 rounded-full ${isDarkMode ? 'border-purple-400' : 'border-purple-300'} border-2 animate-bounce`} style={{ animationDuration: '3s' }}></div>
+        <div
+          className={`w-12 h-12 rounded-full ${isDarkMode ? 'border-purple-400' : 'border-purple-300'} border-2 animate-bounce`}
+          style={{ animationDuration: '3s' }}
+        ></div>
       </motion.div>
 
       {/* Grid pattern overlay */}
@@ -189,7 +243,7 @@ const LandingBackground: React.FC = () => {
         className="absolute inset-0 opacity-5"
         style={{
           backgroundImage: `radial-gradient(circle, ${isDarkMode ? '#ffffff' : '#000000'} 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
+          backgroundSize: '50px 50px',
         }}
       />
     </div>

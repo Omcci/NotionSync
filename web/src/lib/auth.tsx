@@ -14,7 +14,9 @@ export const getGitHubToken = async (): Promise<string> => {
   // Fallback: get validated token from database
   if (session?.user?.id) {
     try {
-      const validToken = await TokenValidationService.getValidGitHubToken(session.user.id)
+      const validToken = await TokenValidationService.getValidGitHubToken(
+        session.user.id,
+      )
       if (validToken) {
         return validToken
       }
@@ -22,5 +24,7 @@ export const getGitHubToken = async (): Promise<string> => {
       console.error('Error getting valid GitHub token:', error)
     }
   }
-  throw new Error('Unauthorized: No valid GitHub token available. Please re-authenticate with GitHub.')
+  throw new Error(
+    'Unauthorized: No valid GitHub token available. Please re-authenticate with GitHub.',
+  )
 }

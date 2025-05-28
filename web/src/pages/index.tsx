@@ -11,7 +11,19 @@ import EeDial from '@/components/EeDial'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import SteamButton from '@/components/SteamButton'
 import { GithubIcon } from '../../public/icon/GithubIcon'
-import { ArrowRight, CheckCircle, Users, Zap, Calendar, GitBranch, Bell, Star, TrendingUp, Shield, Clock } from 'lucide-react'
+import {
+  ArrowRight,
+  CheckCircle,
+  Users,
+  Zap,
+  Calendar,
+  GitBranch,
+  Bell,
+  Star,
+  TrendingUp,
+  Shield,
+  Clock,
+} from 'lucide-react'
 import LandingBackground from '@/components/LandingBackground'
 import StackingFeatures from '@/components/StackingFeatures'
 import { useTheme } from 'next-themes'
@@ -41,7 +53,9 @@ const Home = () => {
   }, [triggerEe])
 
   const getSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     return session
   }
 
@@ -69,7 +83,7 @@ const Home = () => {
             className="relative mb-8"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
           >
             <Image
               src="/NotionSync.svg"
@@ -97,8 +111,9 @@ const Home = () => {
               </span>
             </h2>
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              Transform how your team collaborates by automatically syncing GitHub activity
-              with Notion workspaces. Track progress, enhance visibility, and boost productivity.
+              Transform how your team collaborates by automatically syncing
+              GitHub activity with Notion workspaces. Track progress, enhance
+              visibility, and boost productivity.
             </p>
           </motion.div>
 
@@ -109,7 +124,10 @@ const Home = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
           >
             {user ? (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg"
@@ -121,7 +139,10 @@ const Home = () => {
               </motion.div>
             ) : (
               <>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Button
                     size="lg"
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg"
@@ -131,7 +152,10 @@ const Home = () => {
                     Start Free with GitHub
                   </Button>
                 </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Button
                     variant="outline"
                     size="lg"
@@ -194,10 +218,14 @@ const Home = () => {
             >
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8">
                 Why Choose
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> NotionSync?</span>
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  {' '}
+                  NotionSync?
+                </span>
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Join thousands of teams who have transformed their workflow with our powerful integration platform.
+                Join thousands of teams who have transformed their workflow with
+                our powerful integration platform.
               </p>
               <div className="space-y-4">
                 {benefits.map((benefit, index) => (
@@ -234,16 +262,28 @@ const Home = () => {
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">Team Efficiency</span>
-                    <span className="text-2xl font-bold text-green-500">+40%</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Team Efficiency
+                    </span>
+                    <span className="text-2xl font-bold text-green-500">
+                      +40%
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">Project Visibility</span>
-                    <span className="text-2xl font-bold text-blue-500">+60%</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Project Visibility
+                    </span>
+                    <span className="text-2xl font-bold text-blue-500">
+                      +60%
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">Time Saved</span>
-                    <span className="text-2xl font-bold text-purple-500">8hrs/week</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Time Saved
+                    </span>
+                    <span className="text-2xl font-bold text-purple-500">
+                      8hrs/week
+                    </span>
                   </div>
                 </div>
               </div>
@@ -269,7 +309,10 @@ const Home = () => {
           >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
               Loved by
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Developers</span>
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {' '}
+                Developers
+              </span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               See what teams around the world are saying about NotionSync
@@ -289,7 +332,10 @@ const Home = () => {
               >
                 <div className="flex items-center mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    <Star
+                      key={i}
+                      className="w-5 h-5 text-yellow-400 fill-current"
+                    />
                   ))}
                 </div>
                 <p className="text-gray-700 dark:text-gray-300 mb-6 italic">
@@ -336,11 +382,15 @@ const Home = () => {
               Ready to Transform Your Workflow?
             </h2>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of teams already using NotionSync to streamline their development process.
+              Join thousands of teams already using NotionSync to streamline
+              their development process.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {!user && (
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Button
                     size="lg"
                     className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-xl"
@@ -351,7 +401,10 @@ const Home = () => {
                   </Button>
                 </motion.div>
               )}
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button
                   variant="outline"
                   size="lg"
@@ -390,7 +443,8 @@ const Home = () => {
                 Documentation & Resources
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300">
-                Everything you need to get started and make the most of NotionSync
+                Everything you need to get started and make the most of
+                NotionSync
               </p>
             </motion.div>
 

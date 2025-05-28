@@ -56,8 +56,9 @@ export function Header() {
               <Link
                 key={href}
                 href={href}
-                className={`text-white hover:text-blue-400 transition-colors flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-800 ${router.pathname === href ? 'text-blue-400 bg-gray-800' : ''
-                  }`}
+                className={`text-white hover:text-blue-400 transition-colors flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-800 ${
+                  router.pathname === href ? 'text-blue-400 bg-gray-800' : ''
+                }`}
               >
                 <Icon className="w-4 h-4" />
                 {label}
@@ -116,7 +117,10 @@ export function Header() {
               <div className="md:hidden py-1">
                 {navLinks.map(({ href, label, icon: Icon }) => (
                   <DropdownMenuItem key={href} asChild className="px-4 py-2">
-                    <Link href={href} className="flex items-center gap-3 w-full">
+                    <Link
+                      href={href}
+                      className="flex items-center gap-3 w-full"
+                    >
                       <Icon className="w-4 h-4" />
                       <span className="text-sm">{label}</span>
                     </Link>
@@ -145,7 +149,10 @@ export function Header() {
           </DropdownMenu>
         ) : (
           !isLoginPage && (
-            <Button onClick={handleLogin} className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleLogin}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               Login with GitHub
             </Button>
           )

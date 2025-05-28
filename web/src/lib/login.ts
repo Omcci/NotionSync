@@ -13,8 +13,8 @@ const signInWithGitHub = async (forceReauth = false) => {
     redirectTo: getRedirectUrl(),
     queryParams: {
       access_type: 'offline',
-      prompt: forceReauth ? 'consent' : 'select_account'
-    }
+      prompt: forceReauth ? 'consent' : 'select_account',
+    },
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({

@@ -17,7 +17,9 @@ import { useToast } from './ui/use-toast'
 import { Commit } from '../../types/types'
 import { CommitDetailsProps } from '../../types/ui'
 
-const generateSummary = async (commits: Array<{ commitMessage: string; diff: string }>): Promise<{ summary: string }> => {
+const generateSummary = async (
+  commits: Array<{ commitMessage: string; diff: string }>,
+): Promise<{ summary: string }> => {
   const response = await fetch('/api/mistral', {
     method: 'POST',
     headers: {
@@ -109,8 +111,14 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-            .map((d: { filename: string; additions: number; deletions: number }) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-            .join('\n')
+              .map(
+                (d: {
+                  filename: string
+                  additions: number
+                  deletions: number
+                }) => `${d.filename}: +${d.additions}, -${d.deletions}`,
+              )
+              .join('\n')
           : '',
     }))
 
@@ -153,7 +161,9 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
               onClick={generateSummaryForAllCommits}
             />
           </h3>
-          <div className="ml-4">{summaryMutation.isPending && <LoadingSpinner />}</div>
+          <div className="ml-4">
+            {summaryMutation.isPending && <LoadingSpinner />}
+          </div>
           <span className="text-gray-600 dark:text-gray-400">
             {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
           </span>
@@ -226,16 +236,21 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
                   </Badge>
                 )}
                 <div className="flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0">
-                  {commit.actions?.map((action: { name: string; url: string }, actionIdx: number) => (
-                    <Button
-                      key={actionIdx}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => window.open(action.url, '_blank')}
-                    >
-                      {action.name}
-                    </Button>
-                  ))}
+                  {commit.actions?.map(
+                    (
+                      action: { name: string; url: string },
+                      actionIdx: number,
+                    ) => (
+                      <Button
+                        key={actionIdx}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(action.url, '_blank')}
+                      >
+                        {action.name}
+                      </Button>
+                    ),
+                  )}
                 </div>
               </div>
             </li>
