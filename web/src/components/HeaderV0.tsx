@@ -27,15 +27,29 @@ import { GitBranchIcon } from '../../public/icon/GitBranchIcon'
 //TODO : display user friendly message of sync status
 
 const HeaderV0 = () => {
-  const { repos, setRepos, selectedRepo, setSelectedRepo } = useAppContext()
+  const {
+    repos,
+    setRepos,
+    selectedRepo,
+    setSelectedRepo,
+    tokenValidationError,
+    isLoadingRepos,
+  } = useAppContext()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const { updateFormValues } = useConfigContext()
-  // const { data: session } = useSession();
-  const username = process.env.NEXT_PUBLIC_USERNAME
-  const user = useUser()
+  const { user, githubToken, isLoading: userLoading } = useUser()
 
   const handleSync = async () => {
+    if (!selectedRepo) {
+      toast({
+        title: 'Error',
+        description: 'Please select a repository to sync',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setLoading(true)
     try {
       const response = await fetch('/api/sync?action=sync', {
@@ -43,16 +57,19 @@ const HeaderV0 = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({
+          repoName: selectedRepo.name,
+          orgName: selectedRepo.owner,
+          githubToken: githubToken,
+        }),
       })
       const data = await response.json()
       if (response.ok) {
         toast({ title: 'Success', description: data.message })
       } else {
-        console.log('Error:', data)
         toast({
           title: 'Error',
-          description: data.details || 'Sync failed. Please try again later.',
+          description: data.error || 'Sync failed. Please try again later.',
           variant: 'destructive',
         })
       }
@@ -66,6 +83,7 @@ const HeaderV0 = () => {
       setLoading(false)
     }
   }
+
   const handleRepoSelect = (repoId: string) => {
     const repo = repos.find((r) => r.id === repoId)
     if (repo) {
@@ -80,21 +98,33 @@ const HeaderV0 = () => {
     value: repo.id,
     label: repo.name,
   }))
+
+  // Determine the placeholder and disabled state
+  const getSelectPlaceholder = () => {
+    if (!githubToken) return 'GitHub authentication required'
+    if (isLoadingRepos) return 'Loading repositories...'
+    if (repos.length === 0) return 'No repositories found'
+    return 'Select a repository'
+  }
+
+  const isSelectDisabled =
+    !githubToken || isLoadingRepos || repos.length === 0 || loading
+
   return (
     <header className="py-4 flex  items-center justify-between">
       <div className="flex  w-full sm:w-auto items-center gap-4 justify-center sm:justify-start">
         <div className='className="w-[100px] sm:w-[180px]"'>
           <SelectComponent
-            placeholder="Select a repository"
+            placeholder={getSelectPlaceholder()}
             options={repoOptions}
             value={selectedRepo ? selectedRepo.id : ''}
             onChange={(id) => handleRepoSelect(id)}
-            disabled={!user?.user || loading || repos.length === 0 || !username}
+            disabled={isSelectDisabled}
           />
         </div>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost">
+            <Button variant="ghost" disabled={!githubToken || !selectedRepo}>
               <GitBranchIcon className="w-5 h-5" />
               <span className="hidden sm:inline ml-2">Select Branch</span>
             </Button>
@@ -112,7 +142,7 @@ const HeaderV0 = () => {
         <Button
           variant="ghost"
           onClick={handleSync}
-          disabled={!selectedRepo || loading}
+          disabled={!selectedRepo || loading || !githubToken}
         >
           <FolderSyncIcon className="w-5 h-5 mr-2" />
           <span className="hidden sm:inline ml-2">

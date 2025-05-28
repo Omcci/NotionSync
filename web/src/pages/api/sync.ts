@@ -9,11 +9,6 @@ import { SyncStatus } from '../../../types/types'
 const githubToken = process.env.GITHUB_TOKEN
 const notionToken = process.env.NOTION_TOKEN
 const databaseId = process.env.NOTION_DATABASE_ID
-const orgName = process.env.ORG_NAME
-const repoName = process.env.REPO_NAME
-const mistralToken = process.env.MISTRAL_TOKEN
-const startDate = process.env.START_DATE
-const endDate = process.env.END_DATE
 
 const notion = new Client({ auth: notionToken })
 
@@ -23,12 +18,18 @@ let syncStatus: SyncStatus = {
   statusMessage: 'No sync performed yet',
 }
 
-async function sync() {
-  console.log('Starting sync process...')
+async function sync(
+  repoName: string,
+  orgName: string,
+  userGithubToken?: string,
+) {
+  // Use user's GitHub token if provided, otherwise fall back to environment token
+  const tokenToUse = userGithubToken || githubToken
+
   const branches = await fetchRepoBranches(
-    githubToken!,
-    orgName!,
-    repoName!,
+    tokenToUse!,
+    orgName,
+    repoName,
     100,
     1,
   )
@@ -39,35 +40,28 @@ async function sync() {
       const page = '1'
       const per_page = '100'
       const { commits } = await fetchCommitsForUserInRepo(
-        githubToken!,
-        orgName!,
-        repoName!,
+        tokenToUse!,
+        orgName,
+        repoName,
         page,
         per_page,
       )
 
-      console.log(`Fetched ${commits.length} commits for branch: ${branch}`)
-
       for (const commit of commits) {
         const commitSha = commit.sha
         if (await commitExistsInNotion(notion, databaseId!, commitSha)) {
-          console.log(`Commit ${commitSha} already exists in Notion. Skipping.`)
           continue
         }
         const commitMessage = commit.commit.message
-        console.log(
-          `Adding commit ${commitSha} with message: "${commitMessage}" to Notion`,
-        )
 
         await addCommitToNotion(
           commit,
           commitMessage,
           notionToken!,
           databaseId!,
-          repoName!,
+          repoName,
           branch,
         )
-        // console.log(`Commit ${commitSha} added to Notion successfully`)
       }
     } catch (error: any) {
       const errorMessage = error.message
@@ -83,13 +77,13 @@ async function sync() {
         statusCode: 500,
       } as any)
     }
-    syncStatus = {
-      lastSyncDate: new Date(),
-      errorBranch: '',
-      statusMessage: 'Sync process completed',
-    }
   }
-  return 'Sync process completed'
+  syncStatus = {
+    lastSyncDate: new Date(),
+    errorBranch: null,
+    statusMessage: 'Sync process completed',
+  }
+  return `Sync process completed for ${orgName}/${repoName}`
 }
 
 export default async function handler(
@@ -108,7 +102,15 @@ export default async function handler(
         break
       case 'POST':
         if (action === 'sync') {
-          const result = await sync()
+          const { repoName, orgName, githubToken: userGithubToken } = req.body
+
+          if (!repoName || !orgName) {
+            return res.status(400).json({
+              error: 'Repository name and organization name are required',
+            })
+          }
+
+          const result = await sync(repoName, orgName, userGithubToken)
           res.status(200).json({ message: result })
         } else {
           res.status(400).json({ error: 'Invalid action' })

@@ -20,11 +20,19 @@ const getEmojiTime = (date: Date) => {
 const SyncStatus = () => {
   const { syncStatus, setSyncStatus } = useAppContext()
 
+  // Only poll frequently if there's recent activity or errors
+  const shouldPollFrequently =
+    syncStatus?.errorBranch ||
+    (syncStatus?.lastSyncDate &&
+      new Date().getTime() - new Date(syncStatus.lastSyncDate).getTime() <
+        10 * 60 * 1000) // Last sync within 10 minutes
+
   const { data, error, isLoading, isError } = useQuery({
     queryKey: ['syncStatus'],
     queryFn: fetchSyncStatus,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: true,
+    refetchInterval: shouldPollFrequently ? 2 * 60 * 1000 : 10 * 60 * 1000, // 2 min if active, 10 min if idle
+    refetchOnWindowFocus: false, // Disabled because we use polling instead
+    staleTime: 5 * 60 * 1000, // 5 minutes - longer stale time since we poll
   })
 
   useEffect(() => {
