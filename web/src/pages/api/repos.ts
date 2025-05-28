@@ -1,24 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ReposResponse } from '../../../types/types'
+import { GitHubService } from '@/services/githubService'
 
 export const fetchUserRepos = async (githubToken: string) => {
-  const url = `https://api.github.com/user/repos`
   try {
-    const response = await fetch(url, {
-      headers: { Authorization: `token ${githubToken}` },
-    })
-    if (!response.ok) {
-      throw new Error(`Error fetching repositories: ${response.status}`)
-    }
-    const data = await response.json()
-    return data.map((repo: any) => ({
-      id: repo.id,
+    const repos = await GitHubService.getUserRepos(githubToken)
+    return repos.map((repo) => ({
+      id: repo.id.toString(),
       name: repo.name,
-      owner: repo.owner.login,
+      owner: repo.full_name.split('/')[0],
     }))
   } catch (error) {
-    console.error((error as Error).message)
-    return []
+    console.error('Error in fetchUserRepos:', error)
+    throw error
   }
 }
 
@@ -33,6 +27,7 @@ export default async function handler(
   const { githubToken } = req.query
 
   if (!githubToken || typeof githubToken !== 'string') {
+    console.error('Invalid or missing GitHub token')
     return res.status(400).json({ error: 'GitHub token is required' })
   }
 
@@ -40,7 +35,7 @@ export default async function handler(
     const repos = await fetchUserRepos(githubToken)
     res.status(200).json({ repos })
   } catch (error: any) {
-    console.error('Error fetching repos:', error.message)
+    console.error('Error in repos API handler:', error.message)
     res.status(500).json({ error: error.message })
   }
 }

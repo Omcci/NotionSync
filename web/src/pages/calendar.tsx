@@ -56,13 +56,6 @@ const CalendarPage = () => {
   const calendarRef = useRef<FullCalendar>(null)
 
   const { repos, selectedRepo, setSelectedRepo } = useAppContext()
-  console.log('repos', repos)
-  // const orgName = repos.length > 0 ? repos[0].org : ""
-
-  console.log(
-    'Repos in CalendarPage:',
-    repos.map((repo) => ({ name: repo.name, owner: repo.owner })),
-  )
 
   const {
     data: commitData = [],
@@ -78,10 +71,10 @@ const CalendarPage = () => {
         dateRange,
       ),
     enabled: !!repos.length && !!dateRange.start && !!dateRange.end,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   })
-  console.log('Commit dataINCALENDAR:', commitData)
 
   useEffect(() => {
     if (!commitData || isError) return
@@ -228,12 +221,12 @@ const CalendarPage = () => {
           options={
             user.user
               ? [
-                  { value: 'all', label: 'All Repositories' },
-                  ...repos?.map((repo) => ({
-                    value: repo.id,
-                    label: repo.name,
-                  })),
-                ]
+                { value: 'all', label: 'All Repositories' },
+                ...repos?.map((repo) => ({
+                  value: repo.id,
+                  label: repo.name,
+                })),
+              ]
               : []
           }
           value={selectedRepo ? selectedRepo.id : 'all'}
