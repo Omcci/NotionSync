@@ -18,14 +18,8 @@ export interface SyncRepo extends Repo {
     lastUpdated?: string
 }
 
-// API Response Types
-export interface ReposResponse {
-    repos?: Repo[]
-    error?: string
-}
-
-// Repository API Types
-export interface Repository {
+// Raw GitHub API Repository Response
+export interface GitHubRepository {
     id: number
     name: string
     full_name: string
@@ -36,4 +30,29 @@ export interface Repository {
     stargazers_count: number
     forks_count: number
     updated_at: string
+}
+
+// Transformed Repository for App Use (from API responses)
+export interface Repository {
+    id: string
+    name: string
+    owner: string
+    description?: string
+    private: boolean
+    language?: string
+    url: string
+    stars: number
+    forks: number
+    lastUpdated: string
+}
+
+// API Response Types
+export interface ReposResponse {
+    repos?: Repo[]
+    error?: string
+}
+
+export interface AllReposResponse {
+    repos: Repository[]
+    total: number
 } 
