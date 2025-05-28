@@ -13,6 +13,7 @@ export interface AppContextType {
     setSelectedRepo: (repo: SyncRepo | null) => void
     syncStatus: SyncStatus | null
     setSyncStatus: (status: SyncStatus | null) => void
+    tokenValidationError: string | null
 }
 
 export interface AppProviderProps {

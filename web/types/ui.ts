@@ -14,10 +14,6 @@ export interface SelectComponentProps {
     disabled?: boolean
 }
 
-export interface OnboardingFlowProps {
-    onComplete: () => void
-}
-
 export interface GitHubAuthGuideProps {
     onComplete: () => void
 }
@@ -76,21 +72,3 @@ export interface FeatureItemProps {
     gradient: string
     icon: ReactNode
 }
-
-// Organization Types
-export interface Organization {
-    id: number
-    login: string
-    name: string | null
-    description: string | null
-    avatar_url: string
-    html_url: string
-    public_repos: number
-    created_at: string
-}
-
-export interface OrganizationSummary {
-    totalOrgs: number
-    publicRepos: number
-    organizations: Organization[]
-} 
