@@ -1,9 +1,10 @@
+import React, { useState, useEffect } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Avatar, AvatarFallback } from '@radix-ui/react-avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from './ui/button'
 import { CheckCircle, XCircle, Sparkles } from 'lucide-react'
 import { AvatarImage } from './ui/avatar'
-import { useEffect, useState } from 'react'
 import {
   Select,
   SelectTrigger,
@@ -14,17 +15,27 @@ import {
 import { LoadingSpinner } from './ui/loadingspinner'
 import { useToast } from './ui/use-toast'
 import { Commit } from '../../types/types'
+import { CommitDetailsProps } from '../../types/ui'
 
-type CommitDetailsProps = {
-  commitDetails: Commit[]
+const generateSummary = async (commits: Array<{ commitMessage: string; diff: string }>): Promise<{ summary: string }> => {
+  const response = await fetch('/api/mistral', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ commits }),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to generate summary')
+  }
+  return await response.json()
 }
 
 const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
-  const [filteredCommits, setFilteredCommits] = useState(commitDetails)
+  const [filteredCommits, setFilteredCommits] = useState<Commit[]>([])
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [uniqueUsers, setUniqueUsers] = useState<string[]>([])
-  const [summary, setSummary] = useState<string | null>(null)
-  const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(false)
+  const [summary, setSummary] = useState<string>('')
   const { toast } = useToast()
 
   useEffect(() => {
@@ -62,51 +73,48 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     localStorage.setItem('summaryCount', currentCount.toString())
   }
 
-  const generateSummaryForAllCommits = async () => {
-    if (!checkSummaryLimit()) {
-      toast({
-        title: 'Summary limit reached',
-        description: 'You can only generate 5 summaries per day.',
-        variant: 'destructive',
-      })
-      return
-    }
-    setIsLoadingSummary(true)
-    const commits = filteredCommits.map((commit) => ({
-      commitMessage: commit.commit.message,
-      diff:
-        Array.isArray(commit.diff) && commit.diff.length > 0
-          ? commit.diff
-              .map((d) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-              .join('\n')
-          : '',
-    }))
-
-    try {
-      const response = await fetch('/api/mistral', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          commits,
-        }),
-      })
-
-      const data = await response.json()
+  const summaryMutation = useMutation({
+    mutationFn: generateSummary,
+    onSuccess: (data) => {
       setSummary(data.summary)
       incrementSummaryCount()
       console.log('Summary count:', localStorage.getItem('summaryCount'))
-    } catch (error) {
+      toast({
+        title: 'Summary generated',
+        description: 'Your commit summary has been generated successfully.',
+      })
+    },
+    onError: (error) => {
       console.error('Failed to generate summary:', error)
       toast({
         title: 'Failed to generate summary',
         description: 'Please try again later.',
         variant: 'destructive',
       })
-    } finally {
-      setIsLoadingSummary(false)
+    },
+  })
+
+  const generateSummaryForAllCommits = async () => {
+    if (!checkSummaryLimit()) {
+      toast({
+        title: 'Summary limit reached',
+        description: 'You can only generate 15 summaries per day.',
+        variant: 'destructive',
+      })
+      return
     }
+
+    const commits = filteredCommits.map((commit) => ({
+      commitMessage: commit.commit.message,
+      diff:
+        Array.isArray(commit.diff) && commit.diff.length > 0
+          ? commit.diff
+            .map((d: { filename: string; additions: number; deletions: number }) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+            .join('\n')
+          : '',
+    }))
+
+    summaryMutation.mutate(commits)
   }
 
   if (commitDetails.length === 0) {
@@ -145,7 +153,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
               onClick={generateSummaryForAllCommits}
             />
           </h3>
-          <div className="ml-4">{isLoadingSummary && <LoadingSpinner />}</div>
+          <div className="ml-4">{summaryMutation.isPending && <LoadingSpinner />}</div>
           <span className="text-gray-600 dark:text-gray-400">
             {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
           </span>
@@ -218,7 +226,7 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
                   </Badge>
                 )}
                 <div className="flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0">
-                  {commit.actions?.map((action, actionIdx) => (
+                  {commit.actions?.map((action: { name: string; url: string }, actionIdx: number) => (
                     <Button
                       key={actionIdx}
                       variant="ghost"
