@@ -1,13 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react'
-import FullCalendar from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import interactionPlugin from '@fullcalendar/interaction'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { Commit } from '../../types/types'
 import { useAppContext } from '@/context/AppContext'
 import SelectComponent from '@/components/SelectComponent'
 import ModalCommits from '@/components/ModalCommits'
 import { useUser } from '@/context/UserContext'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loadingspinner'
 import { getGitHubToken } from '@/lib/auth'
@@ -20,16 +17,30 @@ import {
 import { Button } from '@/components/ui/button'
 import { CalendarDaysIcon } from '../../public/icon/CalendarDaysIcon'
 import { format } from 'date-fns'
+import { RefreshCw, Github } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
+import { Badge } from '@/components/ui/badge'
+import { CommitCalendar } from '@/components/calendar/CommitCalendar'
 
-const fetchCommits = async (
-  repos: { name: string; owner: string }[],
+// Fetch commits using intelligent caching (transparent to user)
+const fetchCommitsWithSmartCache = async (
+  userId: string,
   dateRange: { start: string; end: string },
+  forceRefresh: boolean = false
 ) => {
   const githubToken = await getGitHubToken()
 
-  const commitsUrl = `/api/commits?repos=${encodeURIComponent(JSON.stringify(repos))}&startDate=${dateRange.start}&endDate=${dateRange.end}`
+  const params = new URLSearchParams({
+    userId,
+    startDate: dateRange.start,
+    endDate: dateRange.end,
+    forceRefresh: forceRefresh.toString(),
+    // Use aggressive caching for better performance
+    repositoryCacheTime: '120', // 2 hours
+    commitCacheTime: '60', // 1 hour
+  })
 
-  const response = await fetch(commitsUrl, {
+  const response = await fetch(`/api/smart-cache/commits?${params}`, {
     headers: {
       Authorization: `Bearer ${githubToken}`,
     },
@@ -40,142 +51,124 @@ const fetchCommits = async (
     throw new Error(`Error fetching commits: ${response.status} - ${errorText}`)
   }
 
-  const data = await response.json()
-  return data
+  return await response.json()
 }
 
 const CalendarPage = () => {
-  const [events, setEvents] = useState<any[]>([])
   const [filteredCommits, setFilteredCommits] = useState<Commit[]>([])
-
   const [selectedDate, setSelectedDate] = useState('')
   const [commitDetails, setCommitDetails] = useState<Commit[]>([])
   const [open, setOpen] = useState(false)
   const [dateRange, setDateRange] = useState({ start: '', end: '' })
-  const user = useUser()
-  const calendarRef = useRef<FullCalendar>(null)
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null)
+  const [currentView, setCurrentView] = useState<string>('dayGridMonth')
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
 
+  const { user, githubToken } = useUser()
   const { repos, selectedRepo, setSelectedRepo } = useAppContext()
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
 
+  // Debounced date range setter to prevent excessive API calls
+  const setDateRangeDebounced = useCallback((newDateRange: { start: string; end: string }) => {
+    const timeoutId = setTimeout(() => {
+      setDateRange(newDateRange)
+    }, 300) // 300ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [])
+
+  // Query for fetching commits with intelligent caching
   const {
-    data: commitData = [],
+    data: commitResponse,
     isLoading,
     isError,
     error,
     isFetching,
   } = useQuery({
-    queryKey: ['commits', repos, dateRange.start, dateRange.end],
-    queryFn: () =>
-      fetchCommits(
-        repos.map((repo) => ({ name: repo.name, owner: repo.owner })),
+    queryKey: ['smart-commits', dateRange.start, dateRange.end],
+    queryFn: () => {
+      if (!user?.id) throw new Error('User not authenticated')
+
+      return fetchCommitsWithSmartCache(
+        user.id,
         dateRange,
-      ),
-    enabled: !!repos.length && !!dateRange.start && !!dateRange.end,
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+        false // Don't force refresh on normal queries
+      )
+    },
+    enabled: !!user?.id && !!dateRange.start && !!dateRange.end,
+    staleTime: 1000 * 60 * 30, // Consider data stale after 30 minutes (increased for better caching)
+    gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on mount if we have cached data
+    refetchOnReconnect: false, // Don't refetch on reconnect
+    retry: 1, // Reduce retry attempts for faster failure handling
+    retryDelay: 1000, // 1 second retry delay
+    placeholderData: (previousData) => previousData, // Keep previous data while loading new data
   })
 
+  // Extract commits and metadata from response
+  const commitData = useMemo(() => commitResponse?.commits || [], [commitResponse?.commits])
+  const metadata = commitResponse?.metadata
+
+  // Update last sync time when data changes
   useEffect(() => {
-    if (!commitData || isError) return
-
-    let commitsToUse = commitData
-
-    // filter the commits by the selected repo
-    if (selectedRepo) {
-      commitsToUse = commitData.filter(
-        (commit: Commit) => commit.repoName === selectedRepo.name,
-      )
+    if (metadata?.commits?.lastUpdated) {
+      setLastSyncTime(metadata.commits.lastUpdated)
     }
+  }, [metadata])
 
-    const groupedCommits: Record<
-      string,
-      Record<string, { displayed: Partial<Commit>[]; total: number }>
-    > = {}
+  // Update filtered commits when data or selected repo changes
+  useEffect(() => {
+    if (commitData) {
+      let commitsToUse = commitData
 
-    // group commits by date and repo
-    for (const commit of commitsToUse) {
-      const commitDate = commit.date || commit.commit.author.date
-      if (commitDate && commit.repoName) {
-        const date = commitDate.split('T')[0]
-
-        if (!groupedCommits[date]) {
-          groupedCommits[date] = {}
-        }
-
-        if (!groupedCommits[date][commit.repoName]) {
-          groupedCommits[date][commit.repoName] = { displayed: [], total: 0 }
-        }
-
-        groupedCommits[date][commit.repoName].total += 1
-
-        if (groupedCommits[date][commit.repoName].displayed.length < 5) {
-          groupedCommits[date][commit.repoName].displayed.push(commit)
-        }
+      // Filter by selected repo
+      if (selectedRepo) {
+        commitsToUse = commitData.filter(
+          (commit: Commit) => commit.repoName === selectedRepo.name,
+        )
       }
-    }
 
-    const formattedEvents = []
-    for (const date in groupedCommits) {
-      for (const repoName in groupedCommits[date]) {
-        const { displayed, total } = groupedCommits[date][repoName]
-        let title
-
-        // function to truncate commit message
-        const getTruncatedCommitMessage = (commit: any, length: number) => {
-          const message =
-            typeof commit.commit?.message === 'string'
-              ? commit.commit.message
-              : ''
-          return message.length > length
-            ? `${message.substring(0, length)}...`
-            : message
-        }
-
-        // truncate text content
-        const truncate = (text: string, length: number) =>
-          text.length > length ? `${text.substring(0, length)}...` : text
-
-        // title gen logic
-        if (selectedRepo) {
-          title =
-            displayed.length === 1
-              ? `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${getTruncatedCommitMessage(displayed[0], 30)}</span>`
-              : `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${total} commits</span>`
-        } else {
-          title =
-            displayed.length === 1
-              ? `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${truncate(repoName, 15)}</span> <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap overflow-hidden text-ellipsis">${getTruncatedCommitMessage(displayed[0], 30)}</span>`
-              : `<span class="font-bold text-base sm:text-sm md:text-base lg:text-lg whitespace-nowrap overflow-hidden text-ellipsis">${truncate(repoName, 15)}</span> <span class="text-sm text-gray-500 dark:text-gray-400">${total} commits</span>`
-        }
-
-        formattedEvents.push({
-          title,
-          date,
-          allDay: true,
-          displayOrder: formattedEvents.length,
-        })
-      }
-    }
-
-    if (JSON.stringify(formattedEvents) !== JSON.stringify(events)) {
-      setEvents(formattedEvents)
       setFilteredCommits(commitsToUse)
     }
-  }, [commitData, selectedRepo, isError, events])
+  }, [commitData, selectedRepo])
 
-  useEffect(() => {
-    if (!selectedDate) return
+  // Mutation for force refresh
+  const forceRefreshMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) {
+        throw new Error('User not authenticated')
+      }
 
-    const selectedCommits = filteredCommits.filter((commit: Commit) => {
-      const commitDate = (commit.date || commit.commit.author.date)?.split(
-        'T',
-      )[0]
-      return commitDate === selectedDate
-    })
+      return await fetchCommitsWithSmartCache(
+        user.id,
+        dateRange,
+        true // Force refresh
+      )
+    },
+    onSuccess: (result) => {
+      setLastSyncTime(new Date().toISOString())
 
-    setCommitDetails(selectedCommits)
-  }, [selectedDate, filteredCommits])
+      const source = result.metadata?.commits?.source || 'unknown'
+      const count = result.metadata?.commits?.count || 0
+
+      toast({
+        title: 'Data refreshed',
+        description: `Fetched ${count} commits from ${source === 'github' ? 'GitHub API' : 'cache'}`,
+      })
+
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['smart-commits'] })
+    },
+    onError: (error) => {
+      toast({
+        title: 'Refresh failed',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      })
+    },
+  })
 
   const handleRepoSelect = (repoId: string) => {
     if (repoId === 'all') {
@@ -186,141 +179,215 @@ const CalendarPage = () => {
     }
   }
 
-  const handleDateClick = (info: any) => {
-    setSelectedDate(info.dateStr)
+  const handleDateClick = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd')
+    setSelectedDate(dateStr)
+
+    // Get commits for this specific date
+    const dayCommits = filteredCommits.filter((commit: Commit) => {
+      const commitDate = (commit.date || commit.commit.author.date)?.split('T')[0]
+      return commitDate === dateStr
+    })
+
+    setCommitDetails(dayCommits)
     setOpen(true)
   }
 
-  const handleDatesSet = (info: any) => {
-    setDateRange({
-      start: info.startStr,
-      end: info.endStr,
-    })
-  }
+  const handleCommitClick = (commit: Commit) => {
+    const commitDate = (commit.date || commit.commit.author.date)?.split('T')[0]
+    if (commitDate) {
+      setSelectedDate(commitDate)
 
-  const handleDateSelect = (date?: Date) => {
-    const newDate = date ? date.toISOString().split('T')[0] : ''
-    setSelectedDate(newDate)
-    if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi()
-      calendarApi.gotoDate(new Date(newDate))
+      // Get all commits for this date
+      const dayCommits = filteredCommits.filter((c: Commit) => {
+        const cDate = (c.date || c.commit.author.date)?.split('T')[0]
+        return cDate === commitDate
+      })
+
+      setCommitDetails(dayCommits)
+      setOpen(true)
     }
   }
 
+  const handleDateSelect = (date?: Date) => {
+    if (date) {
+      setCurrentDate(date)
+      handleDateClick(date)
+    }
+  }
+
+  const handleForceRefresh = () => {
+    forceRefreshMutation.mutate()
+  }
+
+  const handleCalendarNavigate = (date: Date) => {
+    // Update currentDate when calendar navigation occurs
+    setCurrentDate(date)
+  }
+
+  // Initialize date range on component mount and when currentDate changes
+  useEffect(() => {
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+
+    // Add buffer for better data coverage
+    const startDate = new Date(startOfMonth)
+    startDate.setDate(startDate.getDate() - 7)
+
+    const endDate = new Date(endOfMonth)
+    endDate.setDate(endDate.getDate() + 7)
+
+    const newDateRange = {
+      start: format(startDate, 'yyyy-MM-dd'),
+      end: format(endDate, 'yyyy-MM-dd')
+    }
+
+    // Only update if different to prevent infinite loops
+    if (newDateRange.start !== dateRange.start || newDateRange.end !== dateRange.end) {
+      setDateRangeDebounced(newDateRange)
+    }
+  }, [currentDate, setDateRangeDebounced])
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold light:text-gray-800 dark:text-white">
-        Calendar
-      </h1>
-      <h3 className="text-lg light:text-gray-500 dark:text-gray-400 mb-4">
-        Deep dive into your GitHub commits by selecting a repository and a date.
-      </h3>
-      <div className="mb-4 max-w-52">
-        <SelectComponent
-          placeholder="Select a repository"
-          options={
-            user.user
-              ? [
-                  { value: 'all', label: 'All Repositories' },
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      {/* Header Section */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              Commit Calendar
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Track your GitHub commits across repositories
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            {/* Repository Filter */}
+            <div className="min-w-[240px]">
+              <SelectComponent
+                placeholder="Select repository"
+                options={[
+                  { value: 'all', label: '🗂️ All Repositories' },
                   ...repos?.map((repo) => ({
                     value: repo.id,
-                    label: repo.name,
+                    label: `📁 ${repo.name}`,
                   })),
-                ]
-              : []
-          }
-          value={selectedRepo ? selectedRepo.id : 'all'}
-          onChange={handleRepoSelect}
-          disabled={!user.user}
-        />
-      </div>
-      <div className="relative">
-        {/* {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-opacity-50 bg-gray-100 dark:bg-gray-900 z-10">
-            <LoadingSpinner />
-          </div>
-        )} */}
-        <Card className="bg-gray-50 dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden py-4">
-          <CardContent>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="my-3 w-[280px] justify-start text-left font-normal"
-                >
-                  <CalendarDaysIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? (
-                    format(new Date(selectedDate), 'PPP')
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                className="w-auto p-2 sm:w-[300px] flex justify-center items-center"
+                ]}
+                value={selectedRepo ? selectedRepo.id : 'all'}
+                onChange={handleRepoSelect}
+                disabled={!user}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleForceRefresh}
+                disabled={forceRefreshMutation.isPending}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                <div className="flex justify-center items-center w-full">
+                <RefreshCw
+                  className={`w-4 h-4 ${forceRefreshMutation.isPending ? 'animate-spin' : ''}`}
+                />
+                Refresh
+              </Button>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <CalendarDaysIcon className="w-4 h-4" />
+                    {selectedDate ? format(new Date(selectedDate), 'MMM d') : 'Jump to date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={new Date(selectedDate)}
+                    selected={selectedDate ? new Date(selectedDate) : undefined}
                     onSelect={handleDateSelect}
-                    className="border rounded-md shadow-sm dark:bg-gray-800"
+                    className="rounded-md border shadow-lg"
                   />
-                </div>
-              </PopoverContent>
-            </Popover>
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              events={events}
-              eventTimeFormat={{
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-              }}
-              dayMaxEvents={false}
-              timeZone="Europe/Paris"
-              eventContent={(arg) => ({
-                html: `
-                  <div class="text-xs my-1 p-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white border-none shadow-sm whitespace-normal overflow-visible">
-                    ${arg.event.title}
-                  </div>
-                `,
-              })}
-              titleFormat={{ year: 'numeric', month: 'long' }}
-              dateClick={handleDateClick}
-              datesSet={handleDatesSet}
-              headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,dayGridWeek',
-              }}
-              height="auto"
-              dayCellDidMount={(arg) => {
-                const dateStr = arg.date.toISOString().split('T')[0]
-                if (
-                  isFetching &&
-                  dateStr >= dateRange.start &&
-                  dateStr <= dateRange.end
-                ) {
-                  const spinner = document.createElement('div')
-                  spinner.className = 'absolute bottom-1 right-1 w-4 h-4'
-                  spinner.innerHTML = '<LoadingSpinner />'
-                  arg.el.appendChild(spinner)
-                }
-              }}
-            />
-          </CardContent>
-        </Card>
-        {isFetching && (
-          <div className="absolute inset-0 bg-gray-100 dark:bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-            <LoadingSpinner />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </div>
+
+        {/* Status Bar */}
+        {lastSyncTime && (
+          <div className="mt-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span>Last updated {format(new Date(lastSyncTime), 'MMM d, HH:mm')}</span>
           </div>
         )}
       </div>
 
+      {/* Calendar Section */}
+      <div className="relative">
+        {/* No Commits Notice */}
+        {commitData.length === 0 && !isLoading && !isFetching && (
+          <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                <CalendarDaysIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  No commits found for this period
+                </h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  Try clicking the <strong>Refresh</strong> button to fetch the latest data from GitHub, or select a different time period.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CommitCalendar - Replace FullCalendar */}
+        <CommitCalendar
+          commits={filteredCommits}
+          selectedRepo={selectedRepo}
+          isLoading={isLoading || isFetching}
+          onRefresh={handleForceRefresh}
+          onDateClick={handleDateClick}
+          onCommitClick={handleCommitClick}
+          onCalendarNavigate={handleCalendarNavigate}
+          initialView={currentView === 'dayGridMonth' ? 'month' : currentView === 'dayGridWeek' ? 'week' : 'month'}
+          initialDate={currentDate}
+        />
+
+        {/* Loading Overlay - Only show when actually fetching new data */}
+        {(isFetching && !commitResponse) && (
+          <div className="absolute inset-0 bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-50 rounded-xl">
+            <div className="flex flex-col items-center gap-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+              <LoadingSpinner />
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                Loading commits...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Refresh Loading Overlay */}
+        {forceRefreshMutation.isPending && (
+          <div className="absolute inset-0 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 rounded-xl">
+            <div className="flex flex-col items-center gap-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+              <LoadingSpinner />
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                Refreshing data...
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
       <ModalCommits
         open={open}
         setOpen={setOpen}
