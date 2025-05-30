@@ -3,8 +3,10 @@ import { useMutation } from '@tanstack/react-query'
 import { Avatar, AvatarFallback } from '@radix-ui/react-avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from './ui/button'
-import { CheckCircle, XCircle, Sparkles } from 'lucide-react'
+import { CheckCircle, XCircle, Sparkles, Copy, Check, Download, RefreshCw } from 'lucide-react'
 import { AvatarImage } from './ui/avatar'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import {
   Select,
   SelectTrigger,
@@ -17,9 +19,7 @@ import { useToast } from './ui/use-toast'
 import { Commit } from '../../types/types'
 import { CommitDetailsProps } from '../../types/ui'
 
-const generateSummary = async (
-  commits: Array<{ commitMessage: string; diff: string }>,
-): Promise<{ summary: string }> => {
+const generateSummary = async (commits: Array<{ commitMessage: string; diff: string }>): Promise<{ summary: string; commitCount: number; type: string }> => {
   const response = await fetch('/api/mistral', {
     method: 'POST',
     headers: {
@@ -38,6 +38,8 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [uniqueUsers, setUniqueUsers] = useState<string[]>([])
   const [summary, setSummary] = useState<string>('')
+  const [summaryType, setSummaryType] = useState<string>('')
+  const [copied, setCopied] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -79,11 +81,12 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     mutationFn: generateSummary,
     onSuccess: (data) => {
       setSummary(data.summary)
+      setSummaryType(data.type)
       incrementSummaryCount()
       console.log('Summary count:', localStorage.getItem('summaryCount'))
       toast({
         title: 'Summary generated',
-        description: 'Your commit summary has been generated successfully.',
+        description: `Generated ${data.type} commit summary (${data.commitCount} commits)`,
       })
     },
     onError: (error) => {
@@ -111,18 +114,53 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-              .map(
-                (d: {
-                  filename: string
-                  additions: number
-                  deletions: number
-                }) => `${d.filename}: +${d.additions}, -${d.deletions}`,
-              )
-              .join('\n')
+            .map((d: { filename: string; additions: number; deletions: number }) => `${d.filename}: +${d.additions}, -${d.deletions}`)
+            .join('\n')
           : '',
     }))
 
     summaryMutation.mutate(commits)
+  }
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(summary)
+      setCopied(true)
+      toast({
+        title: 'Copied to clipboard',
+        description: 'Summary has been copied to your clipboard.',
+      })
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      toast({
+        title: 'Failed to copy',
+        description: 'Could not copy to clipboard.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const downloadSummary = () => {
+    const blob = new Blob([summary], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `commit-summary-${new Date().toISOString().split('T')[0]}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    toast({
+      title: 'Summary downloaded',
+      description: 'Summary has been saved as a markdown file.',
+    })
+  }
+
+  const regenerateSummary = () => {
+    setSummary('')
+    setSummaryType('')
+    generateSummaryForAllCommits()
   }
 
   if (commitDetails.length === 0) {
@@ -130,51 +168,147 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-        <div className="w-full max-w-32 ">
-          <Select
-            onValueChange={(value) =>
-              setSelectedUser(value === 'all' ? null : value)
-            }
-            disabled={uniqueUsers.length === 0 || uniqueUsers.length === 1}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by User" />
-            </SelectTrigger>
-            <SelectContent>
-              {uniqueUsers.map((user, idx) => (
-                <SelectItem key={idx} value={user}>
-                  {user}
-                </SelectItem>
-              ))}
-              <SelectItem value="all">Show All</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-full flex flex-row justify-around items-center">
-          <h3 className="font-bold text-gray-500 dark:text-gray-300 flex">
-            {' '}
-            Summarize your commits here{' '}
-            <Sparkles
-              className="ml-4 cursor-pointer"
-              onClick={generateSummaryForAllCommits}
-            />
-          </h3>
-          <div className="ml-4">
-            {summaryMutation.isPending && <LoadingSpinner />}
+    <div className="space-y-6">
+      {/* Controls Section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-3">
+          {/* User Filter */}
+          {uniqueUsers.length > 1 && (
+            <div className="min-w-[140px]">
+              <Select
+                onValueChange={(value) =>
+                  setSelectedUser(value === 'all' ? null : value)
+                }
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Filter by author" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All authors</SelectItem>
+                  {uniqueUsers.map((user, idx) => (
+                    <SelectItem key={idx} value={user}>
+                      {user}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Commit Count */}
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span className="font-medium">
+              {filteredCommits.length} commit{filteredCommits.length !== 1 ? 's' : ''}
+            </span>
+            {selectedUser && (
+              <span className="text-gray-500">by {selectedUser}</span>
+            )}
           </div>
-          <span className="text-gray-600 dark:text-gray-400">
-            {commitDetails.length} commit{commitDetails.length > 1 ? 's' : ''}
-          </span>
+        </div>
+
+        {/* AI Summary Section */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              AI Summary
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={generateSummaryForAllCommits}
+            disabled={summaryMutation.isPending}
+            className="flex items-center gap-2 h-8 text-sm"
+          >
+            {summaryMutation.isPending ? (
+              <LoadingSpinner />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            {summary ? 'Regenerate' : 'Generate'}
+          </Button>
         </div>
       </div>
+
+      {/* AI Summary Display */}
       {summary && (
-        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md mt-4">
-          <div className="whitespace-pre-wrap">{summary}</div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+          {/* Summary Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                  {summaryType === 'multiple' ? 'Development Session Summary' : 'Commit Summary'}
+                </h4>
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  Generated from {filteredCommits.length} commit{filteredCommits.length > 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={regenerateSummary}
+                disabled={summaryMutation.isPending}
+                className="h-8 w-8 p-0"
+                title="Regenerate summary"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={copyToClipboard}
+                className="h-8 w-8 p-0"
+                title="Copy to clipboard"
+              >
+                {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={downloadSummary}
+                className="h-8 w-8 p-0"
+                title="Download as markdown"
+              >
+                <Download className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Summary Content */}
+          <div className="p-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-li:text-gray-700 dark:prose-li:text-gray-300">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {summary}
+              </ReactMarkdown>
+            </div>
+          </div>
+
+          {/* Summary Footer */}
+          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-500 dark:text-gray-400">
+                Generated by AI • {new Date().toLocaleString()}
+              </span>
+              <span className="text-gray-500 dark:text-gray-400">
+                {localStorage.getItem('summaryCount') || 0}/{SUMMARY_LIMIT} daily summaries used
+              </span>
+            </div>
+          </div>
         </div>
       )}
-      <ul className="space-y-2">
+
+      {/* Commits List */}
+      <div className="space-y-3">
         {filteredCommits.map((commit, idx) => {
           const status = commit.status || 'Unverified'
           const avatarUrl =
@@ -183,80 +317,81 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
             commit.authorDetails?.avatar_url
 
           return (
-            <li
+            <div
               key={idx}
-              className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-md shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 hover:shadow-md transition-all duration-200"
             >
-              <div className="flex items-start space-x-4">
-                <div className="min-w-8 h-8 rounded-full flex justify-center items-center bg-white dark:bg-gray-900">
+              <div className="flex items-start gap-3">
+                {/* Avatar */}
+                <div className="flex-shrink-0">
                   <Avatar>
                     <AvatarImage
-                      className="w-8 h-8 rounded-full "
+                      className="w-8 h-8 rounded-full"
                       src={avatarUrl}
                       alt={commit.commit.author.name}
                     />
-                    <AvatarFallback className="w-8 h-8 rounded-full ">
+                    <AvatarFallback className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium text-xs">
                       {commit.commit.author.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {commit.commit.message}
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    by{' '}
-                    <span className="font-bold text-blue-400 dark:text-blue-300">
-                      {' '}
-                      {commit.commit.author.name}{' '}
-                    </span>{' '}
-                    at{' '}
-                    {new Date(commit.commit.author.date).toLocaleString(
-                      'en-US',
-                      {
-                        timeZone: 'UTC',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false,
-                      },
-                    )}
-                  </p>
+
+                {/* Commit Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 leading-relaxed mb-1">
+                        {commit.commit.message}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="font-medium text-blue-600 dark:text-blue-400">
+                          {commit.commit.author.name}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          {new Date(commit.commit.author.date).toLocaleString('en-US', {
+                            timeZone: 'UTC',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                          })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Status and Actions */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {status === 'Verified' ? (
+                        <Badge className="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 text-xs px-2 py-1">
+                          <CheckCircle className="h-3 w-3" />
+                          <span>Verified</span>
+                        </Badge>
+                      ) : (
+                        <Badge className="flex items-center gap-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800 text-xs px-2 py-1">
+                          <XCircle className="h-3 w-3" />
+                          <span>Unverified</span>
+                        </Badge>
+                      )}
+
+                      {commit.actions?.map((action: { name: string; url: string }, actionIdx: number) => (
+                        <Button
+                          key={actionIdx}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(action.url, '_blank')}
+                          className="h-6 px-2 text-xs"
+                        >
+                          {action.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto sm:space-x-2 space-y-2 sm:space-y-0 mt-4 sm:mt-0">
-                {status === 'Verified' ? (
-                  <Badge className="flex items-center space-x-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 transition-colors">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>{status}</span>
-                  </Badge>
-                ) : (
-                  <Badge className="flex items-center space-x-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors">
-                    <XCircle className="h-4 w-4 text-red-500" />
-                    <span>{status}</span>
-                  </Badge>
-                )}
-                <div className="flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0">
-                  {commit.actions?.map(
-                    (
-                      action: { name: string; url: string },
-                      actionIdx: number,
-                    ) => (
-                      <Button
-                        key={actionIdx}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => window.open(action.url, '_blank')}
-                      >
-                        {action.name}
-                      </Button>
-                    ),
-                  )}
-                </div>
-              </div>
-            </li>
+            </div>
           )
         })}
-      </ul>
+      </div>
     </div>
   )
 }
