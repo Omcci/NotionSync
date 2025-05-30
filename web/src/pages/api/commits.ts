@@ -13,9 +13,8 @@ const fetchCommits = async (
   since?: string,
   until?: string,
 ) => {
-  const commitsUrl = `https://api.github.com/repos/${owner}/${repoName}/commits?page=${page}&per_page=${per_page}${
-    since && until ? `&since=${since}&until=${until}` : ''
-  }`
+  const commitsUrl = `https://api.github.com/repos/${owner}/${repoName}/commits?page=${page}&per_page=${per_page}${since && until ? `&since=${since}&until=${until}` : ''
+    }`
 
   const response = await fetch(commitsUrl, {
     headers: { Authorization: `token ${githubToken}` },
@@ -135,7 +134,7 @@ const processCommits = async (
   )
 }
 
-const fetchCommitsForMultipleRepos = async (
+export const fetchCommitsForMultipleRepos = async (
   token: string,
   repos: { owner: string; name: string }[],
   startDate?: string,
