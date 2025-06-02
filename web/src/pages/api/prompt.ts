@@ -1,13 +1,13 @@
 export const mistral_prompt = (commitMessage: string, diff: string) => `
-You are an expert software developer analyzing Git commits. Create a comprehensive, well-structured summary of the following commit(s).
+You are an expert software developer analyzing Git commits. Create an engaging, well-structured summary of what was actually accomplished.
 
 **Instructions:**
-- Provide a clear, professional summary in markdown format
-- Focus on the business impact and technical changes
-- Use bullet points for readability
-- Keep the summary concise but informative (200-400 words)
-- Use proper technical terminology
-- Highlight breaking changes or important updates
+- Tell the story of what was built or changed in this commit
+- Focus on functionality, user experience, and problem-solving
+- Use different text sizes for different levels of importance
+- Keep it engaging and readable for both technical and non-technical readers
+- Base everything on actual code changes - no generic advice
+- Explain the "why" and "what" behind the changes
 
 **Commit Message(s):**
 ${commitMessage}
@@ -17,36 +17,42 @@ ${diff}
 
 **Please provide a summary with the following structure:**
 
-## 📋 Summary
-[Brief overview of what was accomplished]
+## 📋 What Was Accomplished
+[Tell the story of what was actually built or changed in this commit]
 
-## 🔧 Technical Changes
-- [List specific functions, methods, or components modified]
-- [Mention any new features or functionality added]
-- [Note any code refactoring or optimization]
+## 🔧 How It Works
+- [Explain the key functionality that was implemented]
+- [Describe how the solution works without listing file names]
+- [Focus on the logic and approach used]
 
-## 💡 Key Improvements
-- [Highlight performance improvements]
-- [Note bug fixes or security enhancements]
-- [Mention any architectural changes]
+## 💡 Problems Solved
+- [What specific issues or challenges were addressed]
+- [How the implementation improves the existing system]
+- [What edge cases or scenarios are now handled]
 
-## ⚠️ Important Notes
-- [Any breaking changes or migration requirements]
-- [Dependencies added or updated]
-- [Configuration changes needed]
+## ⚠️ Important Changes
+- [Any significant behavior changes users will notice]
+- [New dependencies or requirements introduced]
+- [Breaking changes that affect how things work]
 
-Focus on clarity and usefulness for team members who need to understand the changes quickly.
+## 🎯 Key Implementation Details
+- [Interesting technical approaches or patterns used]
+- [Smart solutions or optimizations implemented]
+- [Areas where special attention was given based on the code]
+
+Make it read like a story of actual work accomplished, not a technical specification.
 `
 
 export const summary_prompt_multiple = (commits: Array<{ commitMessage: string; diff: string }>) => `
-You are an expert software developer analyzing multiple Git commits from a development session. Create a comprehensive daily/session summary.
+You are an expert software developer analyzing a development session. Create an engaging summary of what was actually accomplished across ${commits.length} commits.
 
 **Instructions:**
-- Analyze ${commits.length} commits as a cohesive development session
-- Provide a high-level overview of the day's work
-- Group related changes together
-- Focus on the overall progress and achievements
-- Use markdown formatting for readability
+- Tell the cohesive story of this development session
+- Focus on what functionality was built, what problems were solved
+- Make it interesting and readable for anyone to understand
+- Group related work together logically
+- Base everything on actual code changes - no generic advice
+- Show the progression and evolution of the work
 
 **Commits to analyze:**
 ${commits.map((commit, index) => `
@@ -57,26 +63,30 @@ ${commits.map((commit, index) => `
 
 **Please provide a summary with the following structure:**
 
-## 🚀 Development Session Summary
-[High-level overview of what was accomplished in this session]
+## 🚀 Development Session Story
+[Tell the overarching story of what was accomplished in this session]
 
-## 📊 Statistics
-- **Total Commits:** ${commits.length}
-- **Key Areas Modified:** [List main components/features worked on]
+## 📊 Session Overview
+- **Commits Made:** ${commits.length}
+- **Main Features Built:** [What major functionality was developed]
+- **Key Problems Solved:** [What issues were tackled]
 
-## 🔄 Major Changes
-- [Group related commits and describe the overall impact]
-- [Highlight new features or major refactoring]
-- [Note any architectural decisions]
+## 🔄 Major Accomplishments
+- [Group related work and explain what was built/changed]
+- [Describe new features or improvements made]
+- [Explain how different pieces fit together]
 
-## 🐛 Fixes & Improvements
-- [Summarize bug fixes across commits]
-- [Performance optimizations]
-- [Code quality improvements]
+## 🐛 Issues Resolved
+- [What specific bugs or problems were fixed]
+- [Performance improvements that were made]
+- [User experience enhancements implemented]
 
-## 📝 Next Steps
-- [Suggest logical next development steps based on the changes]
-- [Note any incomplete work or TODOs]
+## 🎯 Session Highlights
+- [Most interesting or complex work done in this session]
+- [Clever solutions or approaches taken]
+- [Significant functionality that was completed]
+- [Key milestones reached in the development]
 
-Keep the summary focused on the big picture while being specific about technical achievements.
+AI personal note:
+Write it like a progress report that shows real work accomplished, not a dry technical document.
 `

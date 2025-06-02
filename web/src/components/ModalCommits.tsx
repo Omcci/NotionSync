@@ -114,7 +114,7 @@ const ModalCommits = ({
             </div>
           ) : (
             <div className="p-4">
-              <CommitDetails commitDetails={commitDetails} />
+              <CommitDetails commitDetails={commitDetails} selectedDate={selectedDate} />
             </div>
           )}
         </div>

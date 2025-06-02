@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Avatar, AvatarFallback } from '@radix-ui/react-avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from './ui/button'
 import { CheckCircle, XCircle, Sparkles, Copy, Check, Download, RefreshCw } from 'lucide-react'
-import { AvatarImage } from './ui/avatar'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import {
@@ -17,7 +16,11 @@ import {
 import { LoadingSpinner } from './ui/loadingspinner'
 import { useToast } from './ui/use-toast'
 import { Commit } from '../../types/types'
-import { CommitDetailsProps } from '../../types/ui'
+
+interface CommitDetailsProps {
+  commitDetails: Commit[]
+  selectedDate?: string
+}
 
 const generateSummary = async (commits: Array<{ commitMessage: string; diff: string }>): Promise<{ summary: string; commitCount: number; type: string }> => {
   const response = await fetch('/api/mistral', {
@@ -33,7 +36,7 @@ const generateSummary = async (commits: Array<{ commitMessage: string; diff: str
   return await response.json()
 }
 
-const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
+const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
   const [filteredCommits, setFilteredCommits] = useState<Commit[]>([])
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [uniqueUsers, setUniqueUsers] = useState<string[]>([])
@@ -77,11 +80,37 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
     localStorage.setItem('summaryCount', currentCount.toString())
   }
 
+  // Function to get the storage key for a specific date
+  const getSummaryStorageKey = (date: string) => `summary_${date}`
+
+  // Load existing summary for the selected date
+  useEffect(() => {
+    if (selectedDate) {
+      const storedSummary = localStorage.getItem(getSummaryStorageKey(selectedDate))
+      const storedType = localStorage.getItem(`${getSummaryStorageKey(selectedDate)}_type`)
+
+      if (storedSummary) {
+        setSummary(storedSummary)
+        setSummaryType(storedType || 'multiple')
+      } else {
+        setSummary('')
+        setSummaryType('')
+      }
+    }
+  }, [selectedDate])
+
   const summaryMutation = useMutation({
     mutationFn: generateSummary,
     onSuccess: (data) => {
       setSummary(data.summary)
       setSummaryType(data.type)
+
+      // Store summary with date-based key
+      if (selectedDate) {
+        localStorage.setItem(getSummaryStorageKey(selectedDate), data.summary)
+        localStorage.setItem(`${getSummaryStorageKey(selectedDate)}_type`, data.type)
+      }
+
       incrementSummaryCount()
       console.log('Summary count:', localStorage.getItem('summaryCount'))
       toast({
@@ -160,6 +189,13 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
   const regenerateSummary = () => {
     setSummary('')
     setSummaryType('')
+
+    // Clear stored summary for regeneration
+    if (selectedDate) {
+      localStorage.removeItem(getSummaryStorageKey(selectedDate))
+      localStorage.removeItem(`${getSummaryStorageKey(selectedDate)}_type`)
+    }
+
     generateSummaryForAllCommits()
   }
 
@@ -284,9 +320,23 @@ const CommitDetails = ({ commitDetails }: CommitDetailsProps) => {
             </div>
           </div>
 
-          {/* Summary Content */}
-          <div className="p-4">
-            <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-li:text-gray-700 dark:prose-li:text-gray-300">
+          {/* Summary Content with Enhanced Styling */}
+          <div className="p-6 bg-gray-50/50 dark:bg-gray-900/50">
+            <div className="prose prose-base dark:prose-invert max-w-none
+                          prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-gray-100
+                          prose-h1:text-2xl prose-h1:border-b prose-h1:border-gray-200 dark:prose-h1:border-gray-700 prose-h1:pb-3 prose-h1:mb-6
+                          prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:text-gray-800 dark:prose-h2:text-gray-200
+                          prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-h3:text-gray-700 dark:prose-h3:text-gray-300
+                          prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-p:mb-4
+                          prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-li:mb-2
+                          prose-ul:my-6 prose-ol:my-6
+                          prose-li:marker:text-blue-500 dark:prose-li:marker:text-blue-400
+                          prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-strong:font-semibold
+                          prose-em:text-gray-600 dark:prose-em:text-gray-400 prose-em:italic
+                          prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:my-6
+                          prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono
+                          prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-700
+                          space-y-4">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {summary}
               </ReactMarkdown>
