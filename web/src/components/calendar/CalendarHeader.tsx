@@ -37,7 +37,7 @@ export function CalendarHeader({
 
     return (
         <div className={cn(
-            "calendar-header flex items-center justify-between p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white",
+            "calendar-header flex items-center justify-between p-6 bg-slate-800 text-white border-b-2 border-slate-600 rounded-t-lg",
             className
         )}>
             {/* Left: Navigation */}
@@ -48,7 +48,7 @@ export function CalendarHeader({
                             variant="ghost"
                             size="sm"
                             onClick={onPrevious}
-                            className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                            className="text-white hover:bg-white/10 h-8 w-8 p-0 transition-colors"
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </Button>
@@ -56,7 +56,7 @@ export function CalendarHeader({
                             variant="ghost"
                             size="sm"
                             onClick={onNext}
-                            className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                            className="text-white hover:bg-white/10 h-8 w-8 p-0 transition-colors"
                         >
                             <ChevronRight className="w-4 h-4" />
                         </Button>
@@ -64,7 +64,7 @@ export function CalendarHeader({
                             variant="ghost"
                             size="sm"
                             onClick={onToday}
-                            className="text-white hover:bg-white/20 px-3 h-8"
+                            className="text-white hover:bg-white/10 px-3 h-8 transition-colors"
                         >
                             Today
                         </Button>
@@ -75,7 +75,7 @@ export function CalendarHeader({
             {/* Center: Title */}
             <div className="flex flex-col items-center">
                 <h1 className="text-xl font-bold">{title}</h1>
-                {subtitle && <p className="text-sm opacity-90">{subtitle}</p>}
+                {subtitle && <p className="text-sm opacity-75">{subtitle}</p>}
             </div>
 
             {/* Right: View Switcher */}
@@ -87,10 +87,10 @@ export function CalendarHeader({
                             size="sm"
                             onClick={() => onViewChange('month')}
                             className={cn(
-                                "h-8 px-3",
+                                "h-8 px-3 transition-colors",
                                 view === 'month'
-                                    ? "bg-white/20 text-white"
-                                    : "text-white hover:bg-white/20"
+                                    ? "bg-white/15 text-white hover:bg-white/20"
+                                    : "text-white hover:bg-white/10"
                             )}
                         >
                             Month
@@ -100,10 +100,10 @@ export function CalendarHeader({
                             size="sm"
                             onClick={() => onViewChange('week')}
                             className={cn(
-                                "h-8 px-3",
+                                "h-8 px-3 transition-colors",
                                 view === 'week'
-                                    ? "bg-white/20 text-white"
-                                    : "text-white hover:bg-white/20"
+                                    ? "bg-white/15 text-white hover:bg-white/20"
+                                    : "text-white hover:bg-white/10"
                             )}
                         >
                             Week
@@ -113,10 +113,10 @@ export function CalendarHeader({
                             size="sm"
                             onClick={() => onViewChange('day')}
                             className={cn(
-                                "h-8 px-3",
+                                "h-8 px-3 transition-colors",
                                 view === 'day'
-                                    ? "bg-white/20 text-white"
-                                    : "text-white hover:bg-white/20"
+                                    ? "bg-white/15 text-white hover:bg-white/20"
+                                    : "text-white hover:bg-white/10"
                             )}
                         >
                             Day

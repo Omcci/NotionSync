@@ -34,13 +34,13 @@ export function CalendarGrid({
 
     if (calendar.isMonthView) {
         return (
-            <div className={cn("calendar-grid h-full flex flex-col", className)}>
+            <div className={cn("calendar-grid h-full flex flex-col bg-gray-50 dark:bg-gray-900", className)}>
                 {/* Week headers */}
-                <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-7 border-b-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800">
                     {calendar.weekDays.map((day) => (
                         <div
                             key={day.short}
-                            className="p-3 text-center text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800"
+                            className="p-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
                         >
                             {day.short}
                         </div>
@@ -50,7 +50,7 @@ export function CalendarGrid({
                 {/* Calendar weeks */}
                 <div className="flex-1 grid grid-rows-6">
                     {calendar.weeks.map((week, weekIndex) => (
-                        <div key={weekIndex} className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                        <div key={weekIndex} className="grid grid-cols-7">
                             {week.map((day) => (
                                 <CalendarDay
                                     key={day.date.toISOString()}

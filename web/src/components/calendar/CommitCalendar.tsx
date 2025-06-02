@@ -150,16 +150,16 @@ export function CommitCalendar({
         const displayCommits = commits.slice(0, maxDisplayCommits)
 
         return (
-            <div className="commit-event-container relative group cursor-pointer bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-all mb-1">
+            <div className="commit-event-container relative group cursor-pointer bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm hover:shadow-md transition-all mb-1 overflow-hidden">
                 {/* Header with Repository Info */}
-                <div className="commit-header flex items-center justify-between p-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-t-lg">
+                <div className="commit-header flex items-center justify-between p-2 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                         <span className="text-xs">📁</span>
                         <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate">
-                            {repoName.length > 15 ? `${repoName.substring(0, 15)}...` : repoName}
+                            {repoName.length > 12 ? `${repoName.substring(0, 12)}...` : repoName}
                         </span>
                     </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium ml-2">
+                    <span className="text-xs text-gray-600 dark:text-gray-300 font-semibold ml-2 bg-white dark:bg-gray-600 px-1.5 py-0.5 rounded-md shadow-sm">
                         {commitCount}
                     </span>
                 </div>
@@ -170,22 +170,22 @@ export function CommitCalendar({
                         const message = typeof commit.commit?.message === 'string'
                             ? commit.commit.message
                             : 'No message'
-                        const truncatedMessage = message.length > 25 ? `${message.substring(0, 25)}...` : message
+                        const truncatedMessage = message.length > 22 ? `${message.substring(0, 22)}...` : message
 
                         return (
                             <div key={index} className="commit-item text-xs text-gray-600 dark:text-gray-300">
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1.5">
                                     <div
-                                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                        className="w-1.5 h-1.5 rounded-full flex-shrink-0 shadow-sm"
                                         style={{ backgroundColor: event.color }}
                                     />
-                                    <span className="truncate">{truncatedMessage}</span>
+                                    <span className="truncate font-medium">{truncatedMessage}</span>
                                 </div>
                             </div>
                         )
                     })}
                     {commitCount > maxDisplayCommits && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold text-center pt-1 border-t border-gray-100 dark:border-gray-600">
                             +{commitCount - maxDisplayCommits} more
                         </div>
                     )}
@@ -220,29 +220,21 @@ export function CommitCalendar({
         }
 
         const handleMouseEnter = () => {
-            // Show popup immediately if there are commits
+            // Only show popup if there are commits to display
             if (dayCommits.length > 0) {
                 setHoveredDate(date)
             }
         }
 
         const handleMouseLeave = () => {
-            // Add a small delay to allow moving to popup
-            setTimeout(() => {
-                // Only hide if we're not hovering over the popup
-                if (hoveredDate && format(hoveredDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')) {
-                    // Check if we're still over this day or its popup
-                    const isStillHovering = document.querySelector('.popup-container:hover')
-                    if (!isStillHovering) {
-                        setHoveredDate(null)
-                    }
-                }
-            }, 100)
+            setHoveredDate(null)
         }
 
         const handlePopupMouseEnter = () => {
-            // Keep popup open when hovering over it
-            setHoveredDate(date)
+            // Keep popup open when hovering over it (only if there are commits)
+            if (dayCommits.length > 0) {
+                setHoveredDate(date)
+            }
         }
 
         const handlePopupMouseLeave = () => {
@@ -251,29 +243,38 @@ export function CommitCalendar({
         }
 
         const handlePopupClick = () => {
-            // Allow clicking on popup to open commit details
             handleDayClick()
         }
 
+        // Calculate if popup should appear on left or right based on day cell position
+        const shouldShowOnLeft = (() => {
+            if (typeof window === 'undefined') return false
+            const dayCell = document.querySelector(`[data-date="${format(date, 'yyyy-MM-dd')}"]`)
+            if (!dayCell) return window.innerWidth < 768 // fallback for mobile
+            const rect = dayCell.getBoundingClientRect()
+            return rect.right + 680 > window.innerWidth // 640px popup + 40px margin
+        })()
+
         return (
             <div
-                className={`relative border-r border-gray-200 dark:border-gray-700 last:border-r-0 min-h-[120px] p-2 cursor-pointer transition-colors ${isCurrentMonth
-                    ? "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800"
+                data-date={format(date, 'yyyy-MM-dd')}
+                className={`calendar-day-cell relative transition-all duration-200 cursor-pointer border-r border-b border-gray-200 dark:border-gray-700 last:border-r-0 ${isCurrentMonth
+                    ? "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md"
                     : "bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
-                    } ${isToday ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800" : ""} ${isHovered ? "z-[9999] relative" : ""}`}
+                    } ${isToday ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm" : ""} ${isHovered ? "z-[9998] relative shadow-2xl ring-4 ring-blue-500/60 dark:ring-blue-400/60 bg-white dark:bg-gray-800 scale-[1.05] border-blue-300 dark:border-blue-600" : ""} min-h-[120px] p-3`}
                 onClick={handleDayClick}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             >
                 {/* Day number */}
-                <div className="flex items-center justify-between mb-2">
-                    <span className={`text-sm font-medium ${isToday ? "bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs" : ""
-                        } ${!isCurrentMonth ? "text-gray-400 dark:text-gray-600" : ""}`}>
+                <div className="flex items-center justify-between mb-3">
+                    <span className={`text-sm font-semibold ${isToday ? "bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-sm" : ""
+                        } ${!isCurrentMonth ? "text-gray-400 dark:text-gray-600" : "text-gray-700 dark:text-gray-300"}`}>
                         {format(date, 'd')}
                     </span>
                     {/* Repository count indicator */}
                     {repoCount > 0 && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                        <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md font-medium shadow-sm">
                             {repoCount} repo{repoCount !== 1 ? 's' : ''}
                         </span>
                     )}
@@ -282,32 +283,49 @@ export function CommitCalendar({
                 {/* Events */}
                 <div className="space-y-1">
                     {events.slice(0, 3).map((event) => renderEvent(event, date))}
+                    {events.length > 3 && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-1 font-medium">
+                            +{events.length - 3} more
+                        </div>
+                    )}
                 </div>
 
-                {/* Blur Focus Effect - blur everything except hovered day and popup */}
+                {/* Popup Connection Animation */}
                 {isHovered && dayCommits.length > 0 && (
                     <>
-                        {/* Blur Backdrop */}
-                        <div className="fixed inset-0 z-[9998] pointer-events-none">
-                            <div className="absolute inset-0 backdrop-blur-sm bg-black/10" />
-                        </div>
-
-                        {/* Popup */}
+                        {/* Popup with Triangle Pointer */}
                         <div
-                            className="absolute top-0 left-full ml-2 z-[9999] max-h-96 popup-container"
+                            className="absolute top-0 z-[9999] max-h-96 popup-container animate-in slide-in-from-left-8 fade-in duration-300 ease-out"
                             style={{
-                                // Smart positioning: if near right edge, show on left instead
-                                left: typeof window !== 'undefined' && window.innerWidth - 640 < 0 ? 'auto' : '100%',
-                                right: typeof window !== 'undefined' && window.innerWidth - 640 < 0 ? '100%' : 'auto',
-                                marginLeft: typeof window !== 'undefined' && window.innerWidth - 640 < 0 ? 0 : '8px',
-                                marginRight: typeof window !== 'undefined' && window.innerWidth - 640 < 0 ? '8px' : 0,
-                                width: '40rem', // 640px - twice the original width (320px * 2)
+                                // Smart positioning: check if popup would overflow on the right
+                                left: shouldShowOnLeft ? 'auto' : '100%',
+                                right: shouldShowOnLeft ? '100%' : 'auto',
+                                marginLeft: shouldShowOnLeft ? '-12px' : '12px',
+                                marginRight: shouldShowOnLeft ? '12px' : '0px',
+                                width: '40rem', // 640px
+                                transformOrigin: shouldShowOnLeft ? 'right center' : 'left center',
                             }}
                             onMouseEnter={handlePopupMouseEnter}
                             onMouseLeave={handlePopupMouseLeave}
                             onClick={handlePopupClick}
                         >
-                            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden cursor-pointer hover:shadow-3xl transition-shadow">
+                            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden cursor-pointer hover:shadow-3xl transition-shadow transform scale-100 hover:scale-[1.02] relative">
+                                {/* Triangle Pointer */}
+                                <div
+                                    className="absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white dark:bg-gray-800 border rotate-45"
+                                    style={{
+                                        right: shouldShowOnLeft ? 'auto' : '100%',
+                                        left: shouldShowOnLeft ? '100%' : 'auto',
+                                        marginRight: shouldShowOnLeft ? '0' : '-6px',
+                                        marginLeft: shouldShowOnLeft ? '-6px' : '0',
+                                        borderColor: shouldShowOnLeft
+                                            ? 'transparent rgb(229 231 235) transparent transparent'
+                                            : 'transparent transparent rgb(229 231 235) transparent',
+                                        borderWidth: '1px',
+                                        zIndex: 10
+                                    }}
+                                />
+
                                 {/* Header */}
                                 <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                                     <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-base">
@@ -374,6 +392,11 @@ export function CommitCalendar({
     return (
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl overflow-visible">
             <CardContent className="p-0 overflow-visible">
+                {/* Global blur overlay when any day is hovered */}
+                {hoveredDate && (
+                    <div className="fixed inset-0 z-[9997] pointer-events-none backdrop-blur-sm bg-black/20 animate-in fade-in duration-200" />
+                )}
+
                 <Calendar
                     events={events}
                     initialView={initialView || 'month'}
