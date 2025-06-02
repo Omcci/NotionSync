@@ -1,92 +1,211 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { CacheService } from '@/services/cacheService'
+import { CacheService } from '../../../services/cacheService'
+import { getGitHubToken } from '../../../lib/auth'
+import { supabase } from '../../../lib/supabaseClient'
 
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ message: 'Method not allowed' })
     }
 
-    const authHeader = req.headers.authorization
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Unauthorized' })
-    }
-
-    const githubToken = authHeader.split(' ')[1]
-    const { userId, startDate, endDate, forceRefresh, repositoryCacheTime, commitCacheTime } = req.query as {
-        userId: string
-        startDate: string
-        endDate: string
-        forceRefresh?: string
-        repositoryCacheTime?: string
-        commitCacheTime?: string
-    }
-
-    if (!userId || !startDate || !endDate) {
-        return res.status(400).json({ message: 'Missing required parameters: userId, startDate, endDate' })
-    }
-
     try {
-        // Parse cache configuration
-        const cacheConfig = {
-            forceRefresh: forceRefresh === 'true',
-            repositoryCacheTime: repositoryCacheTime ? parseInt(repositoryCacheTime) : undefined,
-            commitCacheTime: commitCacheTime ? parseInt(commitCacheTime) : undefined,
-        }
-
-        // Get repositories with intelligent caching
-        const repositoriesResult = await CacheService.getRepositories(
+        const {
             userId,
-            githubToken,
-            cacheConfig
-        )
-
-        // Get commits with intelligent caching
-        const commitsResult = await CacheService.getCommits(
-            userId,
-            repositoriesResult.data,
-            githubToken,
             startDate,
             endDate,
+            forceRefresh = 'false',
+            repositoryCacheTime = '60',
+            commitCacheTime = '30',
+            maxCommitsPerRepo = '1000'
+        } = req.query
+
+        if (!userId || !startDate || !endDate) {
+            return res.status(400).json({
+                message: 'Missing required parameters: userId, startDate, endDate'
+            })
+        }
+
+        console.log('🗄️  Smart cache request:', {
+            userId,
+            startDate,
+            endDate,
+            forceRefresh,
+            maxCommitsPerRepo
+        })
+
+        // Try to get GitHub token from Authorization header first (client-side auth)
+        const authHeader = req.headers.authorization
+        let githubToken: string | null = null
+
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            githubToken = authHeader.split(' ')[1]
+            console.log('✅ Using GitHub token from Authorization header')
+        } else {
+            console.log('⚠️  No Authorization header found, checking server-side session')
+
+            // Fallback: check server-side session and get token
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+            if (sessionError) {
+                console.error('❌ Session error:', sessionError)
+                return res.status(401).json({
+                    message: 'Authentication session error',
+                    error: sessionError.message,
+                    authRequired: true
+                })
+            }
+
+            if (!session) {
+                console.log('❌ No active session found')
+                return res.status(401).json({
+                    message: 'No active authentication session. Please log in with GitHub.',
+                    authRequired: true,
+                    redirectTo: '/login'
+                })
+            }
+
+            if (session.user.id !== userId) {
+                console.log('❌ User ID mismatch:', { sessionUserId: session.user.id, requestUserId: userId })
+                return res.status(403).json({
+                    message: 'User ID mismatch. Please re-authenticate.',
+                    authRequired: true,
+                    redirectTo: '/login'
+                })
+            }
+
+            // Try to get GitHub token from session or database
+            try {
+                githubToken = await getGitHubToken()
+            } catch (error) {
+                console.error('❌ GitHub token error:', error)
+
+                if (error instanceof Error && error.message.includes('No valid GitHub token')) {
+                    return res.status(401).json({
+                        message: 'GitHub authentication required',
+                        error: 'No valid GitHub token found. Please authenticate with GitHub to access your repositories.',
+                        authRequired: true,
+                        redirectTo: '/login',
+                        suggestion: 'Click "Connect GitHub Account" to authenticate and sync your repositories.'
+                    })
+                }
+
+                return res.status(401).json({
+                    message: 'GitHub authentication error',
+                    error: error instanceof Error ? error.message : 'Unknown authentication error',
+                    authRequired: true,
+                    redirectTo: '/login'
+                })
+            }
+        }
+
+        if (!githubToken) {
+            return res.status(401).json({
+                message: 'GitHub token not found',
+                error: 'No GitHub access token available. Please re-authenticate with GitHub.',
+                authRequired: true,
+                redirectTo: '/login'
+            })
+        }
+
+        // Parse cache configuration
+        const cacheConfig = {
+            repositoryCacheTime: parseInt(repositoryCacheTime as string),
+            commitCacheTime: parseInt(commitCacheTime as string),
+            forceRefresh: forceRefresh === 'true'
+        }
+
+        console.log('⚙️  Cache configuration:', cacheConfig)
+        console.log('✅ Authentication successful, proceeding with commit fetch')
+
+        // Get repositories with caching
+        const repositoriesResult = await CacheService.getRepositories(
+            userId as string,
+            githubToken,
+            { repositoryCacheTime: cacheConfig.repositoryCacheTime }
+        )
+
+        console.log(`📂 Found ${repositoriesResult.data.length} repositories (source: ${repositoriesResult.source})`)
+
+        if (repositoriesResult.data.length === 0) {
+            return res.status(200).json({
+                commits: [],
+                metadata: {
+                    repositories: repositoriesResult,
+                    commits: {
+                        source: 'none',
+                        count: 0,
+                        lastUpdated: new Date().toISOString(),
+                        isFresh: true
+                    },
+                    pagination: {
+                        totalRepositories: 0,
+                        limitedRepositories: 0,
+                        totalCommits: 0
+                    }
+                },
+                message: 'No repositories found. Make sure you have access to repositories or try refreshing your GitHub connection.'
+            })
+        }
+
+        // Get commits with smart caching and pagination
+        const commitsResult = await CacheService.getCommitsWithPagination(
+            userId as string,
+            repositoriesResult.data,
+            githubToken,
+            startDate as string,
+            endDate as string,
+            parseInt(maxCommitsPerRepo as string),
             cacheConfig
         )
 
-        // Get cache statistics
-        const cacheStats = await CacheService.getCacheStats(userId)
+        console.log(`📊 Final results:`)
+        console.log(`  - Total commits: ${commitsResult.data.commits.length}`)
+        console.log(`  - Limited repositories: ${commitsResult.data.limitedRepositories}`)
 
-        res.status(200).json({
-            commits: commitsResult.data,
-            repositories: repositoriesResult.data,
+        return res.status(200).json({
+            commits: commitsResult.data.commits,
             metadata: {
+                repositories: repositoriesResult,
                 commits: {
                     source: commitsResult.source,
+                    count: commitsResult.data.commits.length,
                     lastUpdated: commitsResult.lastUpdated,
-                    isFresh: commitsResult.isFresh,
-                    count: commitsResult.data.length
+                    isFresh: commitsResult.isFresh
                 },
-                repositories: {
-                    source: repositoriesResult.source,
-                    lastUpdated: repositoriesResult.lastUpdated,
-                    isFresh: repositoriesResult.isFresh,
-                    count: repositoriesResult.data.length
-                },
-                cache: cacheStats,
-                performance: {
-                    usedCache: commitsResult.source === 'cache',
-                    cacheHitRatio: commitsResult.source === 'cache' ? 1 : 0,
-                    message: commitsResult.source === 'cache'
-                        ? 'Data served from cache for optimal performance'
-                        : 'Data fetched from GitHub API and cached for future requests'
+                pagination: {
+                    totalRepositories: commitsResult.data.totalRepositories,
+                    limitedRepositories: commitsResult.data.limitedRepositories,
+                    totalCommits: commitsResult.data.commits.length,
+                    repositoryDetails: commitsResult.data.repositoryDetails
                 }
             }
         })
 
     } catch (error) {
-        console.error('Error in smart cache commits:', error)
-        res.status(500).json({
-            message: 'Failed to fetch commits',
+        console.error('❌ Smart cache error:', error)
+
+        // Handle specific authentication errors
+        if (error instanceof Error) {
+            if (error.message.includes('Unauthorized') || error.message.includes('GitHub token')) {
+                return res.status(401).json({
+                    message: 'Authentication required',
+                    error: error.message,
+                    authRequired: true,
+                    redirectTo: '/login'
+                })
+            }
+
+            if (error.message.includes('rate limit')) {
+                return res.status(429).json({
+                    message: 'GitHub API rate limit exceeded',
+                    error: error.message,
+                    retryAfter: 3600 // 1 hour
+                })
+            }
+        }
+
+        return res.status(500).json({
+            message: 'Internal server error',
             error: error instanceof Error ? error.message : 'Unknown error'
         })
     }
