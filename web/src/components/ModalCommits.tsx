@@ -73,15 +73,36 @@ const ModalCommits = ({
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12 space-y-4">
-              <LoadingSpinner />
-              <div className="text-center">
-                <p className="text-gray-600 dark:text-gray-400 font-medium">
+            <div className="flex flex-col items-center justify-center py-16 space-y-6">
+              {/* Enhanced loading animation */}
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 opacity-20 animate-pulse"></div>
+                <div className="absolute inset-2 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center">
+                  <LoadingSpinner className="w-6 h-6 text-blue-500" />
+                </div>
+              </div>
+
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   Loading commits...
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
+                  Fetching your development activity for {format(new Date(selectedDate), 'MMM d, yyyy')}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                  Fetching your development activity
-                </p>
+              </div>
+
+              {/* Progress indicators */}
+              <div className="flex space-x-1">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                    style={{
+                      animationDelay: `${i * 0.2}s`,
+                      animationDuration: '1s'
+                    }}
+                  />
+                ))}
               </div>
             </div>
           ) : isError ? (
