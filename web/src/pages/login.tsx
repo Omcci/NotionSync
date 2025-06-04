@@ -8,13 +8,16 @@ const LoginPage = () => {
   const router = useRouter()
   const { user, isLoading } = useUser()
   const [redirecting, setRedirecting] = useState(false)
+  const { redirectTo } = router.query
 
   useEffect(() => {
     if (!isLoading && user) {
       setRedirecting(true)
-      router.push('/dashboardv0')
+      // Check if there's a redirectTo parameter from the ProtectedRoute
+      const destination = redirectTo && typeof redirectTo === 'string' ? redirectTo : '/calendar'
+      router.push(destination)
     }
-  }, [user, isLoading, router])
+  }, [user, isLoading, router, redirectTo])
 
   const handleAuthStart = () => {
     setRedirecting(true)
@@ -31,6 +34,13 @@ const LoginPage = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
+        {redirectTo && (
+          <div className="max-w-md mx-auto mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
+              Please sign in to access this page
+            </p>
+          </div>
+        )}
         <GitHubAuthGuide onComplete={handleAuthStart} />
       </div>
     )

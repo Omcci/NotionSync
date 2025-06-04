@@ -52,12 +52,12 @@ const Home = () => {
     }
   }, [triggerEe])
 
-  const getSession = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
     return session
-  }
+    }
 
   const handleClickOpenEe = () => {
     window.open('https://github.com/omci-dev/NotionSync', '_blank')
@@ -86,7 +86,7 @@ const Home = () => {
             transition={{ duration: 0.8, ease: 'easeOut' }}
           >
             <Image
-              src="/NotionSync.svg"
+            src="/NotionSync.svg"
               alt="NotionSync Logo"
               width={128}
               height={128}
@@ -108,7 +108,7 @@ const Home = () => {
               <br />
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Workflow Seamlessly
-              </span>
+            </span>
             </h2>
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
               Transform how your team collaborates by automatically syncing
@@ -123,7 +123,7 @@ const Home = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
           >
-            {user ? (
+        {user ? (
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -131,13 +131,13 @@ const Home = () => {
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg"
-                  onClick={() => (window.location.href = '/dashboardv0')}
-                >
-                  Go to Dashboard
+              onClick={() => (window.location.href = '/dashboardv0')}
+            >
+              Go to Dashboard
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
-              </motion.div>
-            ) : (
+          </motion.div>
+        ) : (
               <>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -243,7 +243,7 @@ const Home = () => {
                     </span>
                   </motion.div>
                 ))}
-              </div>
+            </div>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: 50 }}
@@ -342,7 +342,7 @@ const Home = () => {
                   &ldquo;{testimonial.content}&rdquo;
                 </p>
                 <div className="flex items-center">
-                  <Image
+              <Image
                     src={testimonial.avatar}
                     alt={testimonial.name}
                     width={48}
@@ -441,17 +441,17 @@ const Home = () => {
             >
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
                 Documentation & Resources
-              </h2>
+          </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300">
                 Everything you need to get started and make the most of
                 NotionSync
-              </p>
+          </p>
             </motion.div>
 
             <div className="flex flex-col md:flex-row gap-4 items-center mb-8">
-              <Input
-                type="text"
-                placeholder="Search documentation..."
+            <Input
+              type="text"
+              placeholder="Search documentation..."
                 className="flex-grow bg-white/20 dark:bg-black/20 border-white/30 dark:border-gray-600/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-xl"
               />
               <Button
@@ -462,12 +462,12 @@ const Home = () => {
                   View Documentation
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>
-              </Button>
-            </div>
+            </Button>
+          </div>
 
             <Separator className="my-8 bg-white/20 dark:bg-gray-700/50" />
-            <Faq />
-            <EeDial triggerEe={triggerEe} setTriggerEe={setTriggerEe} />
+          <Faq />
+          <EeDial triggerEe={triggerEe} setTriggerEe={setTriggerEe} />
           </div>
         </div>
       </motion.section>
