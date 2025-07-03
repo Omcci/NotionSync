@@ -28,8 +28,9 @@ const fetchCommits = async (
   since?: string,
   until?: string,
 ) => {
-  const commitsUrl = `https://api.github.com/repos/${owner}/${repoName}/commits?page=${page}&per_page=${per_page}${since && until ? `&since=${since}&until=${until}` : ''
-    }`
+  const commitsUrl = `https://api.github.com/repos/${owner}/${repoName}/commits?page=${page}&per_page=${per_page}${
+    since && until ? `&since=${since}&until=${until}` : ''
+  }`
 
   console.log(`🌐 GitHub API call: ${commitsUrl}`)
 
@@ -38,7 +39,9 @@ const fetchCommits = async (
   })
 
   if (!response.ok) {
-    console.error(`❌ GitHub API error: ${response.status} - ${response.statusText}`)
+    console.error(
+      `❌ GitHub API error: ${response.status} - ${response.statusText}`,
+    )
     throw new Error(`Error fetching commits: ${response.status}`)
   }
 
@@ -164,7 +167,9 @@ export const fetchCommitsWithPagination = async (
 ): Promise<CommitFetchResult[]> => {
   const results: CommitFetchResult[] = []
 
-  console.log(`🔍 Fetching commits with pagination for ${repos.length} repositories`)
+  console.log(
+    `🔍 Fetching commits with pagination for ${repos.length} repositories`,
+  )
   console.log(`📅 Date range: ${startDate} to ${endDate}`)
   console.log(`🎯 Max commits per repo: ${maxCommitsPerRepo}`)
 
@@ -210,7 +215,9 @@ export const fetchCommitsWithPagination = async (
 
         // Check if we've reached our limit
         if (allCommits.length >= maxCommitsPerRepo) {
-          console.log(`  ⚠️  Reached limit of ${maxCommitsPerRepo} commits for ${repo.name}`)
+          console.log(
+            `  ⚠️  Reached limit of ${maxCommitsPerRepo} commits for ${repo.name}`,
+          )
           allCommits = allCommits.slice(0, maxCommitsPerRepo)
           reachedLimit = true
           hasMore = false
@@ -226,19 +233,23 @@ export const fetchCommitsWithPagination = async (
 
         // Add a small delay to avoid hitting GitHub API rate limits
         if (page > 1) {
-          await new Promise(resolve => setTimeout(resolve, 100))
+          await new Promise((resolve) => setTimeout(resolve, 100))
         }
 
         // Safety check: prevent infinite loops
         if (page > 50) {
-          console.warn(`⚠️  Stopped fetching after 50 pages for ${repo.name} (safety limit)`)
+          console.warn(
+            `⚠️  Stopped fetching after 50 pages for ${repo.name} (safety limit)`,
+          )
           hasMore = false
           reachedLimit = true
         }
       }
 
       const oldestCommit = allCommits[allCommits.length - 1]
-      const oldestCommitDate = oldestCommit ? oldestCommit.commit.author.date : undefined
+      const oldestCommitDate = oldestCommit
+        ? oldestCommit.commit.author.date
+        : undefined
 
       const result: CommitFetchResult = {
         commits: allCommits,
@@ -247,17 +258,16 @@ export const fetchCommitsWithPagination = async (
           totalFetched: allCommits.length,
           hasMore: reachedLimit,
           oldestCommitDate,
-          repository: `${repo.owner}/${repo.name}`
+          repository: `${repo.owner}/${repo.name}`,
         },
         reachedLimit,
         message: reachedLimit
           ? `Fetched ${allCommits.length} commits (limit reached). Oldest commit: ${oldestCommitDate ? format(new Date(oldestCommitDate), 'MMM d, yyyy') : 'unknown'}`
-          : `Fetched all ${allCommits.length} commits`
+          : `Fetched all ${allCommits.length} commits`,
       }
 
       console.log(`✅ Repository ${repo.name}: ${result.message}`)
       results.push(result)
-
     } catch (error) {
       console.error(`❌ Error fetching commits for repo ${repo.name}:`, error)
       results.push({
@@ -266,22 +276,27 @@ export const fetchCommitsWithPagination = async (
           currentPage: 0,
           totalFetched: 0,
           hasMore: false,
-          repository: `${repo.owner}/${repo.name}`
+          repository: `${repo.owner}/${repo.name}`,
         },
         reachedLimit: false,
-        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       })
       continue
     }
   }
 
-  const totalCommits = results.reduce((sum, result) => sum + result.commits.length, 0)
+  const totalCommits = results.reduce(
+    (sum, result) => sum + result.commits.length,
+    0,
+  )
   console.log(`\n🎯 Pagination Summary:`)
   console.log(`  - Total commits fetched: ${totalCommits}`)
   console.log(`  - Repositories processed: ${results.length}`)
 
-  results.forEach(result => {
-    console.log(`  - ${result.pagination.repository}: ${result.pagination.totalFetched} commits ${result.reachedLimit ? '(limited)' : '(complete)'}`)
+  results.forEach((result) => {
+    console.log(
+      `  - ${result.pagination.repository}: ${result.pagination.totalFetched} commits ${result.reachedLimit ? '(limited)' : '(complete)'}`,
+    )
   })
 
   return results
@@ -294,8 +309,14 @@ export const fetchCommitsForMultipleRepos = async (
   startDate?: string,
   endDate?: string,
 ) => {
-  const results = await fetchCommitsWithPagination(token, repos, 1000, startDate, endDate)
-  return results.flatMap(result => result.commits)
+  const results = await fetchCommitsWithPagination(
+    token,
+    repos,
+    1000,
+    startDate,
+    endDate,
+  )
+  return results.flatMap((result) => result.commits)
 }
 
 export const fetchCommitsForUserInRepo = async (
@@ -320,14 +341,15 @@ export const fetchCommitsForUserInRepo = async (
 }
 
 const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { repos, startDate, endDate, githubToken, maxCommits, withPagination } = req.query as {
-    repos: string
-    startDate?: string
-    endDate?: string
-    githubToken?: string
-    maxCommits?: string
-    withPagination?: string
-  }
+  const { repos, startDate, endDate, githubToken, maxCommits, withPagination } =
+    req.query as {
+      repos: string
+      startDate?: string
+      endDate?: string
+      githubToken?: string
+      maxCommits?: string
+      withPagination?: string
+    }
 
   const token = githubToken || req.headers.authorization?.split(' ')[1]
   if (!token)
@@ -352,10 +374,13 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(200).json({
         results,
         summary: {
-          totalCommits: results.reduce((sum, result) => sum + result.commits.length, 0),
+          totalCommits: results.reduce(
+            (sum, result) => sum + result.commits.length,
+            0,
+          ),
           repositories: results.length,
-          limitedRepositories: results.filter(r => r.reachedLimit).length
-        }
+          limitedRepositories: results.filter((r) => r.reachedLimit).length,
+        },
       })
     } else {
       // Legacy mode for backward compatibility

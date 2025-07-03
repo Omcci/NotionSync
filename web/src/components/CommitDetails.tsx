@@ -3,7 +3,15 @@ import { useMutation } from '@tanstack/react-query'
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from './ui/button'
-import { CheckCircle, XCircle, Sparkles, Copy, Check, Download, RefreshCw } from 'lucide-react'
+import {
+  CheckCircle,
+  XCircle,
+  Sparkles,
+  Copy,
+  Check,
+  Download,
+  RefreshCw,
+} from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import {
@@ -22,7 +30,9 @@ interface CommitDetailsProps {
   selectedDate?: string
 }
 
-const generateSummary = async (commits: Array<{ commitMessage: string; diff: string }>): Promise<{ summary: string; commitCount: number; type: string }> => {
+const generateSummary = async (
+  commits: Array<{ commitMessage: string; diff: string }>,
+): Promise<{ summary: string; commitCount: number; type: string }> => {
   const response = await fetch('/api/mistral', {
     method: 'POST',
     headers: {
@@ -86,8 +96,12 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
   // Load existing summary for the selected date
   useEffect(() => {
     if (selectedDate) {
-      const storedSummary = localStorage.getItem(getSummaryStorageKey(selectedDate))
-      const storedType = localStorage.getItem(`${getSummaryStorageKey(selectedDate)}_type`)
+      const storedSummary = localStorage.getItem(
+        getSummaryStorageKey(selectedDate),
+      )
+      const storedType = localStorage.getItem(
+        `${getSummaryStorageKey(selectedDate)}_type`,
+      )
 
       if (storedSummary) {
         setSummary(storedSummary)
@@ -108,7 +122,10 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
       // Store summary with date-based key
       if (selectedDate) {
         localStorage.setItem(getSummaryStorageKey(selectedDate), data.summary)
-        localStorage.setItem(`${getSummaryStorageKey(selectedDate)}_type`, data.type)
+        localStorage.setItem(
+          `${getSummaryStorageKey(selectedDate)}_type`,
+          data.type,
+        )
       }
 
       incrementSummaryCount()
@@ -143,8 +160,14 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
           ? commit.diff
-            .map((d: { filename: string; additions: number; deletions: number }) => `${d.filename}: +${d.additions}, -${d.deletions}`)
-            .join('\n')
+              .map(
+                (d: {
+                  filename: string
+                  additions: number
+                  deletions: number
+                }) => `${d.filename}: +${d.additions}, -${d.deletions}`,
+              )
+              .join('\n')
           : '',
     }))
 
@@ -234,7 +257,8 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
           {/* Commit Count */}
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <span className="font-medium">
-              {filteredCommits.length} commit{filteredCommits.length !== 1 ? 's' : ''}
+              {filteredCommits.length} commit
+              {filteredCommits.length !== 1 ? 's' : ''}
             </span>
             {selectedUser && (
               <span className="text-gray-500">by {selectedUser}</span>
@@ -279,10 +303,13 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
               </div>
               <div>
                 <h4 className="font-semibold text-blue-900 dark:text-blue-100">
-                  {summaryType === 'multiple' ? 'Development Session Summary' : 'Commit Summary'}
+                  {summaryType === 'multiple'
+                    ? 'Development Session Summary'
+                    : 'Commit Summary'}
                 </h4>
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  Generated from {filteredCommits.length} commit{filteredCommits.length > 1 ? 's' : ''}
+                  Generated from {filteredCommits.length} commit
+                  {filteredCommits.length > 1 ? 's' : ''}
                 </p>
               </div>
             </div>
@@ -306,7 +333,11 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
                 className="h-8 w-8 p-0"
                 title="Copy to clipboard"
               >
-                {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-600" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
               </Button>
               <Button
                 variant="ghost"
@@ -322,7 +353,8 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
 
           {/* Summary Content with Enhanced Styling */}
           <div className="p-6 bg-gray-50/50 dark:bg-gray-900/50">
-            <div className="prose prose-base dark:prose-invert max-w-none
+            <div
+              className="prose prose-base dark:prose-invert max-w-none
                           prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-gray-100
                           prose-h1:text-2xl prose-h1:border-b prose-h1:border-gray-200 dark:prose-h1:border-gray-700 prose-h1:pb-3 prose-h1:mb-6
                           prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:text-gray-800 dark:prose-h2:text-gray-200
@@ -336,7 +368,8 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
                           prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:my-6
                           prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono
                           prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-700
-                          space-y-4">
+                          space-y-4"
+            >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {summary}
               </ReactMarkdown>
@@ -350,7 +383,8 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
                 Generated by AI • {new Date().toLocaleString()}
               </span>
               <span className="text-gray-500 dark:text-gray-400">
-                {localStorage.getItem('summaryCount') || 0}/{SUMMARY_LIMIT} daily summaries used
+                {localStorage.getItem('summaryCount') || 0}/{SUMMARY_LIMIT}{' '}
+                daily summaries used
               </span>
             </div>
           </div>
@@ -399,12 +433,15 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
                         </span>
                         <span>•</span>
                         <span>
-                          {new Date(commit.commit.author.date).toLocaleString('en-US', {
-                            timeZone: 'UTC',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                          })}
+                          {new Date(commit.commit.author.date).toLocaleString(
+                            'en-US',
+                            {
+                              timeZone: 'UTC',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false,
+                            },
+                          )}
                         </span>
                       </div>
                     </div>
@@ -423,17 +460,22 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
                         </Badge>
                       )}
 
-                      {commit.actions?.map((action: { name: string; url: string }, actionIdx: number) => (
-                        <Button
-                          key={actionIdx}
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(action.url, '_blank')}
-                          className="h-6 px-2 text-xs"
-                        >
-                          {action.name}
-                        </Button>
-                      ))}
+                      {commit.actions?.map(
+                        (
+                          action: { name: string; url: string },
+                          actionIdx: number,
+                        ) => (
+                          <Button
+                            key={actionIdx}
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(action.url, '_blank')}
+                            className="h-6 px-2 text-xs"
+                          >
+                            {action.name}
+                          </Button>
+                        ),
+                      )}
                     </div>
                   </div>
                 </div>

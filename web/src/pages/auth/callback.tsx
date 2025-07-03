@@ -12,9 +12,21 @@ const AuthCallback = () => {
   const [currentStep, setCurrentStep] = useState(0)
 
   const steps = [
-    { icon: CheckCircle, label: 'Verifying session...', color: 'text-blue-500' },
-    { icon: Github, label: 'Extracting GitHub token...', color: 'text-green-500' },
-    { icon: Database, label: 'Storing credentials...', color: 'text-purple-500' },
+    {
+      icon: CheckCircle,
+      label: 'Verifying session...',
+      color: 'text-blue-500',
+    },
+    {
+      icon: Github,
+      label: 'Extracting GitHub token...',
+      color: 'text-green-500',
+    },
+    {
+      icon: Database,
+      label: 'Storing credentials...',
+      color: 'text-purple-500',
+    },
     { icon: User, label: 'Syncing user data...', color: 'text-orange-500' },
     { icon: ArrowRight, label: 'Redirecting...', color: 'text-indigo-500' },
   ]
@@ -31,7 +43,7 @@ const AuthCallback = () => {
           throw new Error(
             errorDescription
               ? `GitHub OAuth Error: ${errorDescription.replace(/\+/g, ' ')}`
-              : `GitHub OAuth Error: ${oauthError}`
+              : `GitHub OAuth Error: ${oauthError}`,
           )
         }
 
@@ -186,10 +198,11 @@ const AuthCallback = () => {
             {steps.map((step, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${index <= currentStep
-                  ? 'bg-blue-500 scale-110'
-                  : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index <= currentStep
+                    ? 'bg-blue-500 scale-110'
+                    : 'bg-gray-300 dark:bg-gray-600'
+                }`}
               />
             ))}
           </div>
