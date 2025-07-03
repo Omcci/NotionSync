@@ -18,37 +18,45 @@ import {
 import { Button } from '@/components/ui/button'
 import { CalendarDaysIcon } from '../../public/icon/CalendarDaysIcon'
 import { format } from 'date-fns'
-import { RefreshCw, Github, AlertCircle, ChevronDown, ExternalLink } from 'lucide-react'
+import { RefreshCw, Github, AlertCircle, ChevronDown, ExternalLink, Database } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { Badge } from '@/components/ui/badge'
 import { CommitCalendar } from '@/components/calendar/CommitCalendar'
 import { useRouter } from 'next/router'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
-// Fetch ALL commits for the user (extensive range with pagination)
-const fetchAllCommits = async (userId: string, maxCommitsPerRepo: number = 1000, forceRefresh: boolean = false) => {
+// Fetch commits from database with optional sync
+const fetchCommitsFromDatabase = async (
+  userId: string,
+  startDate?: string,
+  endDate?: string,
+  sync: boolean = false
+) => {
   const githubToken = await getGitHubToken()
 
-  // Get extensive data range (5 years)
-  const endDate = new Date()
-  const startDate = new Date()
-  startDate.setFullYear(endDate.getFullYear() - 5)
+  // Default to a wide date range if not specified
+  const defaultEndDate = endDate || new Date().toISOString()
+  const defaultStartDate = startDate || (() => {
+    const date = new Date()
+    date.setFullYear(date.getFullYear() - 5) // 5 years back
+    return date.toISOString()
+  })()
 
   const params = new URLSearchParams({
     userId,
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    forceRefresh: forceRefresh.toString(),
-    maxCommitsPerRepo: maxCommitsPerRepo.toString(),
-    // Use smart caching
-    repositoryCacheTime: '60', // 1 hour
-    commitCacheTime: '30', // 30 minutes
+    startDate: defaultStartDate,
+    endDate: defaultEndDate,
+    sync: sync.toString()
   })
 
-  console.log(`🗓️ Fetching commits from ${startDate.toISOString()} to ${endDate.toISOString()}`)
-  console.log(`🎯 Max commits per repo: ${maxCommitsPerRepo}`)
+  console.log(`🗄️ Fetching commits from database:`, {
+    userId,
+    startDate: defaultStartDate,
+    endDate: defaultEndDate,
+    sync
+  })
 
-  const response = await fetch(`/api/smart-cache/commits?${params}`, {
+  const response = await fetch(`/api/commits/database?${params}`, {
     headers: {
       Authorization: `Bearer ${githubToken}`,
     },
@@ -61,7 +69,6 @@ const fetchAllCommits = async (userId: string, maxCommitsPerRepo: number = 1000,
     if (response.status === 401 && errorData?.authRequired) {
       const error = new Error(errorData.message || 'Authentication required')
       error.message = errorData.error || error.message
-      // Add a flag to indicate this is an auth error
       Object.assign(error, { authRequired: true, redirectTo: errorData.redirectTo })
       throw error
     }
@@ -73,97 +80,29 @@ const fetchAllCommits = async (userId: string, maxCommitsPerRepo: number = 1000,
       throw error
     }
 
-    // Generic error fallback
     const errorText = errorData?.error || await response.text() || `HTTP ${response.status}`
     throw new Error(`Error fetching commits: ${response.status} - ${errorText}`)
   }
 
   const result = await response.json()
 
-  // Log successful response for debugging
-  console.log(`✅ Successfully fetched commits:`, {
-    totalCommits: result.metadata?.commits?.count || 0,
-    source: result.metadata?.commits?.source || 'unknown',
-    repositories: result.metadata?.pagination?.totalRepositories || 0,
-    limitedRepositories: result.metadata?.pagination?.limitedRepositories || 0
+  console.log(`✅ Successfully fetched commits from database:`, {
+    totalCommits: result.metadata?.count || 0,
+    source: result.metadata?.source || 'unknown',
+    lastUpdated: result.metadata?.lastUpdated
   })
 
   return result
 }
 
-// Fetch next batch of commits going backward from a specific date
-const fetchNextCommitBatch = async (
+// Fetch commits for a specific date range (for pagination)
+const fetchCommitsForDateRange = async (
   userId: string,
-  fromDate: Date,
-  maxCommitsPerRepo: number = 1000,
-  forceRefresh: boolean = false
+  startDate: string,
+  endDate: string,
+  sync: boolean = false
 ) => {
-  const githubToken = await getGitHubToken()
-
-  // End date: the date we're fetching from (exclusive)
-  const endDate = new Date(fromDate)
-  endDate.setHours(23, 59, 59, 999)
-
-  // Start date: go back far enough to get a good batch
-  // Start with 1 year before to ensure we get 1000 commits
-  const startDate = new Date(fromDate)
-  startDate.setFullYear(startDate.getFullYear() - 1)
-  startDate.setHours(0, 0, 0, 0)
-
-  const params = new URLSearchParams({
-    userId,
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    forceRefresh: forceRefresh.toString(),
-    maxCommitsPerRepo: maxCommitsPerRepo.toString(),
-    // Use smart caching
-    repositoryCacheTime: '30', // 30 minutes
-    commitCacheTime: '15', // 15 minutes
-  })
-
-  console.log(`🔄 Fetching next batch from ${format(fromDate, 'MMM yyyy')}`)
-  console.log(`📅 Date range: ${format(startDate, 'MMM yyyy')} ← ${format(endDate, 'MMM yyyy')}`)
-
-  const response = await fetch(`/api/smart-cache/commits?${params}`, {
-    headers: {
-      Authorization: `Bearer ${githubToken}`,
-    },
-  })
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null)
-
-    // Handle authentication errors specifically
-    if (response.status === 401 && errorData?.authRequired) {
-      const error = new Error(errorData.message || 'Authentication required')
-      error.message = errorData.error || error.message
-      Object.assign(error, { authRequired: true, redirectTo: errorData.redirectTo })
-      throw error
-    }
-
-    // Handle rate limit errors
-    if (response.status === 429) {
-      const error = new Error(errorData?.message || 'GitHub API rate limit exceeded')
-      Object.assign(error, { rateLimited: true, retryAfter: errorData?.retryAfter })
-      throw error
-    }
-
-    const errorText = errorData?.error || await response.text() || `HTTP ${response.status}`
-    throw new Error(`Error fetching next commit batch: ${response.status} - ${errorText}`)
-  }
-
-  const result = await response.json()
-
-  console.log(`✅ Next batch fetched:`, {
-    totalCommits: result.metadata?.commits?.count || 0,
-    source: result.metadata?.commits?.source || 'unknown',
-    fromDate: format(fromDate, 'MMM yyyy')
-  })
-
-  return {
-    ...result,
-    batchInfo: { startDate, endDate, fromDate }
-  }
+  return fetchCommitsFromDatabase(userId, startDate, endDate, sync)
 }
 
 const CalendarPage = () => {
@@ -174,23 +113,16 @@ const CalendarPage = () => {
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null)
   const [currentView, setCurrentView] = useState<string>('dayGridMonth')
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
-  const [maxCommitsPerRepo, setMaxCommitsPerRepo] = useState(1000)
-  const [paginationInfo, setPaginationInfo] = useState<any>(null)
 
-  // New state for sequential batching
-  const [loadedBatches, setLoadedBatches] = useState<Array<{
-    startDate: Date
-    endDate: Date
-    fromDate: Date
-    commitCount: number
-  }>>([])
-  const [isBatchFetching, setIsBatchFetching] = useState(false)
-  const [oldestCommitDate, setOldestCommitDate] = useState<Date | null>(null)
-  const [thousandthCommitDate, setThousandthCommitDate] = useState<Date | null>(null) // Track the 1000th commit specifically
-  const [fetchedDateRanges, setFetchedDateRanges] = useState<Array<{
-    startDate: Date
-    endDate: Date
-  }>>([]) // Track all fetched date ranges to prevent duplicates
+  // Simplified state - no complex batching
+  const [dateRange, setDateRange] = useState({
+    startDate: (() => {
+      const date = new Date()
+      date.setFullYear(date.getFullYear() - 5)
+      return date
+    })(),
+    endDate: new Date()
+  })
 
   const { user, githubToken } = useUser()
   const { repos, selectedRepo, setSelectedRepo } = useAppContext()
@@ -198,7 +130,7 @@ const CalendarPage = () => {
   const queryClient = useQueryClient()
   const router = useRouter()
 
-  // Query for fetching ALL commits with pagination
+  // Main query for fetching commits from database
   const {
     data: commitResponse,
     isLoading,
@@ -206,13 +138,18 @@ const CalendarPage = () => {
     error,
     isFetching,
   } = useQuery({
-    queryKey: ['all-commits-paginated', user?.id, maxCommitsPerRepo],
+    queryKey: ['database-commits', user?.id, dateRange.startDate.toISOString(), dateRange.endDate.toISOString()],
     queryFn: () => {
       if (!user?.id) throw new Error('User not authenticated')
-      return fetchAllCommits(user.id, maxCommitsPerRepo, false)
+      return fetchCommitsFromDatabase(
+        user.id,
+        dateRange.startDate.toISOString(),
+        dateRange.endDate.toISOString(),
+        false // Don't sync by default
+      )
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 10, // Consider data stale after 10 minutes
+    staleTime: 1000 * 60 * 15, // Consider data stale after 15 minutes
     gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
     refetchOnWindowFocus: false,
     refetchOnMount: true,
@@ -233,81 +170,12 @@ const CalendarPage = () => {
   const commitData = useMemo(() => commitResponse?.commits || [], [commitResponse?.commits])
   const metadata = commitResponse?.metadata
 
-  // Update pagination info and last sync time
+  // Update last sync time
   useEffect(() => {
-    if (metadata) {
-      setPaginationInfo(metadata.pagination)
-      if (metadata.commits?.lastUpdated) {
-        setLastSyncTime(metadata.commits.lastUpdated)
-      }
+    if (metadata?.lastUpdated) {
+      setLastSyncTime(metadata.lastUpdated)
     }
   }, [metadata])
-
-  // Initialize loaded batches when initial commits are loaded
-  useEffect(() => {
-    if (commitData && commitData.length > 0 && loadedBatches.length === 0) {
-      // Find the date range of the initially loaded commits
-      const dates = commitData.map((commit: Commit) =>
-        new Date(commit.date || commit.commit.author.date)
-      ).sort((a: Date, b: Date) => a.getTime() - b.getTime())
-
-      if (dates.length > 0) {
-        const startDate = dates[0] // Oldest commit date
-        const endDate = dates[dates.length - 1] // Newest commit date
-
-        console.log(`📊 Initial commit range: ${format(startDate, 'MMM yyyy')} → ${format(endDate, 'MMM yyyy')}`)
-        console.log(`📊 Total initial commits: ${commitData.length}`)
-
-        // Set the oldest commit date for general reference
-        setOldestCommitDate(startDate)
-
-        setLoadedBatches([{
-          startDate,
-          endDate,
-          fromDate: startDate,
-          commitCount: commitData.length
-        }])
-      }
-    }
-  }, [commitData, loadedBatches.length])
-
-  // Separate effect to track 1000th commit (works for both fresh and cached data)
-  useEffect(() => {
-    if (commitData && commitData.length >= 1000) {
-      // Sort commits by date (newest first) to find the 1000th commit
-      const sortedCommits = [...commitData].sort((a: Commit, b: Commit) => {
-        const dateA = new Date(a.date || a.commit.author.date)
-        const dateB = new Date(b.date || b.commit.author.date)
-        return dateB.getTime() - dateA.getTime()
-      })
-
-      // The 1000th commit is at index 999 (0-based)
-      const thousandthCommit = sortedCommits[999]
-      const thousandthDate = new Date(thousandthCommit.date || thousandthCommit.commit.author.date)
-
-      setThousandthCommitDate(thousandthDate)
-      console.log(`🎯 1000th commit date set to: ${format(thousandthDate, 'MMM yyyy')} (from ${commitData.length} total commits)`)
-    } else if (commitData && commitData.length < 1000) {
-      // Clear 1000th commit date if we don't have enough commits
-      setThousandthCommitDate(null)
-      console.log(`📊 Less than 1000 commits (${commitData.length}), clearing 1000th commit tracking`)
-    }
-  }, [commitData])
-
-  // Helper function to check if a date is already covered by fetched ranges
-  const isDateCovered = useCallback((targetDate: Date) => {
-    return fetchedDateRanges.some(range =>
-      targetDate >= range.startDate && targetDate <= range.endDate
-    )
-  }, [fetchedDateRanges])
-
-  // Helper function to check if we're navigating past the 1000th commit boundary
-  const isNavigatingPastBoundary = useCallback((targetDate: Date) => {
-    if (!thousandthCommitDate) return false
-
-    // We're past the boundary if the target date is OLDER than the 1000th commit
-    return targetDate < thousandthCommitDate
-  }, [thousandthCommitDate])
 
   // Update filtered commits when data or selected repo changes
   useEffect(() => {
@@ -328,6 +196,7 @@ const CalendarPage = () => {
       console.log(`  - Total commits: ${commitData.length}`)
       console.log(`  - Filtered commits: ${commitsToUse.length}`)
       console.log(`  - Selected repo: ${selectedRepo?.name || 'All'}`)
+      console.log(`  - Date range: ${format(dateRange.startDate, 'MMM yyyy')} → ${format(dateRange.endDate, 'MMM yyyy')}`)
 
       // Show breakdown by repository
       const repoBreakdown = commitData.reduce((acc: Record<string, number>, commit: Commit) => {
@@ -337,183 +206,100 @@ const CalendarPage = () => {
       }, {})
       console.log(`  - Repository breakdown:`, repoBreakdown)
     }
-  }, [commitData, selectedRepo])
+  }, [commitData, selectedRepo, dateRange])
 
-  // Mutation for force refresh
-  const forceRefreshMutation = useMutation({
+  // Mutation for force refresh (sync with GitHub)
+  const syncMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id) {
         throw new Error('User not authenticated')
       }
-      return await fetchAllCommits(user.id, maxCommitsPerRepo, true)
+      return await fetchCommitsFromDatabase(
+        user.id,
+        dateRange.startDate.toISOString(),
+        dateRange.endDate.toISOString(),
+        true // Force sync with GitHub
+      )
     },
     onSuccess: (result) => {
       setLastSyncTime(new Date().toISOString())
 
-      const source = result.metadata?.commits?.source || 'unknown'
-      const count = result.metadata?.commits?.count || 0
+      const source = result.metadata?.source || 'unknown'
+      const count = result.metadata?.count || 0
 
       toast({
-        title: 'Calendar refreshed',
-        description: `Loaded ${count} commits from ${source === 'github' ? 'GitHub API' : 'cache'}`,
+        title: 'Calendar synced',
+        description: `Synced ${count} commits from GitHub to database`,
       })
 
       // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['all-commits-paginated'] })
+      queryClient.invalidateQueries({ queryKey: ['database-commits'] })
     },
     onError: (error) => {
       toast({
-        title: 'Refresh failed',
+        title: 'Sync failed',
         description: error instanceof Error ? error.message : 'Unknown error occurred',
         variant: 'destructive',
       })
     },
   })
 
-  // Mutation for loading more commits
+  // Mutation for loading more commits (expand date range)
   const loadMoreMutation = useMutation({
-    mutationFn: async (newMaxCommits: number) => {
+    mutationFn: async (direction: 'older' | 'newer') => {
       if (!user?.id) {
         throw new Error('User not authenticated')
       }
-      return await fetchAllCommits(user.id, newMaxCommits, true)
-    },
-    onSuccess: (result) => {
-      const count = result.metadata?.commits?.count || 0
-      toast({
-        title: 'More commits loaded',
-        description: `Now showing ${count} total commits`,
-      })
 
-      queryClient.invalidateQueries({ queryKey: ['all-commits-paginated'] })
-    },
-    onError: (error) => {
-      toast({
-        title: 'Failed to load more commits',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
-      })
-    },
-  })
+      let newStartDate = dateRange.startDate
+      let newEndDate = dateRange.endDate
 
-  // Next batch fetch mutation
-  const nextBatchMutation = useMutation({
-    mutationFn: async (fromDate: Date) => {
-      if (!user?.id) {
-        throw new Error('User not authenticated')
-      }
-      // Don't set isBatchFetching here - do it in onMutate
-      return await fetchNextCommitBatch(user.id, fromDate, maxCommitsPerRepo, false)
-    },
-    onMutate: async (fromDate: Date) => {
-      // Set fetching state when mutation starts
-      setIsBatchFetching(true)
-      console.log(`🚀 Starting batch fetch mutation for ${format(fromDate, 'MMM yyyy')}`)
-    },
-    onSuccess: (result) => {
-      const { commits, batchInfo } = result
-      const source = result.metadata?.commits?.source || 'unknown'
-      const count = result.metadata?.commits?.count || 0
-
-      console.log(`🎯 Next batch completed: ${count} commits from ${source}`)
-
-      // Add the new batch to loaded batches
-      if (batchInfo) {
-        setLoadedBatches(prev => [...prev, {
-          ...batchInfo,
-          commitCount: count
-        }])
-
-        // Track the fetched date range to prevent duplicates
-        setFetchedDateRanges(prev => [...prev, {
-          startDate: batchInfo.startDate,
-          endDate: batchInfo.endDate
-        }])
-
-        console.log(`📅 Added fetched range: ${format(batchInfo.startDate, 'MMM yyyy')} → ${format(batchInfo.endDate, 'MMM yyyy')}`)
+      if (direction === 'older') {
+        // Extend backwards by 2 years
+        newStartDate = new Date(dateRange.startDate)
+        newStartDate.setFullYear(newStartDate.getFullYear() - 2)
+      } else {
+        // Extend forwards by 1 year
+        newEndDate = new Date(dateRange.endDate)
+        newEndDate.setFullYear(newEndDate.getFullYear() + 1)
       }
 
-      // Merge new commits with existing ones (avoiding duplicates)
-      const existingCommits = commitResponse?.commits || []
-      const mergedCommits = [...existingCommits]
-
-      commits.forEach((newCommit: Commit) => {
-        const exists = existingCommits.some((existing: Commit) =>
-          existing.sha === newCommit.sha && existing.repoName === newCommit.repoName
-        )
-        if (!exists) {
-          mergedCommits.push(newCommit)
-        }
-      })
-
-      // Sort by date (newest first)
-      mergedCommits.sort((a: Commit, b: Commit) => {
-        const dateA = new Date(a.date || a.commit.author.date)
-        const dateB = new Date(b.date || b.commit.author.date)
-        return dateB.getTime() - dateA.getTime()
-      })
-
-      // Update oldest commit date
-      if (mergedCommits.length > 0) {
-        const oldestDate = new Date(mergedCommits[mergedCommits.length - 1].date || mergedCommits[mergedCommits.length - 1].commit.author.date)
-        setOldestCommitDate(oldestDate)
-
-        // Update the 1000th commit date to the new boundary
-        // If we have more than 1000 commits, the 1000th is at index 999 (0-based)
-        if (mergedCommits.length >= 1000) {
-          const newThousandthCommit = mergedCommits[999] // 1000th commit (0-based index)
-          const newThousandthDate = new Date(newThousandthCommit.date || newThousandthCommit.commit.author.date)
-          setThousandthCommitDate(newThousandthDate)
-          console.log(`🎯 Updated 1000th commit date to: ${format(newThousandthDate, 'MMM yyyy')}`)
-        }
-      }
-
-      // Update the main query cache with merged data
-      queryClient.setQueryData(
-        ['all-commits-paginated', user?.id, maxCommitsPerRepo],
-        {
-          ...commitResponse,
-          commits: mergedCommits,
-          metadata: {
-            ...commitResponse?.metadata,
-            commits: {
-              ...commitResponse?.metadata?.commits,
-              count: mergedCommits.length
-            }
-          }
-        }
+      return await fetchCommitsForDateRange(
+        user.id,
+        newStartDate.toISOString(),
+        newEndDate.toISOString(),
+        true // Sync to get new data
       )
+    },
+    onSuccess: (result, direction) => {
+      const count = result.metadata?.count || 0
+
+      // Update date range
+      if (direction === 'older') {
+        const newStartDate = new Date(dateRange.startDate)
+        newStartDate.setFullYear(newStartDate.getFullYear() - 2)
+        setDateRange(prev => ({ ...prev, startDate: newStartDate }))
+      } else {
+        const newEndDate = new Date(dateRange.endDate)
+        newEndDate.setFullYear(newEndDate.getFullYear() + 1)
+        setDateRange(prev => ({ ...prev, endDate: newEndDate }))
+      }
 
       toast({
         title: 'More commits loaded',
-        description: `Loaded ${count} additional commits going back to ${format(batchInfo?.startDate || new Date(), 'MMM yyyy')}`,
+        description: `Loaded ${count} commits going ${direction === 'older' ? 'back' : 'forward'} in time`,
       })
+
+      queryClient.invalidateQueries({ queryKey: ['database-commits'] })
     },
     onError: (error) => {
-      console.error('❌ Next batch fetch failed:', error)
       toast({
         title: 'Failed to load more commits',
         description: error instanceof Error ? error.message : 'Unknown error occurred',
         variant: 'destructive',
       })
     },
-    onSettled: () => {
-      // Always clear fetching state when mutation completes (success or error)
-      setIsBatchFetching(false)
-      console.log(`✅ Batch fetch mutation settled, clearing isBatchFetching`)
-    }
   })
-
-  // Check if we have commits for a specific month
-  const hasCommitsForMonth = useCallback((targetDate: Date) => {
-    const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1)
-    const endOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0)
-
-    return filteredCommits.some((commit: Commit) => {
-      const commitDate = new Date(commit.date || commit.commit.author.date)
-      return commitDate >= startOfMonth && commitDate <= endOfMonth
-    })
-  }, [filteredCommits])
 
   const handleRepoSelect = (repoId: string) => {
     if (repoId === 'all') {
@@ -562,73 +348,39 @@ const CalendarPage = () => {
   }
 
   const handleForceRefresh = () => {
-    forceRefreshMutation.mutate()
+    syncMutation.mutate()
   }
 
-  const handleLoadMore = () => {
-    const newMax = maxCommitsPerRepo + 1000
-    setMaxCommitsPerRepo(newMax)
-    loadMoreMutation.mutate(newMax)
+  const handleLoadOlder = () => {
+    loadMoreMutation.mutate('older')
+  }
+
+  const handleLoadNewer = () => {
+    loadMoreMutation.mutate('newer')
   }
 
   const handleCalendarNavigate = (date: Date) => {
     console.log(`📅 Calendar navigated to: ${format(date, 'MMM yyyy')}`)
     setCurrentDate(date)
 
-    // CORRECTED LOGIC:
-    // 1. Only fetch when navigating PAST the 1000th commit boundary (to older dates)
-    // 2. Only fetch if the target date is NOT already covered by fetched ranges
-    // 3. Only fetch if we have 1000+ commits (suggesting we hit the limit)
+    // Check if we need to load more data for this date
+    const isOutsideRange = date < dateRange.startDate || date > dateRange.endDate
 
-    const isPastBoundary = isNavigatingPastBoundary(date)
-    const isAlreadyCovered = isDateCovered(date)
-    const hasNearFullDataset = commitData.length >= 1000
-    const isInitialLoad = commitData.length === 0
-    const isAlreadyFetching = nextBatchMutation.isPending || isBatchFetching
+    if (isOutsideRange) {
+      console.log(`📅 Date ${format(date, 'MMM yyyy')} is outside loaded range, consider loading more data`)
 
-    console.log(`🔍 Navigation analysis for ${format(date, 'MMM yyyy')}:`, {
-      isPastBoundary,
-      isAlreadyCovered,
-      hasNearFullDataset,
-      thousandthCommitDate: thousandthCommitDate ? format(thousandthCommitDate, 'MMM yyyy') : 'none',
-      totalCommits: commitData.length,
-      isAlreadyFetching,
-      fetchedRanges: fetchedDateRanges.length
-    })
-
-    // Only fetch if ALL conditions are met:
-    // 1. Navigating past the 1000th commit boundary
-    // 2. Date is NOT already covered by fetched ranges
-    // 3. We have a full dataset (1000+ commits)
-    // 4. Not during initial load
-    // 5. Not already fetching
-    const shouldFetchNextBatch =
-      isPastBoundary &&
-      !isAlreadyCovered &&
-      hasNearFullDataset &&
-      !isInitialLoad &&
-      !isAlreadyFetching
-
-    if (shouldFetchNextBatch) {
-      console.log(`🔄 Navigating past boundary to uncovered date, fetching next batch...`)
-
-      toast({
-        title: 'Loading older commits',
-        description: `Fetching commits older than ${format(thousandthCommitDate!, 'MMM yyyy')}...`,
-      })
-
-      // Fetch the next batch starting from the 1000th commit date
-      nextBatchMutation.mutate(thousandthCommitDate!)
-    } else if (isAlreadyFetching) {
-      console.log(`⏳ Already fetching next batch, skipping request for ${format(date, 'MMM yyyy')}`)
-    } else if (!hasNearFullDataset) {
-      console.log(`📊 Dataset is small (${commitData.length} commits), no batch fetch needed`)
-    } else if (!isPastBoundary) {
-      console.log(`📅 Not past boundary yet (within loaded commits), no fetch needed`)
-    } else if (isAlreadyCovered) {
-      console.log(`✅ Date already covered by fetched ranges, no fetch needed`)
-    } else {
-      console.log(`✅ Navigation handled without fetching`)
+      // Optionally auto-load more data
+      if (date < dateRange.startDate) {
+        toast({
+          title: 'Viewing older dates',
+          description: `Click "Load Older" to fetch commits before ${format(dateRange.startDate, 'MMM yyyy')}`,
+        })
+      } else {
+        toast({
+          title: 'Viewing newer dates',
+          description: `Click "Load Newer" to fetch commits after ${format(dateRange.endDate, 'MMM yyyy')}`,
+        })
+      }
     }
   }
 
@@ -649,48 +401,30 @@ const CalendarPage = () => {
     return (
       <LoadingScreen
         title="Loading Your Development Timeline"
-        subtitle="Fetching your complete commit history from GitHub..."
+        subtitle="Fetching your complete commit history from database..."
         showCalendarTips={true}
       />
     )
   }
 
-  // Show authentication required screen
+  // Show authentication error
   if (isAuthError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center space-y-6 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 max-w-md">
-          <div className="w-16 h-16 mx-auto bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
-            <AlertCircle className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              GitHub Authentication Required
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-red-50 to-orange-50 dark:from-gray-900 dark:via-red-900 dark:to-gray-900">
+        <div className="min-h-screen grid place-items-center p-8">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-red-200/50 dark:border-red-700/50 p-8 text-center max-w-md">
+            <div className="w-16 h-16 mx-auto mb-6 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
+              Authentication Required
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Please authenticate with GitHub to access your commit history.
+            <p className="text-red-700 dark:text-red-300 mb-4">
+              {error?.message || 'Please log in with GitHub to access your commits'}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500">
-              You'll need to connect your GitHub account to view and sync your repositories.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <Button
-              onClick={handleGoToLogin}
-              className="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white"
-            >
-              <Github className="w-4 h-4" />
-              Connect GitHub Account
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => window.location.reload()}
-              className="w-full"
-            >
-              Try Again
+            <Button onClick={handleGoToLogin} className="w-full">
+              <Github className="w-4 h-4 mr-2" />
+              Go to Login
             </Button>
           </div>
 
@@ -720,7 +454,7 @@ const CalendarPage = () => {
                 Commit Calendar
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Your complete GitHub commit history
+                Your complete GitHub commit history from database
               </p>
               {commitData.length > 0 && (
                 <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
@@ -728,186 +462,126 @@ const CalendarPage = () => {
                   {selectedRepo && (
                     <span>• {filteredCommits.length} in {selectedRepo.name}</span>
                   )}
-                  {paginationInfo && paginationInfo.limitedRepositories > 0 && (
-                    <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-                      {paginationInfo.limitedRepositories} repos limited
-                    </Badge>
-                  )}
+                  <Badge variant="outline" className="text-blue-600 border-blue-600">
+                    <Database className="w-3 h-3 mr-1" />
+                    Database
+                  </Badge>
+                  <span>• {format(dateRange.startDate, 'MMM yyyy')} → {format(dateRange.endDate, 'MMM yyyy')}</span>
                 </div>
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               {/* Repository Filter */}
-              <div className="min-w-[240px]">
+              <div className="min-w-[200px]">
                 <SelectComponent
-                  placeholder="Select repository"
                   options={[
-                    { value: 'all', label: '🗂️ All Repositories' },
-                    ...repos?.map((repo) => ({
+                    { value: 'all', label: 'All Repositories' },
+                    ...repos.map((repo) => ({
                       value: repo.id,
-                      label: `📁 ${repo.name}`,
+                      label: repo.name,
                     })),
                   ]}
-                  value={selectedRepo ? selectedRepo.id : 'all'}
+                  value={selectedRepo?.id || 'all'}
                   onChange={handleRepoSelect}
-                  disabled={!user}
+                  placeholder="Select repository"
                 />
               </div>
 
+              {/* Date Range Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="min-w-[200px] justify-start text-left font-normal">
+                    <CalendarDaysIcon className="mr-2 h-4 w-4" />
+                    {format(currentDate, 'PPP')}
+                    <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={currentDate}
+                    onSelect={handleDateSelect}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+
               {/* Action Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2">
                 <Button
                   onClick={handleForceRefresh}
-                  disabled={forceRefreshMutation.isPending}
+                  disabled={syncMutation.isPending}
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
-                  <RefreshCw
-                    className={`w-4 h-4 ${forceRefreshMutation.isPending ? 'animate-spin' : ''}`}
-                  />
-                  Refresh
+                  {syncMutation.isPending ? (
+                    <LoadingSpinner className="w-4 h-4 mr-2" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                  )}
+                  Sync
                 </Button>
 
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      <CalendarDaysIcon className="w-4 h-4" />
-                      {selectedDate ? format(new Date(selectedDate), 'MMM d') : 'Jump to date'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent align="end" className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate ? new Date(selectedDate) : undefined}
-                      onSelect={handleDateSelect}
-                      className="rounded-md border shadow-lg"
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Button
+                  onClick={handleLoadOlder}
+                  disabled={loadMoreMutation.isPending}
+                  variant="outline"
+                  size="sm"
+                >
+                  Load Older
+                </Button>
+
+                <Button
+                  onClick={handleLoadNewer}
+                  disabled={loadMoreMutation.isPending}
+                  variant="outline"
+                  size="sm"
+                >
+                  Load Newer
+                </Button>
               </div>
             </div>
           </div>
 
-          {/* Status Bar */}
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {lastSyncTime && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Last updated {format(new Date(lastSyncTime), 'MMM d, HH:mm')}</span>
-                </div>
-              )}
-
-              {/* Pagination Stats */}
-              {paginationInfo && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <span>•</span>
-                  <span>{paginationInfo.totalRepositories} repositories</span>
-                  {paginationInfo.limitedRepositories > 0 && (
-                    <>
-                      <span>•</span>
-                      <span className="text-yellow-600">
-                        {paginationInfo.limitedRepositories} with {maxCommitsPerRepo}+ commits
-                      </span>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Loaded batches indicator */}
-              {loadedBatches.length > 0 && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <span>•</span>
-                  <span>{loadedBatches.length} batch{loadedBatches.length > 1 ? 'es' : ''} loaded</span>
-                </div>
-              )}
-
-              {/* Debug: Show 1000th commit date tracking */}
-              {thousandthCommitDate && (
-                <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-                  <span>•</span>
-                  <span>1000th: {format(thousandthCommitDate, 'MMM yyyy')}</span>
-                </div>
-              )}
-
-              {/* Fetched ranges indicator */}
-              {fetchedDateRanges.length > 0 && (
-                <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
-                  <span>•</span>
-                  <span>{fetchedDateRanges.length} range{fetchedDateRanges.length > 1 ? 's' : ''} fetched</span>
-                </div>
-              )}
-
-              {/* Next batch fetching indicator */}
-              {isBatchFetching && (
-                <div className="flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400">
-                  <span>•</span>
-                  <LoadingSpinner className="w-3 h-3" />
-                  <span>Loading {format(currentDate, 'MMM yyyy')}</span>
-                </div>
-              )}
+          {/* Status Information */}
+          {lastSyncTime && (
+            <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+              Last updated: {format(new Date(lastSyncTime), 'PPpp')}
             </div>
-
-            {/* Load More Button */}
-            {paginationInfo && paginationInfo.limitedRepositories > 0 && (
-              <Button
-                onClick={handleLoadMore}
-                disabled={loadMoreMutation.isPending}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                {loadMoreMutation.isPending ? (
-                  <LoadingSpinner className="w-3 h-3" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-                Load More Commits
-              </Button>
-            )}
-          </div>
+          )}
         </div>
-
-        {/* Limited Repositories Warning */}
-        {paginationInfo && paginationInfo.limitedRepositories > 0 && (
-          <div className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20 p-4 rounded-lg">
-            <div className="flex items-center gap-4">
-              <AlertCircle className="h-4 w-4 text-yellow-600" />
-              <p className="text-yellow-800 dark:text-yellow-200">
-                <strong>{paginationInfo.limitedRepositories} repositories</strong> have more than {maxCommitsPerRepo} commits.
-                Only the most recent {maxCommitsPerRepo} commits are shown for each.
-                <Button
-                  variant="link"
-                  className="p-0 h-auto text-yellow-800 dark:text-yellow-200 underline"
-                  onClick={handleLoadMore}
-                  disabled={loadMoreMutation.isPending}
-                >
-                  Load more commits
-                </Button>
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Calendar Section */}
         <div className="relative">
-          {/* Next batch fetch indicator */}
-          {isBatchFetching && (
+          {/* Sync Loading Indicator */}
+          {syncMutation.isPending && (
+            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-center gap-3">
+                <LoadingSpinner className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    Syncing with GitHub
+                  </h3>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    Fetching latest commits and storing in database...
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Load More Loading Indicator */}
+          {loadMoreMutation.isPending && (
             <div className="mb-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg">
               <div className="flex items-center gap-3">
                 <LoadingSpinner className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <div>
                   <h3 className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
-                    Loading commits for {format(currentDate, 'MMM yyyy')}
+                    Loading more commits
                   </h3>
                   <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">
-                    Fetching commit history from GitHub API...
+                    Expanding date range and syncing with GitHub...
                   </p>
                 </div>
               </div>
@@ -915,7 +589,7 @@ const CalendarPage = () => {
           )}
 
           {/* No Commits Notice */}
-          {commitData.length === 0 && !isLoading && !isFetching && !isBatchFetching && (
+          {commitData.length === 0 && !isLoading && !isFetching && !syncMutation.isPending && (
             <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
@@ -926,7 +600,7 @@ const CalendarPage = () => {
                     No commits found
                   </h3>
                   <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                    Try clicking the <strong>Refresh</strong> button to sync with GitHub, or check if you have any repositories connected.
+                    Try clicking the <strong>Sync</strong> button to fetch commits from GitHub, or check if you have any repositories connected.
                   </p>
                 </div>
               </div>
@@ -947,12 +621,12 @@ const CalendarPage = () => {
           />
 
           {/* Refresh Loading Overlay */}
-          {forceRefreshMutation.isPending && (
+          {syncMutation.isPending && (
             <div className="absolute inset-0 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 rounded-xl">
               <div className="flex flex-col items-center gap-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
                 <LoadingSpinner />
                 <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                  Refreshing data...
+                  Syncing with GitHub...
                 </p>
               </div>
             </div>
