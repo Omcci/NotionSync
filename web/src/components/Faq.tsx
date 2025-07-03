@@ -36,7 +36,6 @@ const Faq = () => {
             code, report issues, and contribute to the project by visiting our
             GitHub repository.
           </AccordionContent>
-          
         </AccordionItem>
       </Accordion>
     </div>
