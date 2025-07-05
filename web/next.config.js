@@ -6,7 +6,12 @@ const nextConfig = {
   transpilePackages: ['lucide-react'],
 
   images: {
-    domains: ['avatars.githubusercontent.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+    ],
   },
 
   // This is the key for creating an optimized production Docker image
