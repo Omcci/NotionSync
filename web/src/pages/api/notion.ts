@@ -148,8 +148,10 @@ const summarizeCommitWithMistral = async (
 
   try {
     const chatResponse = await client.chat({
-      model: 'open-mistral-7b',
+      model: 'mistral-small-latest',
       messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      maxTokens: 1000,
     })
 
     console.log('Mistral response:', chatResponse)

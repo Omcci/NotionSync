@@ -30,7 +30,7 @@ export default async function handler(
     }
 
     const chatResponse = await client.chat({
-      model: 'mistral-small-latest',
+      model: 'codestral-latest',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
       maxTokens: 1000,
