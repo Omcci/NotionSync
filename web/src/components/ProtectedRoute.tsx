@@ -19,12 +19,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
                 const { data: { user }, error } = await supabase.auth.getUser()
 
                 if (error || !user) {
-                    console.log('🔒 No authenticated user, redirecting to login')
                     router.push(`/login?redirectTo=${encodeURIComponent(router.asPath)}`)
                     return
                 }
-
-                console.log('✅ User authenticated:', user.email)
                 setUser(user)
             } catch (err) {
                 console.error('❌ Auth check error:', err)

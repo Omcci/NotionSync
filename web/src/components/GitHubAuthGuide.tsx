@@ -27,8 +27,12 @@ const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
   const handleLogin = async () => {
-    await signInWithGitHub()
-    onComplete?.()
+    try {
+      const result = await signInWithGitHub()
+      onComplete?.()
+    } catch (error) {
+      console.error('GitHub auth error:', error)
+    }
   }
 
   const handleConnectClick = () => {
