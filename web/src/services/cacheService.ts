@@ -59,20 +59,62 @@ export class CacheService {
             const now = new Date()
             const cacheThreshold = new Date(now.getTime() - finalConfig.repositoryCacheTime * 60 * 1000)
 
-            // Check if cached data is fresh enough
-            const hasFreshCache = cachedRepos.length > 0 &&
-                cachedRepos.some(repo => new Date(repo.updated_at) > cacheThreshold)
+            // Check if we have any cached data at all
+            const hasAnyCache = cachedRepos.length > 0
 
-            if (hasFreshCache && !finalConfig.forceRefresh) {
+            // Only fetch from GitHub if:
+            // 1. We have no cached data at all, OR
+            // 2. Force refresh is explicitly requested
+            if (hasAnyCache && !finalConfig.forceRefresh) {
                 return {
                     data: cachedRepos,
                     source: 'cache',
-                    lastUpdated: Math.max(...cachedRepos.map(r => new Date(r.updated_at).getTime())).toString(),
+                    lastUpdated: cachedRepos.length > 0 ?
+                        Math.max(...cachedRepos.map(r => new Date(r.updated_at).getTime())).toString() :
+                        new Date().toISOString(),
+                    isFresh: false // Mark as not fresh since we're using old cache
+                }
+            }
+
+            // Only fetch from GitHub if we have no data at all AND force refresh is requested
+            if (!hasAnyCache && finalConfig.forceRefresh) {
+                const githubRepos = await GitHubService.getUserRepos(githubToken)
+                const transformedRepos = githubRepos.map(repo => ({
+                    id: repo.id.toString(),
+                    name: repo.name,
+                    owner: repo.full_name.split('/')[0],
+                    description: repo.description || undefined,
+                    private: repo.private,
+                    language: repo.language || undefined,
+                    url: repo.html_url,
+                    stars: repo.stargazers_count,
+                    forks: repo.forks_count,
+                    lastUpdated: repo.updated_at
+                }))
+
+                // Update cache
+                const syncResult = await RepositoryService.syncRepositoriesFromGitHub(userId, transformedRepos)
+
+                return {
+                    data: syncResult.repositories || [],
+                    source: 'github',
+                    lastUpdated: new Date().toISOString(),
                     isFresh: true
                 }
             }
 
-            // Fetch fresh data from GitHub
+            // If no cache and no force refresh, return empty data
+            if (!hasAnyCache) {
+                return {
+                    data: [],
+                    source: 'cache',
+                    lastUpdated: new Date().toISOString(),
+                    isFresh: false
+                }
+            }
+
+            // If we get here, we have cache but force refresh was requested
+            // This should rarely happen since we're being conservative
             const githubRepos = await GitHubService.getUserRepos(githubToken)
             const transformedRepos = githubRepos.map(repo => ({
                 id: repo.id.toString(),
@@ -159,21 +201,21 @@ export class CacheService {
                 console.log(`  - Needs update: ${repoCommits.length === 0 || lastSync < cacheThreshold || finalConfig.forceRefresh}`)
 
                 // Need update if:
-                // 1. No cached commits for this repo in date range
-                // 2. Last sync is older than cache threshold
-                // 3. Force refresh is requested
-                if (repoCommits.length === 0 || lastSync < cacheThreshold || finalConfig.forceRefresh) {
-                    console.log(`  ✅ Adding ${repo.name} to update queue`)
+                // 1. No cached commits for this repo in date range AND force refresh is requested
+                // 2. Force refresh is explicitly requested
+                // We're being conservative - only update if explicitly requested
+                if (finalConfig.forceRefresh) {
+                    console.log(`  ✅ Adding ${repo.name} to update queue (force refresh)`)
                     reposNeedingUpdate.push(repo)
                 } else {
-                    console.log(`  ⏭️  Skipping ${repo.name} (cache is fresh)`)
+                    console.log(`  ⏭️  Skipping ${repo.name} (using cache)`)
                 }
             }
 
             console.log(`🔄 Repositories needing update: ${reposNeedingUpdate.length}/${repositories.length}`)
 
-            // If all repos have fresh cache, return cached data
-            if (reposNeedingUpdate.length === 0 && !finalConfig.forceRefresh) {
+            // If no repos need updating, return cached data
+            if (reposNeedingUpdate.length === 0) {
                 console.log(`✅ Returning cached data (${cachedCommits.length} commits)`)
                 return {
                     data: cachedCommits,
@@ -181,7 +223,7 @@ export class CacheService {
                     lastUpdated: repositories.length > 0 ?
                         Math.max(...repositories.map(r => new Date(r.last_sync || 0).getTime())).toString() :
                         new Date().toISOString(),
-                    isFresh: true
+                    isFresh: false // Mark as not fresh since we're using cache
                 }
             }
 
@@ -198,7 +240,7 @@ export class CacheService {
                     const commits = await fetchCommitsWithPagination(
                         githubToken,
                         [{ owner: repo.owner, name: repo.name }],
-                        1000, // Default limit
+                        5000, // Increased limit for better coverage
                         startDate,
                         endDate
                     )
@@ -239,7 +281,7 @@ export class CacheService {
                 data: allCommits,
                 source: reposNeedingUpdate.length > 0 ? 'github' : 'cache',
                 lastUpdated: new Date().toISOString(),
-                isFresh: true
+                isFresh: reposNeedingUpdate.length > 0 // Only fresh if we actually fetched from GitHub
             }
 
         } catch (error) {
@@ -275,7 +317,7 @@ export class CacheService {
         githubToken: string,
         startDate: string,
         endDate: string,
-        maxCommitsPerRepo: number = 1000,
+        maxCommitsPerRepo: number = 5000,
         config: Partial<CacheConfig> = {}
     ): Promise<CacheResult<PaginationResult>> {
         const finalConfig = { ...this.defaultConfig, ...config }

@@ -21,6 +21,18 @@ export class GitHubService {
 
       if (!response.ok) {
         const errorText = await response.text()
+
+        // Handle rate limiting specifically
+        if (response.status === 403 && errorText.includes('rate limit exceeded')) {
+          const rateLimitError = new Error('GitHub API rate limit exceeded')
+          Object.assign(rateLimitError, {
+            rateLimited: true,
+            status: 403,
+            retryAfter: response.headers.get('retry-after') || 3600
+          })
+          throw rateLimitError
+        }
+
         throw new Error(
           `GitHub API error: ${response.status} ${response.statusText} - ${errorText}`,
         )
