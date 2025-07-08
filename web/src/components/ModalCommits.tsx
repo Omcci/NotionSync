@@ -32,7 +32,7 @@ const ModalCommits = ({
   isError,
   error,
 }: ModalCommitsProps) => {
-  const formattedDate = selectedDate
+  const formattedDate = selectedDate && selectedDate.trim() !== ''
     ? format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')
     : 'Selected Date'
 
@@ -87,7 +87,7 @@ const ModalCommits = ({
                   Loading commits...
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
-                  Fetching your development activity for {format(new Date(selectedDate), 'MMM d, yyyy')}
+                  Fetching your development activity for {selectedDate ? format(new Date(selectedDate), 'MMM d, yyyy') : 'this date'}
                 </p>
               </div>
 

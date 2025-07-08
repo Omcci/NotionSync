@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             forceRefresh = 'false',
             repositoryCacheTime = '60',
             commitCacheTime = '30',
-            maxCommitsPerRepo = '1000'
+            maxCommitsPerRepo = '5000'
         } = req.query
 
         if (!userId || !startDate || !endDate) {
@@ -25,13 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             })
         }
 
-        console.log('🗄️  Smart cache request:', {
-            userId,
-            startDate,
-            endDate,
-            forceRefresh,
-            maxCommitsPerRepo
-        })
+
 
         // Try to get GitHub token from Authorization header first (client-side auth)
         const authHeader = req.headers.authorization
@@ -39,9 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (authHeader && authHeader.startsWith('Bearer ')) {
             githubToken = authHeader.split(' ')[1]
-            console.log('✅ Using GitHub token from Authorization header')
         } else {
-            console.log('⚠️  No Authorization header found, checking server-side session')
 
             // Fallback: check server-side session and get token
             const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -114,8 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             forceRefresh: forceRefresh === 'true'
         }
 
-        console.log('⚙️  Cache configuration:', cacheConfig)
-        console.log('✅ Authentication successful, proceeding with commit fetch')
+
 
         // Get repositories with caching
         const repositoriesResult = await CacheService.getRepositories(
@@ -124,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             { repositoryCacheTime: cacheConfig.repositoryCacheTime }
         )
 
-        console.log(`📂 Found ${repositoriesResult.data.length} repositories (source: ${repositoriesResult.source})`)
+
 
         if (repositoriesResult.data.length === 0) {
             return res.status(200).json({
@@ -158,9 +149,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             cacheConfig
         )
 
-        console.log(`📊 Final results:`)
-        console.log(`  - Total commits: ${commitsResult.data.commits.length}`)
-        console.log(`  - Limited repositories: ${commitsResult.data.limitedRepositories}`)
+
 
         return res.status(200).json({
             commits: commitsResult.data.commits,

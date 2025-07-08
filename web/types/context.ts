@@ -19,6 +19,7 @@ export interface AppContextType {
 export interface AppProviderProps {
   children: ReactNode
   githubToken: string | null
+  userId: string | null
 }
 
 // Config Context Types

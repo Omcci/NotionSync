@@ -88,7 +88,7 @@ function AppContent({ Component, pageProps, router }: AppProps) {
 }
 
 function AppWithProviders(props: AppProps) {
-  const { githubToken, isLoading } = useUser()
+  const { githubToken, isLoading, user } = useUser()
 
   // Show loading spinner while user context is loading
   if (isLoading) {
@@ -100,7 +100,7 @@ function AppWithProviders(props: AppProps) {
   }
 
   return (
-    <AppProvider githubToken={githubToken}>
+    <AppProvider githubToken={githubToken} userId={user?.id || null}>
       <ConfigProvider>
         <ThemeProvider
           attribute="class"

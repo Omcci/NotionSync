@@ -5,13 +5,18 @@ import { LoadingSpinner } from '@/components/ui/loadingspinner'
 import { UserService } from '@/services/userService'
 import { CheckCircle, Github, User, Database, ArrowRight, AlertTriangle } from 'lucide-react'
 
-// Debug logging helper
-const debugLog = (message: string, data?: any) => {
-  const timestamp = new Date().toISOString()
-  const logMessage = `[Auth Debug ${timestamp}] ${message}`
-  console.log(logMessage)
-  if (data) {
-    console.log('Details:', data)
+// Function to decode JWT token (base64 decode the payload)
+const decodeJWT = (token: string) => {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+
+    const payload = parts[1]
+    const decoded = JSON.parse(atob(payload))
+    return decoded
+  } catch (error) {
+    console.error('Error decoding JWT:', error)
+    return null
   }
 }
 
@@ -35,11 +40,6 @@ const AuthCallback = () => {
 
   const handleSuccessfulAuth = async (session: any) => {
     try {
-      debugLog('Session retrieved successfully', {
-        userId: session.user?.id,
-        hasProviderToken: !!session.provider_token
-      })
-
       setStatus('Extracting GitHub token...')
       setCurrentStep(1)
 
@@ -49,22 +49,15 @@ const AuthCallback = () => {
 
       // If not in session, try to extract from URL fragment
       if (!githubToken && typeof window !== 'undefined') {
-        debugLog('No provider token in session, checking URL fragment')
         const urlParams = new URLSearchParams(
           window.location.hash.substring(1),
         )
         githubToken = urlParams.get('provider_token')
         refreshToken = urlParams.get('refresh_token')
-
-        debugLog('URL fragment token check result', {
-          hasGithubToken: !!githubToken,
-          hasRefreshToken: !!refreshToken
-        })
       }
 
       // Store GitHub token in database if we have one
       if (githubToken && session.user) {
-        debugLog('Storing GitHub token')
         setStatus('Storing GitHub token...')
         setCurrentStep(2)
         try {
@@ -73,28 +66,18 @@ const AuthCallback = () => {
             githubToken,
             refreshToken || undefined,
           )
-          debugLog('GitHub token stored successfully')
         } catch (tokenError) {
-          debugLog('Failed to store GitHub token', tokenError)
           console.warn('Failed to store GitHub token:', tokenError)
         }
-      } else {
-        debugLog('No GitHub token available to store', {
-          hasToken: !!githubToken,
-          hasUser: !!session.user
-        })
       }
 
-      debugLog('Starting user data sync')
       setStatus('Syncing user data...')
       setCurrentStep(3)
 
       // Sync user with database
       try {
         await UserService.syncUserWithDatabase(session.user)
-        debugLog('User data sync completed')
       } catch (syncError) {
-        debugLog('Failed to sync user data', syncError)
         console.warn('Failed to sync user data:', syncError)
       }
 
@@ -105,13 +88,11 @@ const AuthCallback = () => {
       // Clear the URL fragment to remove tokens from browser history
       if (typeof window !== 'undefined' && window.location.hash) {
         window.history.replaceState(null, '', window.location.pathname)
-        debugLog('Cleared URL fragment')
       }
 
       // Add delay before redirect to ensure UI updates
       await delay(500)
 
-      debugLog('Authentication successful, redirecting to dashboard')
       router.push('/dashboardv0')
     } catch (error) {
       throw error
@@ -121,7 +102,6 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       if (isProcessing.current) {
-        debugLog('Auth callback already in progress, skipping')
         return
       }
       isProcessing.current = true
@@ -131,9 +111,7 @@ const AuthCallback = () => {
 
       while (retryCount < maxRetries) {
         try {
-          debugLog('Starting auth callback handler')
           const fullUrl = window.location.href
-          debugLog('Full callback URL:', fullUrl)
 
           // First try to get the code from URL parameters
           const urlParams = new URLSearchParams(window.location.search)
@@ -142,258 +120,231 @@ const AuthCallback = () => {
           const errorDescription = urlParams.get('error_description')
           const errorCode = urlParams.get('error_code')
 
-          debugLog('URL Parameters:', {
-            code: code ? 'present' : 'missing',
-            error,
-            errorCode,
-            errorDescription
-          })
-
           // Check for error in URL parameters
           if (error || errorDescription) {
             // Special handling for server_error
             if (error === 'server_error' && errorCode === 'unexpected_failure') {
-              debugLog('Detected server error, attempting retry', { retryCount })
+              // If we've tried too many times, show a user-friendly error
+              if (retryCount >= maxRetries - 1) {
+                setError('GitHub authentication is temporarily unavailable. This might be due to:\n\n• GitHub service issues\n• Network connectivity problems\n• OAuth configuration issues\n\nPlease try again in a few minutes or contact support if the problem persists.')
+                setStatus('Authentication failed')
+                return
+              }
+
               await delay(Math.pow(2, retryCount) * 1000) // Exponential backoff
               retryCount++
               continue
             }
+
+            // Handle other specific errors
+            if (error === 'access_denied') {
+              setError('Access denied. You need to authorize the application to access your GitHub account.')
+              setStatus('Authorization denied')
+              return
+            }
+
+            if (error === 'invalid_request') {
+              setError('Invalid authentication request. Please try logging in again.')
+              setStatus('Invalid request')
+              return
+            }
+
             throw new Error(errorDescription || error || 'Authentication failed')
           }
 
           // Try to get tokens from hash fragment if no code
           if (!code) {
-            debugLog('No code found in URL, checking hash fragment')
             const hashParams = new URLSearchParams(window.location.hash.substring(1))
             const accessToken = hashParams.get('access_token')
             const refreshToken = hashParams.get('refresh_token')
             const providerToken = hashParams.get('provider_token')
 
-            debugLog('Hash Parameters:', {
-              hasAccessToken: !!accessToken,
-              hasRefreshToken: !!refreshToken,
-              hasProviderToken: !!providerToken
-            })
+            if (accessToken && providerToken) {
+              // Decode the JWT token to get user information
+              const decodedToken = decodeJWT(accessToken)
 
-            if (!accessToken && !providerToken) {
-              throw new Error('No authentication code or tokens found in URL')
+              if (decodedToken) {
+                // Create a session object manually
+                const session = {
+                  access_token: accessToken,
+                  refresh_token: refreshToken,
+                  provider_token: providerToken,
+                  user: {
+                    id: decodedToken.sub,
+                    email: decodedToken.email,
+                    user_metadata: decodedToken.user_metadata || {},
+                  },
+                }
+
+                // Store session in localStorage to avoid CSP issues
+                try {
+                  localStorage.setItem('supabase.auth.token', JSON.stringify({
+                    access_token: accessToken,
+                    refresh_token: refreshToken,
+                    expires_at: decodedToken.exp,
+                  }))
+                } catch (error) {
+                  console.warn('Failed to store session in localStorage:', error)
+                }
+
+                await handleSuccessfulAuth(session)
+                return
+              }
             }
+
+            throw new Error('No authentication code or tokens found in URL')
           }
 
+          // Exchange code for session
+          setStatus('Exchanging code for session...')
+          setCurrentStep(0)
+
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+          if (exchangeError) {
+            console.error('Code exchange error:', exchangeError)
+            throw exchangeError
+          }
+
+          if (!data.session) {
+            throw new Error('No session returned from code exchange')
+          }
+
+          // Verify session is valid
           setStatus('Verifying session...')
           setCurrentStep(0)
 
-          // Exchange code for session if present
-          if (code) {
-            debugLog('Exchanging code for session')
-            const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-
-            if (exchangeError) {
-              debugLog('Code exchange error', exchangeError)
-              if (exchangeError.message?.includes('rate limit') ||
-                exchangeError.message?.includes('temporarily unavailable')) {
-                await delay(Math.pow(2, retryCount) * 1000)
-                retryCount++
-                continue
-              }
-              throw exchangeError
-            }
-
-            debugLog('Code exchange successful', {
-              hasSession: !!data?.session,
-              hasUser: !!data?.user,
-            })
-          }
-
-          // Verify the session with retry logic
+          const maxSessionRetries = 3
+          let sessionRetryCount = 0
           let session = null
           let sessionError = null
-          let sessionRetryCount = 0
 
-          while (sessionRetryCount < 3 && !session) {
-            const { data: { session: currentSession }, error: currentError } =
-              await supabase.auth.getSession()
+          while (sessionRetryCount < maxSessionRetries) {
+            try {
+              const { data: sessionData, error: sessionDataError } = await supabase.auth.getSession()
 
-            if (currentError) {
-              debugLog('Session verification attempt failed', {
-                attempt: sessionRetryCount + 1,
-                error: currentError
-              })
-              sessionError = currentError
-              await delay(Math.pow(2, sessionRetryCount) * 1000)
+              if (sessionDataError) {
+                sessionError = sessionDataError
+                sessionRetryCount++
+                await delay(1000)
+                continue
+              }
+
+              if (sessionData.session) {
+                session = sessionData.session
+                break
+              }
+
               sessionRetryCount++
-              continue
+              await delay(1000)
+            } catch (error) {
+              sessionError = error
+              sessionRetryCount++
+              await delay(1000)
             }
-
-            if (currentSession) {
-              session = currentSession
-              break
-            }
-
-            sessionRetryCount++
-          }
-
-          if (sessionError) {
-            debugLog('Session verification failed after retries', sessionError)
-            throw sessionError
           }
 
           if (!session) {
-            debugLog('No session found after verification attempts')
-            throw new Error('No authentication session found')
+            throw new Error('Failed to verify session after multiple attempts')
           }
 
-          debugLog('Session verified successfully', {
-            userId: session.user?.id,
-            hasProviderToken: !!session.provider_token,
-            hasAccessToken: !!session.access_token
-          })
-
-          // Continue with the rest of your auth flow...
           await handleSuccessfulAuth(session)
-          return // Success, exit the retry loop
+          return
 
         } catch (error) {
-          debugLog('Auth callback error', error)
           console.error('Auth callback error:', error)
 
-          // If we've exhausted retries, set the error
           if (retryCount >= maxRetries - 1) {
             setError(error instanceof Error ? error.message : 'Authentication failed')
+            setStatus('Authentication failed')
             return
           }
 
-          // Otherwise, retry
           retryCount++
-          await delay(Math.pow(2, retryCount) * 1000)
+          await delay(Math.pow(2, retryCount) * 1000) // Exponential backoff
         }
       }
 
-      // If we get here, all retries failed
-      setError('Authentication failed after multiple attempts. Please try again.')
+      setError('All retry attempts failed')
+      setStatus('Authentication failed')
     }
 
-    // Only run if not already processing
-    if (!error && !isRedirecting) {
-      handleAuthCallback().finally(() => {
-        isProcessing.current = false
-      })
-    }
-  }, [router, error, isRedirecting])
+    handleAuthCallback()
+  }, [router])
 
-  // Manual redirect function for error case
   const handleManualRedirect = () => {
-    setIsRedirecting(true)
-
-    // Try router first, fallback to window.location
-    router.push('/login').catch(() => {
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login'
-      }
-    })
+    router.push('/login')
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-red-50 to-orange-50 dark:from-gray-900 dark:via-red-900 dark:to-gray-900">
-        <div className="min-h-screen grid place-items-center p-8">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-red-200/50 dark:border-red-700/50 p-8 text-center max-w-md">
-            <div className="w-16 h-16 mx-auto mb-6 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8 text-red-500" />
-            </div>
-            <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
-              Authentication Failed
-            </h2>
-            <p className="text-red-700 dark:text-red-300 mb-6 text-sm leading-relaxed">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-center mb-6">
+            <AlertTriangle className="h-12 w-12 text-red-500" />
+          </div>
+
+          <h1 className="text-2xl font-bold text-center text-gray-900 mb-4">
+            Authentication Error
+          </h1>
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800 text-sm whitespace-pre-line">
               {error}
             </p>
-            <div className="space-y-3">
-              <button
-                onClick={handleManualRedirect}
-                disabled={isRedirecting}
-                className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isRedirecting ? (
-                  <>
-                    <LoadingSpinner className="w-4 h-4" />
-                    Redirecting...
-                  </>
-                ) : (
-                  <>
-                    <Github className="w-4 h-4" />
-                    Return to Login
-                  </>
-                )}
-              </button>
-              <p className="text-gray-600 dark:text-gray-400 text-xs">
-                Try logging in again with GitHub
-              </p>
-
-              {/* Troubleshooting tips */}
-              <details className="mt-4 text-left">
-                <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
-                  Troubleshooting Tips
-                </summary>
-                <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                  <p>• Make sure you have a stable internet connection</p>
-                  <p>• Try refreshing the page and logging in again</p>
-                  <p>• Clear your browser cache and cookies</p>
-                  <p>• Check if GitHub is experiencing issues</p>
-                </div>
-              </details>
-            </div>
           </div>
+
+          <button
+            onClick={handleManualRedirect}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     )
   }
 
-  const CurrentStepIcon = steps[currentStep]?.icon || CheckCircle
-  const currentStepColor = steps[currentStep]?.color || 'text-blue-500'
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-blue-900">
-      <div className="min-h-screen grid place-items-center p-8">
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-8 text-center max-w-lg">
-          {/* Animated icon */}
-          <div className="w-20 h-20 mx-auto mb-6 relative">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 opacity-20 animate-pulse"></div>
-            <div className="absolute inset-2 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center">
-              <CurrentStepIcon className={`w-8 h-8 ${currentStepColor}`} />
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-center mb-6">
+          <LoadingSpinner className="h-12 w-12 text-blue-500" />
+        </div>
 
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            Setting up your account
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
-            Please wait while we configure everything for you
-          </p>
+        <h1 className="text-2xl font-bold text-center text-gray-900 mb-4">
+          {isRedirecting ? 'Redirecting...' : 'Processing Authentication'}
+        </h1>
 
-          {/* Current status */}
-          <div className="mb-6">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-              {status}
-            </p>
-            <LoadingSpinner className="w-6 h-6 text-blue-500 mx-auto" />
-          </div>
+        <p className="text-gray-600 text-center mb-6">
+          {status}
+        </p>
 
-          {/* Step indicators */}
-          <div className="flex justify-center space-x-2">
-            {steps.map((step, index) => (
+        <div className="space-y-3">
+          {steps.map((step, index) => {
+            const Icon = step.icon
+            const isActive = index === currentStep
+            const isCompleted = index < currentStep
+
+            return (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${index <= currentStep
-                  ? 'bg-blue-500 scale-110'
-                  : 'bg-gray-300 dark:bg-gray-600'
+                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isActive ? 'bg-blue-50 border border-blue-200' : ''
                   }`}
-              />
-            ))}
-          </div>
-
-          <div className="mt-6 text-xs text-gray-500 dark:text-gray-400">
-            Step {currentStep + 1} of {steps.length}
-          </div>
+              >
+                <Icon
+                  className={`h-5 w-5 ${isCompleted ? 'text-green-500' : isActive ? step.color : 'text-gray-400'
+                    }`}
+                />
+                <span
+                  className={`text-sm font-medium ${isCompleted ? 'text-green-700' : isActive ? 'text-blue-700' : 'text-gray-500'
+                    }`}
+                >
+                  {step.label}
+                </span>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
