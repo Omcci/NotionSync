@@ -19,6 +19,7 @@ interface CommitCalendarProps {
     onViewChange?: (view: 'month' | 'week' | 'day') => void
     onDateChange?: (date: Date) => void
     onCalendarNavigate?: (date: Date) => void
+    datesWithSummaries?: Set<string>
 }
 
 export function CommitCalendar({
@@ -33,18 +34,12 @@ export function CommitCalendar({
     initialDate,
     onViewChange,
     onDateChange,
-    onCalendarNavigate
+    onCalendarNavigate,
+    datesWithSummaries
 }: CommitCalendarProps) {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null)
     const [hoveredDate, setHoveredDate] = useState<Date | null>(null)
     const [popupCommits, setPopupCommits] = useState<Commit[]>([])
-
-    // Effect to track calendar navigation and notify parent
-    useEffect(() => {
-        if (initialDate && onCalendarNavigate) {
-            onCalendarNavigate(initialDate)
-        }
-    }, [initialDate, onCalendarNavigate])
 
     // Transform commits to calendar events
     const events = useMemo(() => {
@@ -214,6 +209,10 @@ export function CommitCalendar({
         const repoCount = Object.keys(commitsByRepo).length
         const isHovered = hoveredDate && format(hoveredDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
 
+        // Check if this day has a generated summary
+        const dateStr = format(date, 'yyyy-MM-dd')
+        const hasSummary = datesWithSummaries?.has(dateStr) || false
+
         const handleDayClick = () => {
             setSelectedDate(date)
             onDateClick?.(date)
@@ -255,23 +254,63 @@ export function CommitCalendar({
             return rect.right + 680 > window.innerWidth // 640px popup + 40px margin
         })()
 
+        // Build dynamic classes for day styling
+        let dayClasses = "calendar-day-cell relative transition-all duration-200 cursor-pointer border-r border-b last:border-r-0 min-h-[120px] p-3"
+
+        // Base styling based on month and hover state
+        if (isCurrentMonth) {
+            dayClasses += " bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md"
+        } else {
+            dayClasses += " bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
+        }
+
+        // Today styling
+        if (isToday) {
+            dayClasses += " bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm"
+        }
+
+        // Hover styling
+        if (isHovered) {
+            dayClasses += " z-[9998] relative shadow-2xl ring-4 ring-blue-500/60 dark:ring-blue-400/60 bg-white dark:bg-gray-800 scale-[1.05] border-blue-300 dark:border-blue-600"
+        }
+
+        // Summary styling - golden highlight for days with generated summaries
+        if (hasSummary && isCurrentMonth) {
+            if (isToday) {
+                // If it's today AND has summary, combine both styles
+                dayClasses += " ring-2 ring-amber-400 dark:ring-amber-500 bg-gradient-to-br from-blue-50 via-amber-50 to-blue-50 dark:from-blue-900/20 dark:via-amber-900/20 dark:to-blue-900/20"
+            } else {
+                // Just has summary
+                dayClasses += " bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-300 dark:border-amber-700 ring-1 ring-amber-200 dark:ring-amber-800"
+            }
+        }
+
+        // Border classes - separate from day classes for clarity
+        let borderClasses = "border-gray-200 dark:border-gray-700"
+        if (hasSummary && isCurrentMonth && !isToday) {
+            borderClasses = "border-amber-300 dark:border-amber-700"
+        }
+
         return (
             <div
                 data-date={format(date, 'yyyy-MM-dd')}
-                className={`calendar-day-cell relative transition-all duration-200 cursor-pointer border-r border-b border-gray-200 dark:border-gray-700 last:border-r-0 ${isCurrentMonth
-                    ? "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md"
-                    : "bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
-                    } ${isToday ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 shadow-sm" : ""} ${isHovered ? "z-[9998] relative shadow-2xl ring-4 ring-blue-500/60 dark:ring-blue-400/60 bg-white dark:bg-gray-800 scale-[1.05] border-blue-300 dark:border-blue-600" : ""} min-h-[120px] p-3`}
+                className={`${dayClasses} ${borderClasses}`}
                 onClick={handleDayClick}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             >
                 {/* Day number */}
                 <div className="flex items-center justify-between mb-3">
-                    <span className={`text-sm font-semibold ${isToday ? "bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-sm" : ""
-                        } ${!isCurrentMonth ? "text-gray-400 dark:text-gray-600" : "text-gray-700 dark:text-gray-300"}`}>
-                        {format(date, 'd')}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className={`text-sm font-semibold ${isToday ? "bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-sm" : ""
+                            } ${!isCurrentMonth ? "text-gray-400 dark:text-gray-600" : "text-gray-700 dark:text-gray-300"}`}>
+                            {format(date, 'd')}
+                        </span>
+                        {/* Summary indicator */}
+                        {hasSummary && isCurrentMonth && (
+                            <div className="w-2 h-2 bg-amber-500 dark:bg-amber-400 rounded-full shadow-sm animate-pulse" title="Summary generated" />
+                        )}
+                    </div>
                     {/* Repository count indicator */}
                     {repoCount > 0 && (
                         <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md font-medium shadow-sm">
@@ -390,11 +429,21 @@ export function CommitCalendar({
     }
 
     return (
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl overflow-visible">
+        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl overflow-visible relative">
             <CardContent className="p-0 overflow-visible">
                 {/* Global blur overlay when any day is hovered */}
                 {hoveredDate && (
                     <div className="fixed inset-0 z-[9997] pointer-events-none backdrop-blur-sm bg-black/20 animate-in fade-in duration-200" />
+                )}
+
+                {/* Loading overlay when processing commits */}
+                {isLoading && commits.length > 0 && events.length === 0 && (
+                    <div className="absolute inset-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm flex items-center justify-center">
+                        <div className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg px-4 py-3 shadow-lg">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Processing commits...</span>
+                        </div>
+                    </div>
                 )}
 
                 <Calendar

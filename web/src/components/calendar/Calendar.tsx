@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react'
+import React, { forwardRef, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { CalendarEvent, CalendarView, useCalendar, UseCalendarOptions } from '@/hooks/useCalendar'
 import { Button } from '@/components/ui/button'
@@ -53,6 +53,7 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(({
     ...calendarOptions
 }, ref) => {
     const calendar = useCalendar(calendarOptions)
+    const lastNavigateDate = useRef<Date | null>(null)
 
     const handleDateClick = (date: Date) => {
         onDateClick?.(date)
@@ -62,28 +63,30 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(({
         onEventClick?.(event)
     }
 
+    const handleNavigate = (date: Date) => {
+        // Prevent duplicate navigation calls for the same date
+        if (lastNavigateDate.current &&
+            lastNavigateDate.current.getTime() === date.getTime()) {
+            return
+        }
+
+        lastNavigateDate.current = date
+        onNavigate?.(date)
+    }
+
     const handleNext = () => {
         calendar.goToNext()
-        // Notify parent after navigation
-        setTimeout(() => {
-            onNavigate?.(calendar.currentDate)
-        }, 0)
+        handleNavigate(calendar.currentDate)
     }
 
     const handlePrevious = () => {
         calendar.goToPrevious()
-        // Notify parent after navigation
-        setTimeout(() => {
-            onNavigate?.(calendar.currentDate)
-        }, 0)
+        handleNavigate(calendar.currentDate)
     }
 
     const handleToday = () => {
         calendar.goToToday()
-        // Notify parent after navigation
-        setTimeout(() => {
-            onNavigate?.(calendar.currentDate)
-        }, 0)
+        handleNavigate(calendar.currentDate)
     }
 
     const handleViewChange = (view: CalendarView) => {
