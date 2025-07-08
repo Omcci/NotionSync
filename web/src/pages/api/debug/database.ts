@@ -1,7 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { supabase } from '@/lib/supabaseClient'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' })
   }
@@ -25,19 +28,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           tableInfo[tableName] = {
             exists: false,
             error: error.message,
-            code: error.code
+            code: error.code,
           }
         } else {
           tableInfo[tableName] = {
             exists: true,
             count: count || 0,
-            structure: 'accessible'
+            structure: 'accessible',
           }
         }
       } catch (err) {
         tableInfo[tableName] = {
           exists: false,
-          error: err instanceof Error ? err.message : 'Unknown error'
+          error: err instanceof Error ? err.message : 'Unknown error',
         }
       }
     }
@@ -56,11 +59,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userTableTest = {
           success: true,
           sampleCount: users?.length || 0,
-          hasGithubUsers: users?.some(u => u.github_username) || false
+          hasGithubUsers: users?.some((u) => u.github_username) || false,
         }
       }
     } catch (err) {
-      userTableTest = { error: err instanceof Error ? err.message : 'Unknown error' }
+      userTableTest = {
+        error: err instanceof Error ? err.message : 'Unknown error',
+      }
     }
 
     // Check commit structure if commits table exists
@@ -78,11 +83,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           commitStructureTest = {
             success: true,
             sampleCount: commits?.length || 0,
-            sampleCommit: commits?.[0] || null
+            sampleCommit: commits?.[0] || null,
           }
         }
       } catch (err) {
-        commitStructureTest = { error: err instanceof Error ? err.message : 'Unknown error' }
+        commitStructureTest = {
+          error: err instanceof Error ? err.message : 'Unknown error',
+        }
       }
     }
 
@@ -101,11 +108,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           repoStructureTest = {
             success: true,
             sampleCount: repos?.length || 0,
-            sampleRepo: repos?.[0] || null
+            sampleRepo: repos?.[0] || null,
           }
         }
       } catch (err) {
-        repoStructureTest = { error: err instanceof Error ? err.message : 'Unknown error' }
+        repoStructureTest = {
+          error: err instanceof Error ? err.message : 'Unknown error',
+        }
       }
     }
 
@@ -118,21 +127,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       tests: {
         userTable: userTableTest,
         commitStructure: commitStructureTest,
-        repoStructure: repoStructureTest
+        repoStructure: repoStructureTest,
       },
       recommendations: {
-        needsSetup: !tableInfo.commits?.exists || !tableInfo.repositories?.exists,
-        missingTables: tables.filter(table => !tableInfo[table]?.exists),
-        readyForCommits: tableInfo.commits?.exists && tableInfo.repositories?.exists
-      }
+        needsSetup:
+          !tableInfo.commits?.exists || !tableInfo.repositories?.exists,
+        missingTables: tables.filter((table) => !tableInfo[table]?.exists),
+        readyForCommits:
+          tableInfo.commits?.exists && tableInfo.repositories?.exists,
+      },
     })
-
   } catch (error) {
     console.error('❌ Database check error:', error)
     return res.status(500).json({
       message: 'Database check failed',
       error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
   }
-} 
+}

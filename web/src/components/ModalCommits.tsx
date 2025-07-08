@@ -32,9 +32,10 @@ const ModalCommits = ({
   isError,
   error,
 }: ModalCommitsProps) => {
-  const formattedDate = selectedDate && selectedDate.trim() !== ''
-    ? format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')
-    : 'Selected Date'
+  const formattedDate =
+    selectedDate && selectedDate.trim() !== ''
+      ? format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')
+      : 'Selected Date'
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -88,7 +89,10 @@ const ModalCommits = ({
                   Loading commits...
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
-                  Fetching your development activity for {selectedDate ? format(new Date(selectedDate), 'MMM d, yyyy') : 'this date'}
+                  Fetching your development activity for{' '}
+                  {selectedDate
+                    ? format(new Date(selectedDate), 'MMM d, yyyy')
+                    : 'this date'}
                 </p>
               </div>
 
