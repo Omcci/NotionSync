@@ -14,7 +14,8 @@ const LoginPage = () => {
     if (!isLoading && user) {
       setRedirecting(true)
       // Check if there's a redirectTo parameter from the ProtectedRoute
-      const destination = redirectTo && typeof redirectTo === 'string' ? redirectTo : '/calendar'
+      const destination =
+        redirectTo && typeof redirectTo === 'string' ? redirectTo : '/calendar'
       router.push(destination)
     }
   }, [user, isLoading, router, redirectTo])

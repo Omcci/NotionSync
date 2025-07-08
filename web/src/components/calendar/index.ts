@@ -12,10 +12,10 @@ export type { CalendarEventProps } from './CalendarEvent'
 
 // Re-export hook types
 export type {
-    CalendarEvent,
-    CalendarView,
-    CalendarDay as CalendarDayData,
-    UseCalendarOptions,
-    UseCalendarReturn
+  CalendarEvent,
+  CalendarView,
+  CalendarDay as CalendarDayData,
+  UseCalendarOptions,
+  UseCalendarReturn,
 } from '@/hooks/useCalendar'
-export { useCalendar } from '@/hooks/useCalendar' 
+export { useCalendar } from '@/hooks/useCalendar'

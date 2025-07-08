@@ -43,7 +43,9 @@ ${diff}
 Make it read like a story of actual work accomplished, not a technical specification.
 `
 
-export const summary_prompt_multiple = (commits: Array<{ commitMessage: string; diff: string }>) => `
+export const summary_prompt_multiple = (
+  commits: Array<{ commitMessage: string; diff: string }>,
+) => `
 You are an expert software developer analyzing a development session. Create an engaging summary of what was actually accomplished across ${commits.length} commits.
 
 **Instructions:**
@@ -55,11 +57,15 @@ You are an expert software developer analyzing a development session. Create an 
 - Show the progression and evolution of the work
 
 **Commits to analyze:**
-${commits.map((commit, index) => `
+${commits
+  .map(
+    (commit, index) => `
 ### Commit ${index + 1}:
 **Message:** ${commit.commitMessage}
 **Changes:** ${commit.diff}
-`).join('\n')}
+`,
+  )
+  .join('\n')}
 
 **Please provide a summary with the following structure:**
 
