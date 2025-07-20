@@ -3,7 +3,14 @@ import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 import { LoadingSpinner } from '@/components/ui/loadingspinner'
 import { UserService } from '@/services/userService'
-import { CheckCircle, Github, User, Database, ArrowRight, AlertTriangle } from 'lucide-react'
+import {
+  CheckCircle,
+  Github,
+  User,
+  Database,
+  ArrowRight,
+  AlertTriangle,
+} from 'lucide-react'
 
 // Function to decode JWT token (base64 decode the payload)
 const decodeJWT = (token: string) => {
@@ -20,7 +27,7 @@ const decodeJWT = (token: string) => {
   }
 }
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const AuthCallback = () => {
   const router = useRouter()
@@ -31,9 +38,21 @@ const AuthCallback = () => {
   const isProcessing = useRef(false)
 
   const steps = [
-    { icon: CheckCircle, label: 'Verifying session...', color: 'text-blue-500' },
-    { icon: Github, label: 'Extracting GitHub token...', color: 'text-green-500' },
-    { icon: Database, label: 'Storing credentials...', color: 'text-purple-500' },
+    {
+      icon: CheckCircle,
+      label: 'Verifying session...',
+      color: 'text-blue-500',
+    },
+    {
+      icon: Github,
+      label: 'Extracting GitHub token...',
+      color: 'text-green-500',
+    },
+    {
+      icon: Database,
+      label: 'Storing credentials...',
+      color: 'text-purple-500',
+    },
     { icon: User, label: 'Syncing user data...', color: 'text-orange-500' },
     { icon: ArrowRight, label: 'Redirecting...', color: 'text-indigo-500' },
   ]
@@ -49,9 +68,7 @@ const AuthCallback = () => {
 
       // If not in session, try to extract from URL fragment
       if (!githubToken && typeof window !== 'undefined') {
-        const urlParams = new URLSearchParams(
-          window.location.hash.substring(1),
-        )
+        const urlParams = new URLSearchParams(window.location.hash.substring(1))
         githubToken = urlParams.get('provider_token')
         refreshToken = urlParams.get('refresh_token')
       }
@@ -123,10 +140,15 @@ const AuthCallback = () => {
           // Check for error in URL parameters
           if (error || errorDescription) {
             // Special handling for server_error
-            if (error === 'server_error' && errorCode === 'unexpected_failure') {
+            if (
+              error === 'server_error' &&
+              errorCode === 'unexpected_failure'
+            ) {
               // If we've tried too many times, show a user-friendly error
               if (retryCount >= maxRetries - 1) {
-                setError('GitHub authentication is temporarily unavailable. This might be due to:\n\n• GitHub service issues\n• Network connectivity problems\n• OAuth configuration issues\n\nPlease try again in a few minutes or contact support if the problem persists.')
+                setError(
+                  'GitHub authentication is temporarily unavailable. This might be due to:\n\n• GitHub service issues\n• Network connectivity problems\n• OAuth configuration issues\n\nPlease try again in a few minutes or contact support if the problem persists.',
+                )
                 setStatus('Authentication failed')
                 return
               }
@@ -138,23 +160,31 @@ const AuthCallback = () => {
 
             // Handle other specific errors
             if (error === 'access_denied') {
-              setError('Access denied. You need to authorize the application to access your GitHub account.')
+              setError(
+                'Access denied. You need to authorize the application to access your GitHub account.',
+              )
               setStatus('Authorization denied')
               return
             }
 
             if (error === 'invalid_request') {
-              setError('Invalid authentication request. Please try logging in again.')
+              setError(
+                'Invalid authentication request. Please try logging in again.',
+              )
               setStatus('Invalid request')
               return
             }
 
-            throw new Error(errorDescription || error || 'Authentication failed')
+            throw new Error(
+              errorDescription || error || 'Authentication failed',
+            )
           }
 
           // Try to get tokens from hash fragment if no code
           if (!code) {
-            const hashParams = new URLSearchParams(window.location.hash.substring(1))
+            const hashParams = new URLSearchParams(
+              window.location.hash.substring(1),
+            )
             const accessToken = hashParams.get('access_token')
             const refreshToken = hashParams.get('refresh_token')
             const providerToken = hashParams.get('provider_token')
@@ -178,13 +208,19 @@ const AuthCallback = () => {
 
                 // Store session in localStorage to avoid CSP issues
                 try {
-                  localStorage.setItem('supabase.auth.token', JSON.stringify({
-                    access_token: accessToken,
-                    refresh_token: refreshToken,
-                    expires_at: decodedToken.exp,
-                  }))
+                  localStorage.setItem(
+                    'supabase.auth.token',
+                    JSON.stringify({
+                      access_token: accessToken,
+                      refresh_token: refreshToken,
+                      expires_at: decodedToken.exp,
+                    }),
+                  )
                 } catch (error) {
-                  console.warn('Failed to store session in localStorage:', error)
+                  console.warn(
+                    'Failed to store session in localStorage:',
+                    error,
+                  )
                 }
 
                 await handleSuccessfulAuth(session)
@@ -199,7 +235,8 @@ const AuthCallback = () => {
           setStatus('Exchanging code for session...')
           setCurrentStep(0)
 
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+          const { data, error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(code)
 
           if (exchangeError) {
             console.error('Code exchange error:', exchangeError)
@@ -221,7 +258,8 @@ const AuthCallback = () => {
 
           while (sessionRetryCount < maxSessionRetries) {
             try {
-              const { data: sessionData, error: sessionDataError } = await supabase.auth.getSession()
+              const { data: sessionData, error: sessionDataError } =
+                await supabase.auth.getSession()
 
               if (sessionDataError) {
                 sessionError = sessionDataError
@@ -250,12 +288,13 @@ const AuthCallback = () => {
 
           await handleSuccessfulAuth(session)
           return
-
         } catch (error) {
           console.error('Auth callback error:', error)
 
           if (retryCount >= maxRetries - 1) {
-            setError(error instanceof Error ? error.message : 'Authentication failed')
+            setError(
+              error instanceof Error ? error.message : 'Authentication failed',
+            )
             setStatus('Authentication failed')
             return
           }
@@ -289,9 +328,7 @@ const AuthCallback = () => {
           </h1>
 
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800 text-sm whitespace-pre-line">
-              {error}
-            </p>
+            <p className="text-red-800 text-sm whitespace-pre-line">{error}</p>
           </div>
 
           <button
@@ -316,9 +353,7 @@ const AuthCallback = () => {
           {isRedirecting ? 'Redirecting...' : 'Processing Authentication'}
         </h1>
 
-        <p className="text-gray-600 text-center mb-6">
-          {status}
-        </p>
+        <p className="text-gray-600 text-center mb-6">{status}</p>
 
         <div className="space-y-3">
           {steps.map((step, index) => {
@@ -329,16 +364,27 @@ const AuthCallback = () => {
             return (
               <div
                 key={index}
-                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isActive ? 'bg-blue-50 border border-blue-200' : ''
-                  }`}
+                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                  isActive ? 'bg-blue-50 border border-blue-200' : ''
+                }`}
               >
                 <Icon
-                  className={`h-5 w-5 ${isCompleted ? 'text-green-500' : isActive ? step.color : 'text-gray-400'
-                    }`}
+                  className={`h-5 w-5 ${
+                    isCompleted
+                      ? 'text-green-500'
+                      : isActive
+                        ? step.color
+                        : 'text-gray-400'
+                  }`}
                 />
                 <span
-                  className={`text-sm font-medium ${isCompleted ? 'text-green-700' : isActive ? 'text-blue-700' : 'text-gray-500'
-                    }`}
+                  className={`text-sm font-medium ${
+                    isCompleted
+                      ? 'text-green-700'
+                      : isActive
+                        ? 'text-blue-700'
+                        : 'text-gray-500'
+                  }`}
                 >
                   {step.label}
                 </span>

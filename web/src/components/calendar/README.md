@@ -9,7 +9,7 @@ A fully customizable, shadcn-style calendar system that gives you complete contr
 ✅ **Native React** - Proper React patterns, not a wrapper  
 ✅ **TypeScript First** - Full type safety  
 ✅ **shadcn Compatible** - Works perfectly with your design system  
-✅ **Performance** - Optimized React components  
+✅ **Performance** - Optimized React components
 
 ## 🏗️ **Architecture**
 
@@ -41,7 +41,7 @@ const events = [
   }
 ]
 
-<Calendar 
+<Calendar
   events={events}
   onDateClick={(date) => console.log('Date clicked:', date)}
   onEventClick={(event) => console.log('Event clicked:', event)}
@@ -51,29 +51,26 @@ const events = [
 ### Advanced Customization
 
 ```tsx
-<Calendar 
+<Calendar
   events={events}
   initialView="month"
-  
   // Custom event rendering
   renderEvent={(event, date) => (
     <div className="p-2 bg-blue-100 rounded border-l-4 border-blue-500">
       <span className="font-medium">{event.title}</span>
     </div>
   )}
-  
   // Custom day rendering
   renderDay={(date, events, isCurrentMonth, isToday) => (
     <div className={`p-2 ${isToday ? 'bg-blue-50' : ''}`}>
       <span className="text-sm">{format(date, 'd')}</span>
-      {events.map(event => (
+      {events.map((event) => (
         <div key={event.id} className="mt-1 text-xs">
           {event.title}
         </div>
       ))}
     </div>
   )}
-  
   // Custom header
   renderHeader={(title) => (
     <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
@@ -96,14 +93,18 @@ const CalendarPage = () => {
         plugins={[dayGridPlugin, interactionPlugin]}
         events={events}
         eventContent={(arg) => ({
-          html: `<div class="custom-event">...</div>` // Hard to customize
+          html: `<div class="custom-event">...</div>`, // Hard to customize
         })}
       />
-      
+
       {/* 200+ lines of CSS to override FullCalendar styles */}
       <style jsx global>{`
-        .fc-event { /* Complex overrides */ }
-        .fc-daygrid-day { /* More overrides */ }
+        .fc-event {
+          /* Complex overrides */
+        }
+        .fc-daygrid-day {
+          /* More overrides */
+        }
         /* ... 200 more lines ... */
       `}</style>
     </>
@@ -138,26 +139,34 @@ const CalendarPage = () => {
 ```tsx
 const eventClassName = (event: CalendarEvent) => {
   switch (event.data?.type) {
-    case 'meeting': return 'bg-blue-100 border-blue-500 text-blue-700'
-    case 'deadline': return 'bg-red-100 border-red-500 text-red-700'
-    case 'holiday': return 'bg-green-100 border-green-500 text-green-700'
-    default: return 'bg-gray-100 border-gray-500 text-gray-700'
+    case 'meeting':
+      return 'bg-blue-100 border-blue-500 text-blue-700'
+    case 'deadline':
+      return 'bg-red-100 border-red-500 text-red-700'
+    case 'holiday':
+      return 'bg-green-100 border-green-500 text-green-700'
+    default:
+      return 'bg-gray-100 border-gray-500 text-gray-700'
   }
 }
 
-<Calendar eventClassName={eventClassName} />
+;<Calendar eventClassName={eventClassName} />
 ```
 
 ### Custom Day Styling
 
 ```tsx
-const dayClassName = (date: Date, isCurrentMonth: boolean, isToday: boolean) => {
+const dayClassName = (
+  date: Date,
+  isCurrentMonth: boolean,
+  isToday: boolean,
+) => {
   if (isToday) return 'bg-blue-50 border-blue-200'
   if (!isCurrentMonth) return 'bg-gray-50 text-gray-400'
   return 'hover:bg-gray-50'
 }
 
-<Calendar dayClassName={dayClassName} />
+;<Calendar dayClassName={dayClassName} />
 ```
 
 ## 🔧 **Commit Calendar Example**
@@ -176,6 +185,7 @@ The `CommitCalendar` component shows how to recreate your exact existing functio
 ```
 
 ### Features Preserved:
+
 - ✅ Commit grouping by date/repo
 - ✅ Color coding by commit type
 - ✅ Hover popups with commit details
@@ -189,16 +199,19 @@ The `CommitCalendar` component shows how to recreate your exact existing functio
 ## 📱 **Views**
 
 ### Month View
+
 ```tsx
 <Calendar initialView="month" />
 ```
 
 ### Week View
+
 ```tsx
 <Calendar initialView="week" />
 ```
 
 ### Day View
+
 ```tsx
 <Calendar initialView="day" />
 ```
@@ -207,17 +220,17 @@ The `CommitCalendar` component shows how to recreate your exact existing functio
 
 ### Calendar Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `events` | `CalendarEvent[]` | Array of events to display |
-| `initialView` | `'month' \| 'week' \| 'day'` | Starting view |
-| `onDateClick` | `(date: Date) => void` | Date click handler |
-| `onEventClick` | `(event: CalendarEvent) => void` | Event click handler |
-| `renderEvent` | `(event, date) => ReactNode` | Custom event renderer |
-| `renderDay` | `(date, events, ...) => ReactNode` | Custom day renderer |
-| `renderHeader` | `(title, subtitle) => ReactNode` | Custom header renderer |
-| `eventClassName` | `string \| function` | Event styling |
-| `dayClassName` | `string \| function` | Day styling |
+| Prop             | Type                               | Description                |
+| ---------------- | ---------------------------------- | -------------------------- |
+| `events`         | `CalendarEvent[]`                  | Array of events to display |
+| `initialView`    | `'month' \| 'week' \| 'day'`       | Starting view              |
+| `onDateClick`    | `(date: Date) => void`             | Date click handler         |
+| `onEventClick`   | `(event: CalendarEvent) => void`   | Event click handler        |
+| `renderEvent`    | `(event, date) => ReactNode`       | Custom event renderer      |
+| `renderDay`      | `(date, events, ...) => ReactNode` | Custom day renderer        |
+| `renderHeader`   | `(title, subtitle) => ReactNode`   | Custom header renderer     |
+| `eventClassName` | `string \| function`               | Event styling              |
+| `dayClassName`   | `string \| function`               | Day styling                |
 
 ### useCalendar Hook
 
@@ -225,7 +238,7 @@ The `CommitCalendar` component shows how to recreate your exact existing functio
 const calendar = useCalendar({
   events,
   initialView: 'month',
-  initialDate: new Date()
+  initialDate: new Date(),
 })
 
 // Available methods:
@@ -255,4 +268,4 @@ Replace your existing calendar in 3 steps:
 2. **Replace**: Switch FullCalendar with CommitCalendar
 3. **Customize**: Tweak the styling as needed
 
-**Result**: Same functionality, 90% less CSS, 100% more control! 🎉 
+**Result**: Same functionality, 90% less CSS, 100% more control! 🎉

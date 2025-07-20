@@ -1,8 +1,13 @@
 import { supabase } from './supabaseClient'
 import { getAuthCallbackUrl, getAppCallbackUrl } from './config'
-import type { AuthError, AuthResponse, Session, User } from '@supabase/supabase-js'
+import type {
+  AuthError,
+  AuthResponse,
+  Session,
+  User,
+} from '@supabase/supabase-js'
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const signInWithGitHub = async (forceReauth = false) => {
   const maxRetries = 3
@@ -27,7 +32,10 @@ const signInWithGitHub = async (forceReauth = false) => {
       })
 
       if (error) {
-        if (error.message?.includes('rate limit') || error.message?.includes('temporarily unavailable')) {
+        if (
+          error.message?.includes('rate limit') ||
+          error.message?.includes('temporarily unavailable')
+        ) {
           await delay(Math.pow(2, retryCount) * 1000)
           retryCount++
           continue
@@ -38,10 +46,12 @@ const signInWithGitHub = async (forceReauth = false) => {
       return { data, error: null }
     } catch (error) {
       // If it's a network error or temporary failure, retry
-      if (error instanceof Error &&
+      if (
+        error instanceof Error &&
         (error.message.includes('network') ||
           error.message.includes('timeout') ||
-          error.message.includes('temporarily unavailable'))) {
+          error.message.includes('temporarily unavailable'))
+      ) {
         await delay(Math.pow(2, retryCount) * 1000)
         retryCount++
         continue
@@ -52,7 +62,9 @@ const signInWithGitHub = async (forceReauth = false) => {
 
   // If we've exhausted retries, return the last error
   return {
-    error: new Error('Failed to authenticate with GitHub after multiple attempts. Please try again later.')
+    error: new Error(
+      'Failed to authenticate with GitHub after multiple attempts. Please try again later.',
+    ),
   }
 }
 

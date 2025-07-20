@@ -18,7 +18,7 @@ import { CommitCalendar } from '@/components/calendar/CommitCalendar'
 // Before: Complex FullCalendar + 200 lines of CSS
 // After: Simple, clean component
 
-<CommitCalendar
+;<CommitCalendar
   commits={commits}
   selectedRepo={selectedRepo}
   isLoading={isLoading}
@@ -49,8 +49,9 @@ import { CommitCalendar } from '@/components/calendar/CommitCalendar'
 ## 🎨 **Customization Examples**
 
 ### Custom Event Colors
+
 ```tsx
-<Calendar 
+<Calendar
   eventClassName={(event) => {
     if (event.title.includes('bug')) return 'bg-red-100 border-red-500'
     if (event.title.includes('feat')) return 'bg-green-100 border-green-500'
@@ -60,8 +61,9 @@ import { CommitCalendar } from '@/components/calendar/CommitCalendar'
 ```
 
 ### Custom Day Styling
+
 ```tsx
-<Calendar 
+<Calendar
   dayClassName={(date, isCurrentMonth, isToday) => {
     if (isToday) return 'bg-blue-50 border-2 border-blue-300'
     if (!isCurrentMonth) return 'opacity-50'
@@ -71,8 +73,9 @@ import { CommitCalendar } from '@/components/calendar/CommitCalendar'
 ```
 
 ### Complete Custom Rendering
+
 ```tsx
-<Calendar 
+<Calendar
   renderEvent={(event, date) => (
     <div className="p-2 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-lg">
       <div className="font-bold">{event.title}</div>
@@ -85,12 +88,13 @@ import { CommitCalendar } from '@/components/calendar/CommitCalendar'
 ## 🔧 **Ready to Use**
 
 Your `CommitCalendar` component already includes:
+
 - ✅ All your existing functionality
-- ✅ Hover popups with commit details  
+- ✅ Hover popups with commit details
 - ✅ Color coding by commit type
 - ✅ Repository filtering
 - ✅ Month/Week/Day views
 - ✅ Dark mode support
 - ✅ Responsive design
 
-Just import and use it! 🎉 
+Just import and use it! 🎉
