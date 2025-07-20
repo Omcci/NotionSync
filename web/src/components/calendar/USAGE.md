@@ -17,7 +17,6 @@ import { CommitCalendar } from '@/components/calendar/CommitCalendar'
 
 // Before: Complex FullCalendar + 200 lines of CSS
 // After: Simple, clean component
-
 ;<CommitCalendar
   commits={commits}
   selectedRepo={selectedRepo}
