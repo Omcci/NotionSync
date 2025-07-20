@@ -198,34 +198,36 @@ const SettingsPage: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">Sync Notifications</h4>
+                    <h4 className="font-medium">Email Notifications</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Get notified when syncs complete or fail
+                      Receive updates about your repositories
                     </p>
                   </div>
-                  <input type="checkbox" className="toggle" defaultChecked />
+                  <Button variant="outline" size="sm">
+                    Configure
+                  </Button>
                 </div>
-
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">
-                      New Repository Notifications
-                    </h4>
+                    <h4 className="font-medium">Push Notifications</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Get notified when new repositories are detected
+                      Get notified about important events
                     </p>
                   </div>
-                  <input type="checkbox" className="toggle" />
+                  <Button variant="outline" size="sm">
+                    Configure
+                  </Button>
                 </div>
-
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Weekly Summary</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Receive a weekly summary of your sync activity
+                      Receive a weekly summary of your activity
                     </p>
                   </div>
-                  <input type="checkbox" className="toggle" defaultChecked />
+                  <Button variant="outline" size="sm">
+                    Configure
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -242,57 +244,37 @@ const SettingsPage: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Theme</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Choose your preferred color scheme
-                    </p>
+                <div>
+                  <h4 className="font-medium mb-3">Theme</h4>
+                  <div className="flex space-x-4">
+                    <Button
+                      variant={theme === 'light' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('light')}
+                      className="flex items-center space-x-2"
+                    >
+                      <Sun className="w-4 h-4" />
+                      <span>Light</span>
+                    </Button>
+                    <Button
+                      variant={theme === 'dark' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('dark')}
+                      className="flex items-center space-x-2"
+                    >
+                      <Moon className="w-4 h-4" />
+                      <span>Dark</span>
+                    </Button>
+                    <Button
+                      variant={theme === 'system' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('system')}
+                      className="flex items-center space-x-2"
+                    >
+                      <Monitor className="w-4 h-4" />
+                      <span>System</span>
+                    </Button>
                   </div>
-                  <ModeToggle />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                  <Button
-                    variant={theme === 'light' ? 'default' : 'outline'}
-                    onClick={() => setTheme('light')}
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
-                  >
-                    <Sun className="w-6 h-6" />
-                    <span>Light</span>
-                    <div className="w-8 h-8 bg-white border-2 border-gray-300 rounded"></div>
-                  </Button>
-                  <Button
-                    variant={theme === 'dark' ? 'default' : 'outline'}
-                    onClick={() => setTheme('dark')}
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
-                  >
-                    <Moon className="w-6 h-6" />
-                    <span>Dark</span>
-                    <div className="w-8 h-8 bg-gray-800 border-2 border-gray-600 rounded"></div>
-                  </Button>
-                  <Button
-                    variant={theme === 'system' ? 'default' : 'outline'}
-                    onClick={() => setTheme('system')}
-                    className="h-24 flex flex-col items-center justify-center space-y-2"
-                  >
-                    <Monitor className="w-6 h-6" />
-                    <span>System</span>
-                    <div className="w-8 h-8 bg-gradient-to-r from-white to-gray-800 border-2 border-gray-400 rounded"></div>
-                  </Button>
-                </div>
-
-                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <h5 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
-                    Current Theme: {theme}
-                  </h5>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    {theme === 'system'
-                      ? 'Automatically matches your system preference'
-                      : theme === 'light'
-                        ? 'Light mode is active'
-                        : 'Dark mode is active'}
-                  </p>
                 </div>
               </div>
             </CardContent>
@@ -315,43 +297,21 @@ const SettingsPage: React.FC = () => {
                     <div>
                       <h4 className="font-medium">GitHub</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Connected as{' '}
-                        {userInfo.user_name || userInfo.preferred_username}
+                        Connected and syncing
                       </p>
                     </div>
                   </div>
-                  <Badge
-                    variant="outline"
-                    className="text-green-600 border-green-600"
-                  >
+                  <Badge variant="outline" className="text-green-600">
                     Connected
                   </Badge>
                 </div>
-
                 <div className="flex items-center justify-between p-4 border rounded-lg opacity-50">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
-                      <Database className="w-4 h-4" />
-                    </div>
+                    <Database className="w-8 h-8" />
                     <div>
                       <h4 className="font-medium">Notion</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Sync your repositories to Notion databases
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="outline">Coming Soon</Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg opacity-50">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
-                      <Shield className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Slack</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Get notifications in your Slack workspace
+                        Coming soon
                       </p>
                     </div>
                   </div>

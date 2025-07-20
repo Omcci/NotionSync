@@ -18,6 +18,13 @@ COPY --from=installer /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
+FROM node:20-alpine AS dev
+WORKDIR /app
+COPY --from=installer /app/node_modules ./node_modules
+COPY . .
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production

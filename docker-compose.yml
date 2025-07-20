@@ -10,6 +10,10 @@ services:
     volumes:
       - './web:/app'
       - '/app/node_modules'
+    env_file:
+      - ./web/.env.local
+    environment:
+      - NODE_ENV=development
     # depends_on:
     #   - db
 
