@@ -57,64 +57,69 @@ const AuthCallback = () => {
     { icon: ArrowRight, label: 'Redirecting...', color: 'text-indigo-500' },
   ]
 
-  const handleSuccessfulAuth = useCallback(async (session: any) => {
-    try {
-      setStatus('Extracting GitHub token...')
-      setCurrentStep(1)
-
-      // Extract provider_token from URL fragment if available
-      let githubToken = session.provider_token
-      let refreshToken = session.provider_refresh_token
-
-      // If not in session, try to extract from URL fragment
-      if (!githubToken && typeof window !== 'undefined') {
-        const urlParams = new URLSearchParams(window.location.hash.substring(1))
-        githubToken = urlParams.get('provider_token')
-        refreshToken = urlParams.get('refresh_token')
-      }
-
-      // Store GitHub token in database if we have one
-      if (githubToken && session.user) {
-        setStatus('Storing GitHub token...')
-        setCurrentStep(2)
-        try {
-          await UserService.storeGitHubToken(
-            session.user.id,
-            githubToken,
-            refreshToken || undefined,
-          )
-        } catch (tokenError) {
-          console.warn('Failed to store GitHub token:', tokenError)
-        }
-      }
-
-      setStatus('Syncing user data...')
-      setCurrentStep(3)
-
-      // Sync user with database
+  const handleSuccessfulAuth = useCallback(
+    async (session: any) => {
       try {
-        await UserService.syncUserWithDatabase(session.user)
-      } catch (syncError) {
-        console.warn('Failed to sync user data:', syncError)
+        setStatus('Extracting GitHub token...')
+        setCurrentStep(1)
+
+        // Extract provider_token from URL fragment if available
+        let githubToken = session.provider_token
+        let refreshToken = session.provider_refresh_token
+
+        // If not in session, try to extract from URL fragment
+        if (!githubToken && typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(
+            window.location.hash.substring(1),
+          )
+          githubToken = urlParams.get('provider_token')
+          refreshToken = urlParams.get('refresh_token')
+        }
+
+        // Store GitHub token in database if we have one
+        if (githubToken && session.user) {
+          setStatus('Storing GitHub token...')
+          setCurrentStep(2)
+          try {
+            await UserService.storeGitHubToken(
+              session.user.id,
+              githubToken,
+              refreshToken || undefined,
+            )
+          } catch (tokenError) {
+            console.warn('Failed to store GitHub token:', tokenError)
+          }
+        }
+
+        setStatus('Syncing user data...')
+        setCurrentStep(3)
+
+        // Sync user with database
+        try {
+          await UserService.syncUserWithDatabase(session.user)
+        } catch (syncError) {
+          console.warn('Failed to sync user data:', syncError)
+        }
+
+        setStatus('Redirecting...')
+        setCurrentStep(4)
+        setIsRedirecting(true)
+
+        // Clear the URL fragment to remove tokens from browser history
+        if (typeof window !== 'undefined' && window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname)
+        }
+
+        // Add delay before redirect to ensure UI updates
+        await delay(500)
+
+        router.push('/dashboardv0')
+      } catch (error) {
+        throw error
       }
-
-      setStatus('Redirecting...')
-      setCurrentStep(4)
-      setIsRedirecting(true)
-
-      // Clear the URL fragment to remove tokens from browser history
-      if (typeof window !== 'undefined' && window.location.hash) {
-        window.history.replaceState(null, '', window.location.pathname)
-      }
-
-      // Add delay before redirect to ensure UI updates
-      await delay(500)
-
-      router.push('/dashboardv0')
-    } catch (error) {
-      throw error
-    }
-  }, [router])
+    },
+    [router],
+  )
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -364,24 +369,27 @@ const AuthCallback = () => {
             return (
               <div
                 key={index}
-                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isActive ? 'bg-blue-50 border border-blue-200' : ''
-                  }`}
+                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                  isActive ? 'bg-blue-50 border border-blue-200' : ''
+                }`}
               >
                 <Icon
-                  className={`h-5 w-5 ${isCompleted
-                    ? 'text-green-500'
-                    : isActive
-                      ? step.color
-                      : 'text-gray-400'
-                    }`}
+                  className={`h-5 w-5 ${
+                    isCompleted
+                      ? 'text-green-500'
+                      : isActive
+                        ? step.color
+                        : 'text-gray-400'
+                  }`}
                 />
                 <span
-                  className={`text-sm font-medium ${isCompleted
-                    ? 'text-green-700'
-                    : isActive
-                      ? 'text-blue-700'
-                      : 'text-gray-500'
-                    }`}
+                  className={`text-sm font-medium ${
+                    isCompleted
+                      ? 'text-green-700'
+                      : isActive
+                        ? 'text-blue-700'
+                        : 'text-gray-500'
+                  }`}
                 >
                   {step.label}
                 </span>
