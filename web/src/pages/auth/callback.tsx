@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 import { LoadingSpinner } from '@/components/ui/loadingspinner'
@@ -57,7 +57,7 @@ const AuthCallback = () => {
     { icon: ArrowRight, label: 'Redirecting...', color: 'text-indigo-500' },
   ]
 
-  const handleSuccessfulAuth = async (session: any) => {
+  const handleSuccessfulAuth = useCallback(async (session: any) => {
     try {
       setStatus('Extracting GitHub token...')
       setCurrentStep(1)
@@ -114,7 +114,7 @@ const AuthCallback = () => {
     } catch (error) {
       throw error
     }
-  }
+  }, [router])
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -309,7 +309,7 @@ const AuthCallback = () => {
     }
 
     handleAuthCallback()
-  }, [router])
+  }, [router, handleSuccessfulAuth])
 
   const handleManualRedirect = () => {
     router.push('/login')
@@ -364,27 +364,24 @@ const AuthCallback = () => {
             return (
               <div
                 key={index}
-                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                  isActive ? 'bg-blue-50 border border-blue-200' : ''
-                }`}
+                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isActive ? 'bg-blue-50 border border-blue-200' : ''
+                  }`}
               >
                 <Icon
-                  className={`h-5 w-5 ${
-                    isCompleted
-                      ? 'text-green-500'
-                      : isActive
-                        ? step.color
-                        : 'text-gray-400'
-                  }`}
+                  className={`h-5 w-5 ${isCompleted
+                    ? 'text-green-500'
+                    : isActive
+                      ? step.color
+                      : 'text-gray-400'
+                    }`}
                 />
                 <span
-                  className={`text-sm font-medium ${
-                    isCompleted
-                      ? 'text-green-700'
-                      : isActive
-                        ? 'text-blue-700'
-                        : 'text-gray-500'
-                  }`}
+                  className={`text-sm font-medium ${isCompleted
+                    ? 'text-green-700'
+                    : isActive
+                      ? 'text-blue-700'
+                      : 'text-gray-500'
+                    }`}
                 >
                   {step.label}
                 </span>
