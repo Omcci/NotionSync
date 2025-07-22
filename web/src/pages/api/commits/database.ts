@@ -151,7 +151,10 @@ export default async function handler(
 
     // Check if we have commits for the requested start date
     const hasCommitsForRequestedRange = startDate
-      ? commits.some((commit) => new Date(commit.date) >= new Date(startDate!))
+      ? commits.some(
+          (commit) =>
+            commit.date && new Date(commit.date) >= new Date(startDate!),
+        )
       : true
 
     // Get repository stats

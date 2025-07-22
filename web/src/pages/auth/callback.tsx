@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 import { LoadingSpinner } from '@/components/ui/loadingspinner'
@@ -57,64 +57,69 @@ const AuthCallback = () => {
     { icon: ArrowRight, label: 'Redirecting...', color: 'text-indigo-500' },
   ]
 
-  const handleSuccessfulAuth = async (session: any) => {
-    try {
-      setStatus('Extracting GitHub token...')
-      setCurrentStep(1)
-
-      // Extract provider_token from URL fragment if available
-      let githubToken = session.provider_token
-      let refreshToken = session.provider_refresh_token
-
-      // If not in session, try to extract from URL fragment
-      if (!githubToken && typeof window !== 'undefined') {
-        const urlParams = new URLSearchParams(window.location.hash.substring(1))
-        githubToken = urlParams.get('provider_token')
-        refreshToken = urlParams.get('refresh_token')
-      }
-
-      // Store GitHub token in database if we have one
-      if (githubToken && session.user) {
-        setStatus('Storing GitHub token...')
-        setCurrentStep(2)
-        try {
-          await UserService.storeGitHubToken(
-            session.user.id,
-            githubToken,
-            refreshToken || undefined,
-          )
-        } catch (tokenError) {
-          console.warn('Failed to store GitHub token:', tokenError)
-        }
-      }
-
-      setStatus('Syncing user data...')
-      setCurrentStep(3)
-
-      // Sync user with database
+  const handleSuccessfulAuth = useCallback(
+    async (session: any) => {
       try {
-        await UserService.syncUserWithDatabase(session.user)
-      } catch (syncError) {
-        console.warn('Failed to sync user data:', syncError)
+        setStatus('Extracting GitHub token...')
+        setCurrentStep(1)
+
+        // Extract provider_token from URL fragment if available
+        let githubToken = session.provider_token
+        let refreshToken = session.provider_refresh_token
+
+        // If not in session, try to extract from URL fragment
+        if (!githubToken && typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(
+            window.location.hash.substring(1),
+          )
+          githubToken = urlParams.get('provider_token')
+          refreshToken = urlParams.get('refresh_token')
+        }
+
+        // Store GitHub token in database if we have one
+        if (githubToken && session.user) {
+          setStatus('Storing GitHub token...')
+          setCurrentStep(2)
+          try {
+            await UserService.storeGitHubToken(
+              session.user.id,
+              githubToken,
+              refreshToken || undefined,
+            )
+          } catch (tokenError) {
+            console.warn('Failed to store GitHub token:', tokenError)
+          }
+        }
+
+        setStatus('Syncing user data...')
+        setCurrentStep(3)
+
+        // Sync user with database
+        try {
+          await UserService.syncUserWithDatabase(session.user)
+        } catch (syncError) {
+          console.warn('Failed to sync user data:', syncError)
+        }
+
+        setStatus('Redirecting...')
+        setCurrentStep(4)
+        setIsRedirecting(true)
+
+        // Clear the URL fragment to remove tokens from browser history
+        if (typeof window !== 'undefined' && window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname)
+        }
+
+        // Add delay before redirect to ensure UI updates
+        await delay(500)
+
+        router.push('/dashboardv0')
+      } catch (error) {
+        throw error
       }
-
-      setStatus('Redirecting...')
-      setCurrentStep(4)
-      setIsRedirecting(true)
-
-      // Clear the URL fragment to remove tokens from browser history
-      if (typeof window !== 'undefined' && window.location.hash) {
-        window.history.replaceState(null, '', window.location.pathname)
-      }
-
-      // Add delay before redirect to ensure UI updates
-      await delay(500)
-
-      router.push('/dashboardv0')
-    } catch (error) {
-      throw error
-    }
-  }
+    },
+    [router],
+  )
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -309,7 +314,7 @@ const AuthCallback = () => {
     }
 
     handleAuthCallback()
-  }, [router])
+  }, [router, handleSuccessfulAuth])
 
   const handleManualRedirect = () => {
     router.push('/login')

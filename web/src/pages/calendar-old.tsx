@@ -570,9 +570,9 @@ const CalendarPage = () => {
                       No repositories found
                     </h3>
                     <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                      It looks like you haven't synced your GitHub repositories
-                      yet. Please visit the settings page to sync your
-                      repositories.
+                      It looks like you haven&apos;t synced your GitHub
+                      repositories yet. Please visit the settings page to sync
+                      your repositories.
                     </p>
                   </div>
                 </div>
