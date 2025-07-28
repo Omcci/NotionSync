@@ -15,7 +15,7 @@ export interface CalendarGridProps {
     date: Date,
     events: CalendarEvent[],
     isCurrentMonth: boolean,
-    isToday: boolean,
+    isToday: boolean
   ) => React.ReactNode
   eventClassName?: string | ((event: CalendarEvent) => string)
   dayClassName?:
@@ -43,12 +43,12 @@ export function CalendarGrid({
       <div
         className={cn(
           'calendar-grid h-full flex flex-col bg-gray-50 dark:bg-gray-900',
-          className,
+          className
         )}
       >
         {/* Week headers */}
         <div className="grid grid-cols-7 border-b-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800">
-          {calendar.weekDays.map((day) => (
+          {calendar.weekDays.map(day => (
             <div
               key={day.short}
               className="p-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
@@ -62,7 +62,7 @@ export function CalendarGrid({
         <div className="flex-1 grid grid-rows-6">
           {calendar.weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="grid grid-cols-7">
-              {week.map((day) => (
+              {week.map(day => (
                 <CalendarDay
                   key={day.date.toISOString()}
                   date={day.date}
@@ -92,9 +92,9 @@ export function CalendarGrid({
       <div className={cn('calendar-grid h-full flex flex-col', className)}>
         {/* Week headers */}
         <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
-          {calendar.weekDays.map((dayHeader) => {
+          {calendar.weekDays.map(dayHeader => {
             const dayData = calendar.days.find(
-              (day) => format(day.date, 'EEE') === dayHeader.short,
+              day => format(day.date, 'EEE') === dayHeader.short
             )
             return (
               <div
@@ -110,7 +110,7 @@ export function CalendarGrid({
                       'text-lg font-semibold mt-1',
                       dayData.isToday
                         ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-gray-900 dark:text-gray-100',
+                        : 'text-gray-900 dark:text-gray-100'
                     )}
                   >
                     {format(dayData.date, 'd')}
@@ -123,7 +123,7 @@ export function CalendarGrid({
 
         {/* Week days */}
         <div className="flex-1 grid grid-cols-7">
-          {calendar.days.map((day) => (
+          {calendar.days.map(day => (
             <CalendarDay
               key={day.date.toISOString()}
               date={day.date}

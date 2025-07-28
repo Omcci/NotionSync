@@ -69,7 +69,7 @@ const Footer: React.FC = () => {
             </p>
 
             <div className="flex items-center gap-4">
-              {socialLinks.map((social) => (
+              {socialLinks.map(social => (
                 <a
                   key={social.name}
                   href={social.href}
@@ -86,7 +86,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-white font-semibold mb-4">Product</h3>
             <ul className="space-y-3">
-              {footerLinks.product.map((link) => (
+              {footerLinks.product.map(link => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
@@ -101,7 +101,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-white font-semibold mb-4">Company</h3>
             <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
+              {footerLinks.company.map(link => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
@@ -116,7 +116,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-white font-semibold mb-4">Legal</h3>
             <ul className="space-y-3">
-              {footerLinks.legal.map((link) => (
+              {footerLinks.legal.map(link => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
@@ -131,7 +131,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-white font-semibold mb-4">Resources</h3>
             <ul className="space-y-3">
-              {footerLinks.resources.map((link) => (
+              {footerLinks.resources.map(link => (
                 <li key={link.name}>
                   {link.external ? (
                     <a

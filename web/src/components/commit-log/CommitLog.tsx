@@ -53,7 +53,7 @@ const fetchCommits = async (
   owner: string,
   repoName: string,
   page: number,
-  perPage: number,
+  perPage: number
 ) => {
   const githubToken = await getGitHubToken()
 
@@ -65,7 +65,7 @@ const fetchCommits = async (
       headers: {
         Authorization: `Bearer ${githubToken}`,
       },
-    },
+    }
   )
 
   if (!response.ok) {
@@ -93,7 +93,7 @@ const CommitLog = () => {
         selectedRepo?.owner!,
         selectedRepo?.name!,
         page,
-        commitsPerPage,
+        commitsPerPage
       ),
     enabled: !!selectedRepo,
     staleTime: 1000 * 60 * 10,
@@ -102,7 +102,7 @@ const CommitLog = () => {
 
   const filteredCommits = Array.isArray(commits)
     ? commits.filter((commit: Commit) =>
-        commit.commit.message.toLowerCase().includes(searchInput.toLowerCase()),
+        commit.commit.message.toLowerCase().includes(searchInput.toLowerCase())
       )
     : []
 
@@ -169,7 +169,7 @@ const CommitLog = () => {
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-800">
-                {theader.map((header) => (
+                {theader.map(header => (
                   <th key={header} className="px-4 py-2 text-left">
                     {header}
                   </th>
@@ -256,7 +256,7 @@ const CommitLog = () => {
                                 Membre depuis:{' '}
                                 {commit.authorDetails?.created_at &&
                                   formattedDate(
-                                    commit.authorDetails.created_at,
+                                    commit.authorDetails.created_at
                                   )}{' '}
                               </p>
                             </div>

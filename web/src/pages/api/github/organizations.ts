@@ -3,7 +3,7 @@ import { GitHubOrganizationAPI, Organization } from '../../../../types/github'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -31,7 +31,7 @@ export default async function handler(
     const organizations: GitHubOrganizationAPI[] = await orgsResponse.json()
     // Get detailed information for each organization
     const organizationDetails = await Promise.all(
-      organizations.map(async (org) => {
+      organizations.map(async org => {
         try {
           // Get user's membership in this organization
           const membershipResponse = await fetch(
@@ -42,7 +42,7 @@ export default async function handler(
                 Accept: 'application/vnd.github.v3+json',
                 'User-Agent': 'NotionSync-App',
               },
-            },
+            }
           )
           let role: string | undefined = undefined
           let permissions:
@@ -89,7 +89,7 @@ export default async function handler(
           }
           return basicOrg
         }
-      }),
+      })
     )
     res.status(200).json({
       organizations: organizationDetails,
@@ -116,7 +116,7 @@ async function getUserLogin(githubToken: string): Promise<string> {
     const errorText = await userResponse.text()
     console.error('GitHub user API error:', errorText)
     throw new Error(
-      `Failed to fetch user info: ${userResponse.status} - ${errorText}`,
+      `Failed to fetch user info: ${userResponse.status} - ${errorText}`
     )
   }
   const user = await userResponse.json()

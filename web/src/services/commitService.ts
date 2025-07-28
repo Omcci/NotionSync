@@ -33,13 +33,13 @@ export class CommitService {
   static async storeCommits(
     commits: Commit[],
     userId: string,
-    repoId: string,
+    repoId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const dbCommits: Omit<
         DatabaseCommit,
         'id' | 'created_at' | 'updated_at'
-      >[] = commits.map((commit) => ({
+      >[] = commits.map(commit => ({
         repo_id: repoId,
         message: commit.commit.message,
         author: commit.commit.author.name,
@@ -82,7 +82,7 @@ export class CommitService {
     userId: string,
     repoIds: string[],
     startDate: string,
-    endDate: string,
+    endDate: string
   ): Promise<{ commits: Commit[]; error?: string }> {
     try {
       // Normalize dates to ensure proper comparison
@@ -97,12 +97,12 @@ export class CommitService {
       let hasMore = true
 
       console.log(
-        `🔍 Fetching commits with pagination for date range: ${normalizedStartDate} to ${normalizedEndDate}`,
+        `🔍 Fetching commits with pagination for date range: ${normalizedStartDate} to ${normalizedEndDate}`
       )
 
       while (hasMore) {
         console.log(
-          `📄 Fetching page ${page + 1} (${page * pageSize} to ${(page + 1) * pageSize - 1})`,
+          `📄 Fetching page ${page + 1} (${page * pageSize} to ${(page + 1) * pageSize - 1})`
         )
         let query = supabase
           .from('commits')
@@ -115,7 +115,7 @@ export class CommitService {
                 owner,
                 user_id
               )
-            `,
+            `
           )
           .eq('repositories.user_id', userId)
           .gte('date', normalizedStartDate)
@@ -258,7 +258,7 @@ export class CommitService {
    * Delete commits for a repository
    */
   static async deleteCommitsForRepo(
-    repoId: string,
+    repoId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
@@ -288,28 +288,28 @@ export class CommitService {
     userId: string,
     repos: Array<{ id: string; name: string; owner: string }>,
     githubToken: string,
-    monthsBack: number = 12,
+    monthsBack: number = 12
   ): Promise<CommitSyncResult> {
     try {
       // Call the function directly instead of making an HTTP request
       const { results, timeWindows } = await fetchCommitsWithTimePagination(
         githubToken,
-        repos.map((repo) => ({ owner: repo.owner, name: repo.name })),
+        repos.map(repo => ({ owner: repo.owner, name: repo.name })),
         monthsBack,
-        5000, // maxCommitsPerRepo - increased for better coverage
+        5000 // maxCommitsPerRepo - increased for better coverage
       )
 
       // Store commits in database
       let totalNewCommits = 0
       for (const repoResult of results) {
         const repo = repos.find(
-          (r) => `${r.owner}/${r.name}` === repoResult.pagination.repository,
+          r => `${r.owner}/${r.name}` === repoResult.pagination.repository
         )
         if (repo && repoResult.commits.length > 0) {
           const storeResult = await this.storeCommits(
             repoResult.commits,
             userId,
-            repo.id,
+            repo.id
           )
           if (storeResult.success) {
             totalNewCommits += repoResult.commits.length
@@ -322,7 +322,7 @@ export class CommitService {
         newCommits: totalNewCommits,
         totalCommits: results.reduce(
           (sum, result) => sum + result.commits.length,
-          0,
+          0
         ),
         error: undefined,
       }
@@ -345,7 +345,7 @@ export class CommitService {
     repos: Array<{ id: string; name: string; owner: string }>,
     githubToken: string,
     startDate?: string,
-    endDate?: string,
+    endDate?: string
   ): Promise<CommitSyncResult> {
     try {
       // Call the sync endpoint with all repositories at once
@@ -356,7 +356,7 @@ export class CommitService {
           Authorization: `Bearer ${githubToken}`,
         },
         body: JSON.stringify({
-          repos: repos.map((repo) => ({
+          repos: repos.map(repo => ({
             id: repo.id,
             owner: repo.owner,
             name: repo.name,
@@ -398,16 +398,16 @@ export class CommitService {
     userId: string,
     repos: Array<{ id: string; name: string; owner: string }>,
     githubToken: string,
-    requestedStartDate?: string,
+    requestedStartDate?: string
   ): Promise<CommitSyncResult> {
     try {
       console.log(
-        `🔍 Starting backfill process for ${repos.length} repositories`,
+        `🔍 Starting backfill process for ${repos.length} repositories`
       )
 
       let totalNewCommits = 0
       let totalFetchedCommits = 0
-      const repoIds = repos.map((repo) => repo.id)
+      const repoIds = repos.map(repo => repo.id)
 
       // For each repository, find the oldest commit and fetch older commits
       for (const repo of repos) {
@@ -431,12 +431,12 @@ export class CommitService {
               // Need to backfill from requested date to oldest commit
               backfillEndDate = oldestCommitDate
               console.log(
-                `🔄 Backfilling from ${backfillStartDate} to ${backfillEndDate}`,
+                `🔄 Backfilling from ${backfillStartDate} to ${backfillEndDate}`
               )
             } else {
               // We already have commits for the requested range
               console.log(
-                `✅ No backfill needed for ${repo.name} - already have commits for requested range`,
+                `✅ No backfill needed for ${repo.name} - already have commits for requested range`
               )
               continue
             }
@@ -444,7 +444,7 @@ export class CommitService {
             // No commits in DB, fetch from requested date to now
             backfillEndDate = new Date().toISOString()
             console.log(
-              `🆕 No existing commits, fetching from ${backfillStartDate} to ${backfillEndDate}`,
+              `🆕 No existing commits, fetching from ${backfillStartDate} to ${backfillEndDate}`
             )
           }
 
@@ -467,7 +467,7 @@ export class CommitService {
           if (!response.ok) {
             const errorData = await response.json()
             console.error(
-              `❌ Failed to fetch commits for ${repo.name}: ${errorData.error}`,
+              `❌ Failed to fetch commits for ${repo.name}: ${errorData.error}`
             )
             continue
           }
@@ -483,30 +483,30 @@ export class CommitService {
             const storeResult = await this.storeCommits(
               commits,
               userId,
-              repo.id,
+              repo.id
             )
             if (storeResult.success) {
               totalNewCommits += commits.length
               console.log(
-                `✅ Stored ${commits.length} new commits for ${repo.name}`,
+                `✅ Stored ${commits.length} new commits for ${repo.name}`
               )
             } else {
               console.error(
-                `❌ Failed to store commits for ${repo.name}: ${storeResult.error}`,
+                `❌ Failed to store commits for ${repo.name}: ${storeResult.error}`
               )
             }
           }
         } catch (repoError) {
           console.error(
             `❌ Error processing repository ${repo.name}:`,
-            repoError,
+            repoError
           )
           continue
         }
       }
 
       console.log(
-        `✅ Backfill completed: ${totalNewCommits} new commits stored out of ${totalFetchedCommits} fetched`,
+        `✅ Backfill completed: ${totalNewCommits} new commits stored out of ${totalFetchedCommits} fetched`
       )
 
       return {

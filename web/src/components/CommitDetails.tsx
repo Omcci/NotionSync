@@ -31,7 +31,7 @@ interface CommitDetailsProps {
 }
 
 const generateSummary = async (
-  commits: Array<{ commitMessage: string; diff: string }>,
+  commits: Array<{ commitMessage: string; diff: string }>
 ): Promise<{ summary: string; commitCount: number; type: string }> => {
   const response = await fetch('/api/mistral', {
     method: 'POST',
@@ -57,7 +57,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
 
   useEffect(() => {
     const users = Array.from(
-      new Set(commitDetails.map((commit) => commit.commit.author.name)),
+      new Set(commitDetails.map(commit => commit.commit.author.name))
     )
     setUniqueUsers(users)
   }, [commitDetails])
@@ -66,8 +66,8 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
     if (selectedUser) {
       setFilteredCommits(
         commitDetails.filter(
-          (commit) => commit.commit.author.name === selectedUser,
-        ),
+          commit => commit.commit.author.name === selectedUser
+        )
       )
     } else {
       setFilteredCommits(commitDetails)
@@ -79,7 +79,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
   const checkSummaryLimit = () => {
     const currentCount = parseInt(
       localStorage.getItem('summaryCount') || '0',
-      10,
+      10
     )
     return currentCount < SUMMARY_LIMIT
   }
@@ -97,10 +97,10 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
   useEffect(() => {
     if (selectedDate) {
       const storedSummary = localStorage.getItem(
-        getSummaryStorageKey(selectedDate),
+        getSummaryStorageKey(selectedDate)
       )
       const storedType = localStorage.getItem(
-        `${getSummaryStorageKey(selectedDate)}_type`,
+        `${getSummaryStorageKey(selectedDate)}_type`
       )
 
       if (storedSummary) {
@@ -115,7 +115,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
 
   const summaryMutation = useMutation({
     mutationFn: generateSummary,
-    onSuccess: (data) => {
+    onSuccess: data => {
       setSummary(data.summary)
       setSummaryType(data.type)
 
@@ -124,7 +124,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
         localStorage.setItem(getSummaryStorageKey(selectedDate), data.summary)
         localStorage.setItem(
           `${getSummaryStorageKey(selectedDate)}_type`,
-          data.type,
+          data.type
         )
       }
 
@@ -135,7 +135,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
         description: `Generated ${data.type} commit summary (${data.commitCount} commits)`,
       })
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Failed to generate summary:', error)
       toast({
         title: 'Failed to generate summary',
@@ -155,7 +155,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
       return
     }
 
-    const commits = filteredCommits.map((commit) => ({
+    const commits = filteredCommits.map(commit => ({
       commitMessage: commit.commit.message,
       diff:
         Array.isArray(commit.diff) && commit.diff.length > 0
@@ -165,7 +165,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
                   filename: string
                   additions: number
                   deletions: number
-                }) => `${d.filename}: +${d.additions}, -${d.deletions}`,
+                }) => `${d.filename}: +${d.additions}, -${d.deletions}`
               )
               .join('\n')
           : '',
@@ -235,7 +235,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
           {uniqueUsers.length > 1 && (
             <div className="min-w-[140px]">
               <Select
-                onValueChange={(value) =>
+                onValueChange={value =>
                   setSelectedUser(value === 'all' ? null : value)
                 }
               >
@@ -440,7 +440,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
                               hour: '2-digit',
                               minute: '2-digit',
                               hour12: false,
-                            },
+                            }
                           )}
                         </span>
                       </div>
@@ -463,7 +463,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
                       {commit.actions?.map(
                         (
                           action: { name: string; url: string },
-                          actionIdx: number,
+                          actionIdx: number
                         ) => (
                           <Button
                             key={actionIdx}
@@ -474,7 +474,7 @@ const CommitDetails = ({ commitDetails, selectedDate }: CommitDetailsProps) => {
                           >
                             {action.name}
                           </Button>
-                        ),
+                        )
                       )}
                     </div>
                   </div>

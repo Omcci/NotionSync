@@ -48,7 +48,7 @@ export function CommitCalendar({
     // Filter by selected repo
     if (selectedRepo) {
       commitsToUse = commits.filter(
-        (commit: Commit) => commit.repoName === selectedRepo.name,
+        (commit: Commit) => commit.repoName === selectedRepo.name
       )
     }
 
@@ -221,12 +221,12 @@ export function CommitCalendar({
     date: Date,
     events: CalendarEvent[],
     isCurrentMonth: boolean,
-    isToday: boolean,
+    isToday: boolean
   ) => {
     const dayCommits: Commit[] = []
     const commitsByRepo: Record<string, Commit[]> = {}
 
-    events.forEach((event) => {
+    events.forEach(event => {
       if (event.data?.commits) {
         const repoName = event.data.repoName || 'Unknown'
         dayCommits.push(...event.data.commits)
@@ -283,7 +283,7 @@ export function CommitCalendar({
     const shouldShowOnLeft = (() => {
       if (typeof window === 'undefined') return false
       const dayCell = document.querySelector(
-        `[data-date="${format(date, 'yyyy-MM-dd')}"]`,
+        `[data-date="${format(date, 'yyyy-MM-dd')}"]`
       )
       if (!dayCell) return window.innerWidth < 768 // fallback for mobile
       const rect = dayCell.getBoundingClientRect()
@@ -372,7 +372,7 @@ export function CommitCalendar({
 
         {/* Events */}
         <div className="space-y-1">
-          {events.slice(0, 3).map((event) => renderEvent(event, date))}
+          {events.slice(0, 3).map(event => renderEvent(event, date))}
           {events.length > 3 && (
             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-1 font-medium">
               +{events.length - 3} more
@@ -458,7 +458,7 @@ export function CommitCalendar({
                               const time = commit.commit?.author?.date
                                 ? format(
                                     new Date(commit.commit.author.date),
-                                    'HH:mm',
+                                    'HH:mm'
                                   )
                                 : ''
 
@@ -489,7 +489,7 @@ export function CommitCalendar({
                             )}
                           </div>
                         </div>
-                      ),
+                      )
                     )}
                   </div>
                 </div>
@@ -526,11 +526,11 @@ export function CommitCalendar({
           initialView={initialView || 'month'}
           initialDate={initialDate}
           onNavigate={onCalendarNavigate}
-          onDateClick={(date) => {
+          onDateClick={date => {
             setSelectedDate(date)
             onDateClick?.(date)
           }}
-          onEventClick={(event) => {
+          onEventClick={event => {
             if (event.data?.commits?.[0]) {
               onCommitClick?.(event.data.commits[0])
             }

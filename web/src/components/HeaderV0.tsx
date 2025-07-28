@@ -85,7 +85,7 @@ const HeaderV0 = () => {
   }
 
   const handleRepoSelect = (repoId: string) => {
-    const repo = repos.find((r) => r.id === repoId)
+    const repo = repos.find(r => r.id === repoId)
     if (repo) {
       setSelectedRepo(repo)
       updateFormValues(repo.name, repo.owner)
@@ -94,7 +94,7 @@ const HeaderV0 = () => {
     }
   }
 
-  const repoOptions = repos.map((repo) => ({
+  const repoOptions = repos.map(repo => ({
     value: repo.id,
     label: repo.name,
   }))
@@ -118,7 +118,7 @@ const HeaderV0 = () => {
             placeholder={getSelectPlaceholder()}
             options={repoOptions}
             value={selectedRepo ? selectedRepo.id : ''}
-            onChange={(id) => handleRepoSelect(id)}
+            onChange={id => handleRepoSelect(id)}
             disabled={isSelectDisabled}
           />
         </div>

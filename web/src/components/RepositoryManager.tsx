@@ -53,7 +53,7 @@ const RepositoryManager: React.FC = () => {
     setLoading(true)
     try {
       const repos = await GitHubService.getUserRepos(githubToken!)
-      const transformedRepos: SyncRepo[] = repos.map((repo) => ({
+      const transformedRepos: SyncRepo[] = repos.map(repo => ({
         id: repo.id.toString(),
         name: repo.name,
         owner: repo.full_name.split('/')[0],
@@ -101,7 +101,7 @@ const RepositoryManager: React.FC = () => {
   }
 
   const removeRepository = (repoId: string) => {
-    const updatedRepos = repos.filter((repo) => repo.id !== repoId)
+    const updatedRepos = repos.filter(repo => repo.id !== repoId)
     setRepos(updatedRepos)
     toast({
       title: 'Repository Removed',
@@ -110,17 +110,17 @@ const RepositoryManager: React.FC = () => {
   }
 
   const toggleSyncEnabled = (repoId: string) => {
-    const updatedRepos = repos.map((repo) =>
-      repo.id === repoId ? { ...repo, syncEnabled: !repo.syncEnabled } : repo,
+    const updatedRepos = repos.map(repo =>
+      repo.id === repoId ? { ...repo, syncEnabled: !repo.syncEnabled } : repo
     )
     setRepos(updatedRepos)
   }
 
   const filteredAvailableRepos = availableRepos.filter(
-    (repo) =>
-      !repos.some((syncedRepo) => syncedRepo.id === repo.id) &&
+    repo =>
+      !repos.some(syncedRepo => syncedRepo.id === repo.id) &&
       (repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        repo.owner.toLowerCase().includes(searchTerm.toLowerCase())),
+        repo.owner.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   return (
@@ -153,7 +153,7 @@ const RepositoryManager: React.FC = () => {
                 <Input
                   placeholder="Search repositories..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -171,7 +171,7 @@ const RepositoryManager: React.FC = () => {
                         : 'All repositories are already added'}
                     </div>
                   ) : (
-                    filteredAvailableRepos.map((repo) => (
+                    filteredAvailableRepos.map(repo => (
                       <Card
                         key={repo.id}
                         className="cursor-pointer hover:shadow-md transition-shadow"
@@ -248,7 +248,7 @@ const RepositoryManager: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {repos.map((repo) => (
+                {repos.map(repo => (
                   <Card key={repo.id} className="border-l-4 border-l-blue-500">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -273,13 +273,13 @@ const RepositoryManager: React.FC = () => {
                                 )}
                                 <Badge
                                   variant={
-                                    repo.syncEnabled ?? true
+                                    (repo.syncEnabled ?? true)
                                       ? 'default'
                                       : 'secondary'
                                   }
                                   className="text-xs"
                                 >
-                                  {repo.syncEnabled ?? true
+                                  {(repo.syncEnabled ?? true)
                                     ? 'Syncing'
                                     : 'Paused'}
                                 </Badge>
@@ -304,7 +304,7 @@ const RepositoryManager: React.FC = () => {
                             onClick={() =>
                               window.open(
                                 `https://github.com/${repo.owner}/${repo.name}`,
-                                '_blank',
+                                '_blank'
                               )
                             }
                           >

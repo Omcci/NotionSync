@@ -5,7 +5,7 @@ import { GitHubService } from '@/services/githubService'
 export const fetchUserRepos = async (githubToken: string) => {
   try {
     const repos = await GitHubService.getUserRepos(githubToken)
-    return repos.map((repo) => ({
+    return repos.map(repo => ({
       id: repo.id.toString(),
       name: repo.name,
       owner: repo.full_name.split('/')[0],
@@ -18,7 +18,7 @@ export const fetchUserRepos = async (githubToken: string) => {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ReposResponse>,
+  res: NextApiResponse<ReposResponse>
 ) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET'])

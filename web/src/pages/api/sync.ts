@@ -21,7 +21,7 @@ let syncStatus: SyncStatus = {
 async function sync(
   repoName: string,
   orgName: string,
-  userGithubToken?: string,
+  userGithubToken?: string
 ) {
   // Use user's GitHub token if provided, otherwise fall back to environment token
   const tokenToUse = userGithubToken || githubToken
@@ -31,7 +31,7 @@ async function sync(
     orgName,
     repoName,
     100,
-    1,
+    1
   )
   for (const branch of branches) {
     try {
@@ -44,7 +44,7 @@ async function sync(
         orgName,
         repoName,
         page,
-        per_page,
+        per_page
       )
 
       for (const commit of commits) {
@@ -60,7 +60,7 @@ async function sync(
           notionToken!,
           databaseId!,
           repoName,
-          branch,
+          branch
         )
       }
     } catch (error: any) {
@@ -88,7 +88,7 @@ async function sync(
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   const { method } = req
   const { action } = req.query

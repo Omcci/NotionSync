@@ -15,7 +15,7 @@ interface DatabaseRequest {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -76,19 +76,19 @@ export default async function handler(
     if (backfill === 'true' && githubToken) {
       console.log(`🔄 Starting intelligent backfill process...`)
 
-      const repoIds = repos.map((repo) => repo.id)
+      const repoIds = repos.map(repo => repo.id)
       const backfillResult = await CommitService.backfillOlderCommits(
         userId,
         repos,
         githubToken,
-        startDate,
+        startDate
       )
 
       if (!backfillResult.success) {
         console.error(`❌ Backfill failed: ${backfillResult.error}`)
       } else {
         console.log(
-          `✅ Backfill completed: ${backfillResult.newCommits} new commits`,
+          `✅ Backfill completed: ${backfillResult.newCommits} new commits`
         )
       }
     }
@@ -102,7 +102,7 @@ export default async function handler(
           userId,
           repos,
           githubToken!,
-          monthsToFetch,
+          monthsToFetch
         )
 
         if (!syncResult.success) {
@@ -118,7 +118,7 @@ export default async function handler(
           repos,
           githubToken!,
           startDate,
-          endDate,
+          endDate
         )
 
         if (!syncResult.success) {
@@ -131,7 +131,7 @@ export default async function handler(
     }
 
     // Fetch commits from database
-    const repoIds = repos.map((repo) => repo.id)
+    const repoIds = repos.map(repo => repo.id)
     const actualStartDate = startDate || '2020-01-01'
     const actualEndDate = endDate || new Date().toISOString()
 
@@ -139,7 +139,7 @@ export default async function handler(
       userId,
       repoIds,
       actualStartDate,
-      actualEndDate,
+      actualEndDate
     )
 
     if (error) {
@@ -152,20 +152,19 @@ export default async function handler(
     // Check if we have commits for the requested start date
     const hasCommitsForRequestedRange = startDate
       ? commits.some(
-          (commit) =>
-            commit.date && new Date(commit.date) >= new Date(startDate!),
+          commit => commit.date && new Date(commit.date) >= new Date(startDate!)
         )
       : true
 
     // Get repository stats
     const repoStats = await Promise.all(
-      repos.map(async (repo) => {
+      repos.map(async repo => {
         // Get commits for this specific repo to calculate stats
         const { commits: repoCommits } = await CommitService.getCommits(
           userId,
           [repo.id],
           actualStartDate,
-          actualEndDate,
+          actualEndDate
         )
 
         const commitCount = repoCommits.length
@@ -186,7 +185,7 @@ export default async function handler(
           latestCommitDate,
           oldestCommitDate,
         }
-      }),
+      })
     )
 
     res.status(200).json({

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabaseClient'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -59,7 +59,7 @@ export default async function handler(
         userTableTest = {
           success: true,
           sampleCount: users?.length || 0,
-          hasGithubUsers: users?.some((u) => u.github_username) || false,
+          hasGithubUsers: users?.some(u => u.github_username) || false,
         }
       }
     } catch (err) {
@@ -132,7 +132,7 @@ export default async function handler(
       recommendations: {
         needsSetup:
           !tableInfo.commits?.exists || !tableInfo.repositories?.exists,
-        missingTables: tables.filter((table) => !tableInfo[table]?.exists),
+        missingTables: tables.filter(table => !tableInfo[table]?.exists),
         readyForCommits:
           tableInfo.commits?.exists && tableInfo.repositories?.exists,
       },

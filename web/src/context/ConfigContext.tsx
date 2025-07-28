@@ -65,7 +65,7 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
   }, [refetchConfig])
 
   const updateFormValues = (repo: string, org: string) => {
-    setConfig((prevConfig) => ({
+    setConfig(prevConfig => ({
       ...prevConfig,
       repository: repo,
       organization: org,
@@ -74,7 +74,7 @@ export const ConfigProvider: React.FC<{ children: ReactNode }> = ({
 
   // Wrapper function that uses React Query for fetching user repos
   const fetchUserReposWithQuery = async (
-    username: string,
+    username: string
   ): Promise<ConfigRepo[]> => {
     return fetchUserRepos(username)
   }

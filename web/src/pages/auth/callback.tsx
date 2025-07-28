@@ -27,7 +27,7 @@ const decodeJWT = (token: string) => {
   }
 }
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 const AuthCallback = () => {
   const router = useRouter()
@@ -70,7 +70,7 @@ const AuthCallback = () => {
         // If not in session, try to extract from URL fragment
         if (!githubToken && typeof window !== 'undefined') {
           const urlParams = new URLSearchParams(
-            window.location.hash.substring(1),
+            window.location.hash.substring(1)
           )
           githubToken = urlParams.get('provider_token')
           refreshToken = urlParams.get('refresh_token')
@@ -84,7 +84,7 @@ const AuthCallback = () => {
             await UserService.storeGitHubToken(
               session.user.id,
               githubToken,
-              refreshToken || undefined,
+              refreshToken || undefined
             )
           } catch (tokenError) {
             console.warn('Failed to store GitHub token:', tokenError)
@@ -118,7 +118,7 @@ const AuthCallback = () => {
         throw error
       }
     },
-    [router],
+    [router]
   )
 
   useEffect(() => {
@@ -152,7 +152,7 @@ const AuthCallback = () => {
               // If we've tried too many times, show a user-friendly error
               if (retryCount >= maxRetries - 1) {
                 setError(
-                  'GitHub authentication is temporarily unavailable. This might be due to:\n\n• GitHub service issues\n• Network connectivity problems\n• OAuth configuration issues\n\nPlease try again in a few minutes or contact support if the problem persists.',
+                  'GitHub authentication is temporarily unavailable. This might be due to:\n\n• GitHub service issues\n• Network connectivity problems\n• OAuth configuration issues\n\nPlease try again in a few minutes or contact support if the problem persists.'
                 )
                 setStatus('Authentication failed')
                 return
@@ -166,7 +166,7 @@ const AuthCallback = () => {
             // Handle other specific errors
             if (error === 'access_denied') {
               setError(
-                'Access denied. You need to authorize the application to access your GitHub account.',
+                'Access denied. You need to authorize the application to access your GitHub account.'
               )
               setStatus('Authorization denied')
               return
@@ -174,21 +174,21 @@ const AuthCallback = () => {
 
             if (error === 'invalid_request') {
               setError(
-                'Invalid authentication request. Please try logging in again.',
+                'Invalid authentication request. Please try logging in again.'
               )
               setStatus('Invalid request')
               return
             }
 
             throw new Error(
-              errorDescription || error || 'Authentication failed',
+              errorDescription || error || 'Authentication failed'
             )
           }
 
           // Try to get tokens from hash fragment if no code
           if (!code) {
             const hashParams = new URLSearchParams(
-              window.location.hash.substring(1),
+              window.location.hash.substring(1)
             )
             const accessToken = hashParams.get('access_token')
             const refreshToken = hashParams.get('refresh_token')
@@ -219,12 +219,12 @@ const AuthCallback = () => {
                       access_token: accessToken,
                       refresh_token: refreshToken,
                       expires_at: decodedToken.exp,
-                    }),
+                    })
                   )
                 } catch (error) {
                   console.warn(
                     'Failed to store session in localStorage:',
-                    error,
+                    error
                   )
                 }
 
@@ -298,7 +298,7 @@ const AuthCallback = () => {
 
           if (retryCount >= maxRetries - 1) {
             setError(
-              error instanceof Error ? error.message : 'Authentication failed',
+              error instanceof Error ? error.message : 'Authentication failed'
             )
             setStatus('Authentication failed')
             return

@@ -18,7 +18,7 @@ export interface CalendarDayProps {
     date: Date,
     events: CalendarEvent[],
     isCurrentMonth: boolean,
-    isToday: boolean,
+    isToday: boolean
   ) => React.ReactNode
   eventClassName?: string | ((event: CalendarEvent) => string)
   dayClassName?:
@@ -94,7 +94,7 @@ export function CalendarDay({
           'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
         isHovered && 'bg-gray-100 dark:bg-gray-700',
         computedDayClassName,
-        className,
+        className
       )}
       onClick={handleDateClick}
       onMouseEnter={() => {
@@ -111,7 +111,7 @@ export function CalendarDay({
               'text-sm font-medium',
               isToday &&
                 'bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs',
-              !isCurrentMonth && 'text-gray-400 dark:text-gray-600',
+              !isCurrentMonth && 'text-gray-400 dark:text-gray-600'
             )}
           >
             {format(date, 'd')}
@@ -121,12 +121,12 @@ export function CalendarDay({
 
       {/* Events */}
       <div className="space-y-1">
-        {visibleEvents.map((event) => (
+        {visibleEvents.map(event => (
           <CalendarEventComponent
             key={event.id}
             event={event}
             date={date}
-            onClick={(e) => handleEventClick(event, e)}
+            onClick={e => handleEventClick(event, e)}
             onHover={() => handleEventHover(event)}
             renderEvent={renderEvent}
             eventClassName={eventClassName}

@@ -98,7 +98,7 @@ const ModalCommits = ({
 
               {/* Progress indicators */}
               <div className="flex space-x-1">
-                {[0, 1, 2].map((i) => (
+                {[0, 1, 2].map(i => (
                   <div
                     key={i}
                     className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"

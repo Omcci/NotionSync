@@ -25,7 +25,7 @@ const RepositorySelectionStep: React.FC<RepositorySelectionStepProps> = ({
         </div>
       ) : (
         <div className="max-h-96 overflow-y-auto space-y-3">
-          {availableRepos.map((repo) => (
+          {availableRepos.map(repo => (
             <Card
               key={repo.id}
               className="cursor-pointer hover:shadow-md transition-shadow"

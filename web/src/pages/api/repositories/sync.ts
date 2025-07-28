@@ -4,7 +4,7 @@ import { GitHubService } from '@/services/githubService'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -53,7 +53,7 @@ export default async function handler(
     } else {
       // Fetch all repositories from GitHub and sync them
       const githubRepos = await GitHubService.getUserRepos(githubToken)
-      repositoriesToSync = githubRepos.map((repo) => ({
+      repositoriesToSync = githubRepos.map(repo => ({
         id: repo.id.toString(),
         name: repo.name,
         owner: repo.full_name.split('/')[0],
@@ -70,7 +70,7 @@ export default async function handler(
     // Sync repositories to database
     const result = await RepositoryService.syncRepositoriesFromGitHub(
       userId,
-      repositoriesToSync,
+      repositoriesToSync
     )
 
     if (!result.success) {

@@ -57,7 +57,7 @@ export function useCalendar({
 
   // Navigation functions
   const goToNext = useCallback(() => {
-    setCurrentDate((prev) => {
+    setCurrentDate(prev => {
       switch (view) {
         case 'month':
           return addMonths(prev, 1)
@@ -72,7 +72,7 @@ export function useCalendar({
   }, [view])
 
   const goToPrevious = useCallback(() => {
-    setCurrentDate((prev) => {
+    setCurrentDate(prev => {
       switch (view) {
         case 'month':
           return subMonths(prev, 1)
@@ -124,8 +124,8 @@ export function useCalendar({
     const interval = { start: dateRange.start, end: dateRange.end }
     const allDays = eachDayOfInterval(interval)
 
-    return allDays.map((date) => {
-      const dayEvents = events.filter((event) => {
+    return allDays.map(date => {
+      const dayEvents = events.filter(event => {
         if (event.allDay) {
           return isSameDay(event.start, date)
         }
@@ -187,7 +187,7 @@ export function useCalendar({
   // Get events for a specific date
   const getEventsForDate = useCallback(
     (date: Date) => {
-      return events.filter((event) => {
+      return events.filter(event => {
         if (event.allDay) {
           return isSameDay(event.start, date)
         }
@@ -202,13 +202,13 @@ export function useCalendar({
         )
       })
     },
-    [events],
+    [events]
   )
 
   // Get week day headers
   const weekDays = useMemo(() => {
     const start = startOfWeek(new Date(), { weekStartsOn })
-    return eachDayOfInterval({ start, end: addDays(start, 6) }).map((date) => ({
+    return eachDayOfInterval({ start, end: addDays(start, 6) }).map(date => ({
       short: format(date, 'EEE'),
       long: format(date, 'EEEE'),
       date,
