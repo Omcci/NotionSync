@@ -156,37 +156,37 @@ export default async function handler(
         )
       : true
 
-    // Get repository stats
-    const repoStats = await Promise.all(
-      repos.map(async repo => {
-        // Get commits for this specific repo to calculate stats
-        const { commits: repoCommits } = await CommitService.getCommits(
-          userId,
-          [repo.id],
-          actualStartDate,
-          actualEndDate
-        )
+    // Compute repository stats from already-fetched commits (avoids N+1 queries)
+    // Group commits by repoName for O(n) stats computation
+    const commitsByRepo = new Map<string, { count: number; dates: string[] }>()
+    
+    for (const commit of commits) {
+      const repoName = commit.repoName
+      if (!repoName) continue
+      
+      const existing = commitsByRepo.get(repoName) || { count: 0, dates: [] }
+      existing.count++
+      const commitDate = commit.commit?.author?.date
+      if (commitDate) {
+        existing.dates.push(commitDate)
+      }
+      commitsByRepo.set(repoName, existing)
+    }
 
-        const commitCount = repoCommits.length
-        const latestCommitDate =
-          repoCommits.length > 0
-            ? repoCommits[0].commit?.author?.date || null
-            : null
-        const oldestCommitDate =
-          repoCommits.length > 0
-            ? repoCommits[repoCommits.length - 1].commit?.author?.date || null
-            : null
-
-        return {
-          id: repo.id,
-          name: repo.name,
-          owner: repo.owner,
-          commitCount,
-          latestCommitDate,
-          oldestCommitDate,
-        }
-      })
-    )
+    // Build stats from the grouped data
+    const repoStats = repos.map(repo => {
+      const repoData = commitsByRepo.get(repo.name) || { count: 0, dates: [] }
+      const sortedDates = repoData.dates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+      
+      return {
+        id: repo.id,
+        name: repo.name,
+        owner: repo.owner,
+        commitCount: repoData.count,
+        latestCommitDate: sortedDates[0] || null,
+        oldestCommitDate: sortedDates[sortedDates.length - 1] || null,
+      }
+    })
 
     res.status(200).json({
       commits: commits,

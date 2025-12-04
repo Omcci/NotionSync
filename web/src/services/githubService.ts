@@ -1,51 +1,128 @@
 import { GitHubRepo, GitHubUser } from '../../types/github'
 
+// Custom error classes for better error handling
+export class GitHubAPIError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public rateLimited: boolean = false,
+    public retryAfter?: number
+  ) {
+    super(message)
+    this.name = 'GitHubAPIError'
+  }
+}
+
+export class GitHubAuthError extends GitHubAPIError {
+  constructor(message: string = 'Invalid or expired GitHub token') {
+    super(message, 401)
+    this.name = 'GitHubAuthError'
+  }
+}
+
+export class GitHubRateLimitError extends GitHubAPIError {
+  constructor(retryAfter?: number) {
+    super('GitHub API rate limit exceeded', 403, true, retryAfter)
+    this.name = 'GitHubRateLimitError'
+  }
+}
+
 export class GitHubService {
   private static readonly BASE_URL = 'https://api.github.com'
+  private static readonly MAX_PER_PAGE = 100 // GitHub's max
+  private static readonly MAX_PAGES = 10 // Safety limit (1000 repos max)
 
+  /**
+   * Fetch all user repositories with automatic pagination
+   */
   static async getUserRepos(
+    token: string,
+    page = 1,
+    perPage = 100 // Use max per page for efficiency
+  ): Promise<GitHubRepo[]> {
+    const allRepos: GitHubRepo[] = []
+    let currentPage = page
+
+    try {
+      while (currentPage <= this.MAX_PAGES) {
+        const response = await fetch(
+          `${this.BASE_URL}/user/repos?page=${currentPage}&per_page=${Math.min(perPage, this.MAX_PER_PAGE)}&sort=updated`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: 'application/vnd.github.v3+json',
+            },
+          }
+        )
+
+        if (!response.ok) {
+          const errorText = await response.text()
+
+          // Handle authentication errors
+          if (response.status === 401) {
+            throw new GitHubAuthError()
+          }
+
+          // Handle rate limiting specifically
+          if (response.status === 403 && errorText.includes('rate limit')) {
+            const retryAfter = parseInt(response.headers.get('retry-after') || '3600')
+            throw new GitHubRateLimitError(retryAfter)
+          }
+
+          throw new GitHubAPIError(
+            `GitHub API error: ${response.status} ${response.statusText}`,
+            response.status
+          )
+        }
+
+        const repos = await response.json()
+        
+        if (!Array.isArray(repos) || repos.length === 0) {
+          break // No more repos
+        }
+
+        allRepos.push(...repos)
+
+        // Check if we've fetched all pages
+        if (repos.length < perPage) {
+          break // Last page
+        }
+
+        currentPage++
+      }
+
+      return allRepos
+    } catch (error) {
+      throw error
+    }
+  }
+
+  /**
+   * Fetch a single page of repositories (for backward compatibility)
+   */
+  static async getUserReposPage(
     token: string,
     page = 1,
     perPage = 30
   ): Promise<GitHubRepo[]> {
-    try {
-      const response = await fetch(
-        `${this.BASE_URL}/user/repos?page=${page}&per_page=${perPage}&sort=updated`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/vnd.github.v3+json',
-          },
-        }
-      )
-
-      if (!response.ok) {
-        const errorText = await response.text()
-
-        // Handle rate limiting specifically
-        if (
-          response.status === 403 &&
-          errorText.includes('rate limit exceeded')
-        ) {
-          const rateLimitError = new Error('GitHub API rate limit exceeded')
-          Object.assign(rateLimitError, {
-            rateLimited: true,
-            status: 403,
-            retryAfter: response.headers.get('retry-after') || 3600,
-          })
-          throw rateLimitError
-        }
-
-        throw new Error(
-          `GitHub API error: ${response.status} ${response.statusText} - ${errorText}`
-        )
+    const response = await fetch(
+      `${this.BASE_URL}/user/repos?page=${page}&per_page=${perPage}&sort=updated`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
       }
+    )
 
-      const repos = await response.json()
-      return repos
-    } catch (error) {
-      throw error
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new GitHubAuthError()
+      }
+      throw new GitHubAPIError(`GitHub API error: ${response.status}`, response.status)
     }
+
+    return response.json()
   }
 
   static async getUserProfile(token: string): Promise<GitHubUser> {

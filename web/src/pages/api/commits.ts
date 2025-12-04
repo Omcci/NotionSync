@@ -2,7 +2,9 @@ import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Action, Commit, Repo } from '../../../types/types'
 
-const TIMEZONE_OFFSET_PARIS = 2
+// Cache for author details to avoid duplicate API calls
+const authorCache = new Map<string, any>()
+const AUTHOR_CACHE_TTL = 1000 * 60 * 60 // 1 hour
 
 interface PaginationInfo {
   currentPage: number
@@ -81,40 +83,44 @@ const fetchCommits = async (
 }
 
 const fetchAuthorDetails = async (githubToken: string, username: string) => {
+  // Check cache first
+  const cacheKey = `author_${username}`
+  const cached = authorCache.get(cacheKey)
+  if (cached && Date.now() - cached.timestamp < AUTHOR_CACHE_TTL) {
+    return cached.data
+  }
+
   const userUrl = `https://api.github.com/users/${username}`
   const response = await fetch(userUrl, {
     headers: { Authorization: `token ${githubToken}` },
   })
 
-  if (!response.ok)
+  if (!response.ok) {
+    // Return default author for non-critical failures
+    if (response.status === 404) {
+      return {
+        name: username,
+        bio: '',
+        location: '',
+        blog: '',
+        company: '',
+        avatar_url: 'https://github.com/identicons/default.png',
+        created_at: '',
+      }
+    }
     throw new Error(`Error fetching user details: ${response.status}`)
-  return response.json()
+  }
+
+  const data = await response.json()
+  // Cache the result
+  authorCache.set(cacheKey, { data, timestamp: Date.now() })
+  return data
 }
 
-const fetchCommitDiff = async (
-  commitSha: string,
-  githubToken: string,
-  owner: string,
-  repoName: string
-) => {
-  const diffUrl = `https://api.github.com/repos/${owner}/${repoName}/commits/${commitSha}`
-  const response = await fetch(diffUrl, {
-    headers: {
-      Authorization: `token ${githubToken}`,
-      Accept: 'application/vnd.github.v3.diff',
-    },
-  })
-
-  if (!response.ok) throw new Error(`Error fetching diff: ${response.status}`)
-  return response.text()
-}
-
-const parisTz = (dateString: string, formatPattern: string): string => {
-  const dateUTC = new Date(dateString)
-  const dateParis = new Date(
-    dateUTC.getTime() + TIMEZONE_OFFSET_PARIS * 60 * 60 * 1000
-  )
-  return format(dateParis, formatPattern)
+// Use UTC consistently for all date operations to avoid timezone issues
+const formatDateUTC = (dateString: string, formatPattern: string): string => {
+  const date = new Date(dateString)
+  return format(date, formatPattern)
 }
 
 const processCommits = async (
@@ -123,64 +129,61 @@ const processCommits = async (
   owner: string,
   repoName: string
 ): Promise<Commit[]> => {
-  return Promise.all(
-    commits.map(async (commit: Commit): Promise<Commit> => {
-      const formattedDate = parisTz(
-        commit.commit.author.date,
-        "yyyy-MM-dd'T'HH:mm:ssXXX"
-      )
-      const status = commit.commit.verification?.verified
-        ? 'Verified'
-        : 'Unverified'
-
-      let authorDetails = {
-        name: 'Unknown Author',
-        bio: '',
-        location: '',
-        blog: '',
-        company: '',
-        avatar_url: 'https://github.com/identicons/default.png',
-        created_at: '',
-      }
-
-      if (commit.author?.login) {
-        try {
-          authorDetails = await fetchAuthorDetails(
-            githubToken,
-            commit.author.login
-          )
-        } catch (error) {
-          console.error(`Error fetching author details: ${error}`)
-        }
-      }
-
-      let diff: { filename: string; additions: number; deletions: number }[] =
-        []
+  // Batch fetch unique authors to reduce API calls
+  const uniqueAuthors = [...new Set(commits.map(c => c.author?.login).filter(Boolean))] as string[]
+  
+  // Fetch all authors in parallel (with cache hits, this is very fast)
+  const authorDetailsMap = new Map<string, any>()
+  await Promise.all(
+    uniqueAuthors.map(async (login) => {
       try {
-        const diffText = await fetchCommitDiff(
-          commit.sha,
-          githubToken,
-          owner,
-          repoName
-        )
-        // Parse diff text to extract file changes (simplified)
-        diff = [{ filename: 'diff.txt', additions: 0, deletions: 0 }]
+        const details = await fetchAuthorDetails(githubToken, login)
+        authorDetailsMap.set(login, details)
       } catch (error) {
-        console.error(`Error fetching diff for commit ${commit.sha}: ${error}`)
-      }
-
-      return {
-        ...commit,
-        repoName,
-        date: formattedDate,
-        status,
-        authorDetails,
-        actions: [{ name: 'View on GitHub', url: commit.html_url }] as Action[],
-        avatar_url: commit.committer?.avatar_url || authorDetails.avatar_url,
-        diff,
+        console.error(`Error fetching author details for ${login}: ${error}`)
       }
     })
   )
+
+  const defaultAuthorDetails = {
+    name: 'Unknown Author',
+    bio: '',
+    location: '',
+    blog: '',
+    company: '',
+    avatar_url: 'https://github.com/identicons/default.png',
+    created_at: '',
+  }
+
+  // Process commits synchronously (fast operation now)
+  return commits.map((commit: Commit): Commit => {
+    const formattedDate = formatDateUTC(
+      commit.commit.author.date,
+      "yyyy-MM-dd'T'HH:mm:ssXXX"
+    )
+    const status = commit.commit.verification?.verified
+      ? 'Verified'
+      : 'Unverified'
+
+    const authorDetails = commit.author?.login 
+      ? authorDetailsMap.get(commit.author.login) || defaultAuthorDetails
+      : defaultAuthorDetails
+
+    // Skip diff fetching - it creates placeholder data anyway
+    // Diffs can be fetched on-demand when viewing commit details
+    const diff: { filename: string; additions: number; deletions: number }[] = []
+
+    return {
+      ...commit,
+      repoName,
+      date: formattedDate,
+      status,
+      authorDetails,
+      actions: [{ name: 'View on GitHub', url: commit.html_url }] as Action[],
+      avatar_url: commit.committer?.avatar_url || authorDetails.avatar_url,
+      diff,
+    }
+  })
 }
 
 export const fetchCommitsWithPagination = async (
@@ -589,24 +592,32 @@ const fetchCommitsForTimeWindow = async (
     } catch (error) {
       console.error(`❌ Error fetching commits for repo ${repo.name}:`, error)
 
-      // If it's a rate limit error, wait and retry once
+      // If it's a rate limit error, use exponential backoff
       if (error instanceof Error && error.message.includes('403')) {
-        console.log(`⏳ Rate limit hit, waiting 60 seconds before retry...`)
-        await new Promise(resolve => setTimeout(resolve, 60000))
+        const retryDelays = [5000, 15000, 30000] // 5s, 15s, 30s exponential backoff
+        
+        for (let attempt = 0; attempt < retryDelays.length; attempt++) {
+          const delay = retryDelays[attempt]
+          console.log(`⏳ Rate limit hit, waiting ${delay/1000}s before retry (attempt ${attempt + 1}/${retryDelays.length})...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
 
-        try {
-          console.log(`🔄 Retrying ${repo.owner}/${repo.name}...`)
-          const retryResult = await fetchCommitsForTimeWindow(
-            token,
-            [repo],
-            timeWindow,
-            maxCommitsPerRepo
-          )
-          results.push(...retryResult)
-          continue
-        } catch (retryError) {
-          console.error(`❌ Retry failed for ${repo.name}:`, retryError)
+          try {
+            console.log(`🔄 Retrying ${repo.owner}/${repo.name}...`)
+            const retryResult = await fetchCommitsForTimeWindow(
+              token,
+              [repo],
+              timeWindow,
+              maxCommitsPerRepo
+            )
+            results.push(...retryResult)
+            break // Success, exit retry loop
+          } catch (retryError) {
+            if (attempt === retryDelays.length - 1) {
+              console.error(`❌ All retries failed for ${repo.name}:`, retryError)
+            }
+          }
         }
+        continue
       }
 
       results.push({
