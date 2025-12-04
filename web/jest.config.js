@@ -20,10 +20,7 @@ const customJestConfig = {
     '!src/pages/_app.tsx',
     '!src/pages/_document.tsx',
   ],
-  testPathIgnorePatterns: [
-    '<rootDir>/.next/',
-    '<rootDir>/node_modules/',
-  ],
+  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   coverageThreshold: {
     global: {
       branches: 50,

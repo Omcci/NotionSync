@@ -129,10 +129,9 @@ describe('Icon Components', () => {
           <GitBranchIcon />
         </div>
       )
-      
+
       const svgs = container.querySelectorAll('svg')
       expect(svgs).toHaveLength(5)
     })
   })
 })
-

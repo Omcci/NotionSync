@@ -81,7 +81,9 @@ describe('/api/repos/all', () => {
         },
       ]
 
-      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(mockRepos)
+      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(
+        mockRepos
+      )
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -171,8 +173,16 @@ describe('/api/repos/all', () => {
 
       // Verify pagination was used
       expect(GitHubService.getUserRepos).toHaveBeenCalledTimes(2)
-      expect(GitHubService.getUserRepos).toHaveBeenCalledWith('test-token', 1, 100)
-      expect(GitHubService.getUserRepos).toHaveBeenCalledWith('test-token', 2, 100)
+      expect(GitHubService.getUserRepos).toHaveBeenCalledWith(
+        'test-token',
+        1,
+        100
+      )
+      expect(GitHubService.getUserRepos).toHaveBeenCalledWith(
+        'test-token',
+        2,
+        100
+      )
     })
 
     it('stops pagination when empty page is returned', async () => {
@@ -229,7 +239,9 @@ describe('/api/repos/all', () => {
     })
 
     it('handles unknown error types', async () => {
-      ;(GitHubService.getUserRepos as jest.Mock).mockRejectedValueOnce('string error')
+      ;(GitHubService.getUserRepos as jest.Mock).mockRejectedValueOnce(
+        'string error'
+      )
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -264,4 +276,3 @@ describe('/api/repos/all', () => {
     })
   })
 })
-
