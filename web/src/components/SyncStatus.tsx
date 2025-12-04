@@ -1,5 +1,5 @@
 import { useAppContext } from '@/context/AppContext'
-import { CircleAlertIcon } from '../../public/icon/CircleAlertIcon'
+import { CircleAlertIcon } from '@/components/icons'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { useEffect } from 'react'

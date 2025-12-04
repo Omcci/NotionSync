@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { EyeIcon } from '../../public/icon/EyeIcon'
-import { GitBranchIcon } from '../../public/icon/GitBranchIcon'
-import { GithubIcon } from '../../public/icon/GithubIcon'
+import { EyeIcon, GitBranchIcon, GithubIcon } from '@/components/icons'
 import SelectComponent from './SelectComponent'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'

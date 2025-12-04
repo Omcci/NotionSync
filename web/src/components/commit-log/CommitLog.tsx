@@ -17,17 +17,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { CalendarDaysIcon } from '../../../public/icon/CalendarDaysIcon'
-import { GitBranchIcon } from '../../../public/icon/GitBranchIcon'
-import { GitCommitVerticalIcon } from '../../../public/icon/GitCommitVerticalIcon'
-import { UserIcon } from '../../../public/icon/UserIcon'
+import {
+  CalendarDaysIcon,
+  GitBranchIcon,
+  GitCommitVerticalIcon,
+  UserIcon,
+  EyeIcon,
+  GithubIcon,
+} from '@/components/icons'
 import { Commit } from '../../../types/github'
 import CommitLogFilters from './CommitLogFilters'
 import Link from 'next/link'
-import { EyeIcon } from '../../../public/icon/EyeIcon'
 import { Badge } from '@/components/ui/badge'
 import { Action } from '../../../types/types'
-import { GithubIcon } from '../../../public/icon/GithubIcon'
 
 export type Filter = {
   name: string

@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { UserIcon } from '../../public/icon/UserIcon'
+import { UserIcon } from '@/components/icons'
 import React from 'react'
 
 const ProfileButton = React.forwardRef<

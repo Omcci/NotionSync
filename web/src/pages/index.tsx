@@ -10,7 +10,7 @@ import { User } from '@supabase/supabase-js'
 import EeDial from '@/components/EeDial'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import SteamButton from '@/components/SteamButton'
-import { GithubIcon } from '../../public/icon/GithubIcon'
+import { GithubIcon } from '@/components/icons'
 import {
   ArrowRight,
   CheckCircle,

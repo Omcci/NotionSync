@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { CalendarDaysIcon } from '../../public/icon/CalendarDaysIcon'
+import { CalendarDaysIcon } from '@/components/icons'
 import { format } from 'date-fns'
 import {
   Github,

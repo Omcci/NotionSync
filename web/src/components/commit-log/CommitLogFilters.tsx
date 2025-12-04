@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { Input } from '../ui/input'
-import { FilterIcon } from '../../../public/icon/FilterIcon'
+import { FilterIcon } from '@/components/icons'
 import { Button } from '../ui/button'
 import { Filter } from './CommitLog'
 

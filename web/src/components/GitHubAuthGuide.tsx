@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Info,
 } from 'lucide-react'
-import { GithubIcon } from '../../public/icon/GithubIcon'
+import { GithubIcon } from '@/components/icons'
 import {
   Dialog,
   DialogContent,

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Mail, Heart, ExternalLink, XIcon, TwitterIcon } from 'lucide-react'
-import { GithubIcon } from '../../public/icon/GithubIcon'
+import { GithubIcon } from '@/components/icons'
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear()

@@ -1,6 +1,6 @@
 import React from 'react'
 import { GitBranch, Settings, Zap } from 'lucide-react'
-import { GithubIcon } from '../../../../public/icon/GithubIcon'
+import { GithubIcon } from '@/components/icons'
 
 const WelcomeStep: React.FC = () => {
   return (
