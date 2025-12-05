@@ -12,7 +12,7 @@ export const addCommitToNotion = async (
   notionToken: string,
   databaseId: string,
   repoName: string,
-  branchName: string,
+  branchName: string
 ) => {
   const commitDiff = await fetchCommitDiff(commit)
   if (!commitDiff) {
@@ -22,7 +22,7 @@ export const addCommitToNotion = async (
 
   let summaryWithTokenCount = await summarizeCommitWithMistral(
     commitMessage,
-    commitDiff,
+    commitDiff
   )
 
   try {
@@ -95,7 +95,7 @@ const fetchCommitDiff = async (commitSha: string) => {
     })
     if (!response.ok) {
       throw new Error(
-        `Error retrieving commit diff for ${process.env.REPO_NAME} on commit ${commitSha}: ${response.status}`,
+        `Error retrieving commit diff for ${process.env.REPO_NAME} on commit ${commitSha}: ${response.status}`
       )
     }
     return await response.text()
@@ -108,7 +108,7 @@ const fetchCommitDiff = async (commitSha: string) => {
 export const commitExistsInNotion = async (
   notion: Client,
   databaseId: string,
-  commitSha: string,
+  commitSha: string
 ) => {
   try {
     const response = await notion.databases.query({
@@ -129,12 +129,12 @@ export const commitExistsInNotion = async (
 
 const summarizeCommitWithMistral = async (
   commitMessage: string,
-  diff: string,
+  diff: string
 ) => {
   const filteredDiffLines: string[] = []
   let skipCurrentFile = false
 
-  diff.split('\n').forEach((line) => {
+  diff.split('\n').forEach(line => {
     if (line.startsWith('diff --git')) {
       skipCurrentFile = line.includes('.svg')
     }

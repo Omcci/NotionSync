@@ -475,7 +475,7 @@ const DocsPage: React.FC = () => {
             className="space-y-8"
           >
             <TabsList className="grid w-full grid-cols-4">
-              {demoSections.map((section) => (
+              {demoSections.map(section => (
                 <TabsTrigger
                   key={section.id}
                   value={section.id}
@@ -487,7 +487,7 @@ const DocsPage: React.FC = () => {
               ))}
             </TabsList>
 
-            {demoSections.map((section) => (
+            {demoSections.map(section => (
               <TabsContent key={section.id} value={section.id}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}

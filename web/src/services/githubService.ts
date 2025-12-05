@@ -6,7 +6,7 @@ export class GitHubService {
   static async getUserRepos(
     token: string,
     page = 1,
-    perPage = 30,
+    perPage = 30
   ): Promise<GitHubRepo[]> {
     try {
       const response = await fetch(
@@ -16,7 +16,7 @@ export class GitHubService {
             Authorization: `Bearer ${token}`,
             Accept: 'application/vnd.github.v3+json',
           },
-        },
+        }
       )
 
       if (!response.ok) {
@@ -37,7 +37,7 @@ export class GitHubService {
         }
 
         throw new Error(
-          `GitHub API error: ${response.status} ${response.statusText} - ${errorText}`,
+          `GitHub API error: ${response.status} ${response.statusText} - ${errorText}`
         )
       }
 
@@ -59,7 +59,7 @@ export class GitHubService {
 
       if (!response.ok) {
         throw new Error(
-          `GitHub API error: ${response.status} ${response.statusText}`,
+          `GitHub API error: ${response.status} ${response.statusText}`
         )
       }
 
@@ -72,7 +72,7 @@ export class GitHubService {
   static async getRepository(
     token: string,
     owner: string,
-    repo: string,
+    repo: string
   ): Promise<GitHubRepo> {
     try {
       const response = await fetch(`${this.BASE_URL}/repos/${owner}/${repo}`, {
@@ -84,7 +84,7 @@ export class GitHubService {
 
       if (!response.ok) {
         throw new Error(
-          `GitHub API error: ${response.status} ${response.statusText}`,
+          `GitHub API error: ${response.status} ${response.statusText}`
         )
       }
 
@@ -114,7 +114,7 @@ export class GitHubService {
     owner: string,
     repo: string,
     path: string,
-    ref?: string,
+    ref?: string
   ): Promise<string> {
     try {
       const url = `${this.BASE_URL}/repos/${owner}/${repo}/contents/${path}${ref ? `?ref=${ref}` : ''}`
@@ -128,7 +128,7 @@ export class GitHubService {
 
       if (!response.ok) {
         throw new Error(
-          `GitHub API error: ${response.status} ${response.statusText}`,
+          `GitHub API error: ${response.status} ${response.statusText}`
         )
       }
 
