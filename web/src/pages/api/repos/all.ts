@@ -20,26 +20,8 @@ export default async function handler(
 
   try {
     // Fetch all repositories with pagination using GitHubService
-    let allRepos: GitHubRepo[] = []
-    let page = 1
-    const perPage = 100
-
-    while (true) {
-      const repos = await GitHubService.getUserRepos(githubToken, page, perPage)
-
-      if (repos.length === 0) {
-        break
-      }
-
-      allRepos = [...allRepos, ...repos]
-
-      // If we got less than perPage results, we've reached the end
-      if (repos.length < perPage) {
-        break
-      }
-
-      page++
-    }
+    // getUserRepos handles pagination internally
+    const allRepos = await GitHubService.getUserRepos(githubToken, 1, 100)
 
     // Transform the data
     const transformedRepos: Repository[] = allRepos.map(repo => ({
@@ -67,9 +49,14 @@ export default async function handler(
     })
   } catch (error) {
     console.error('Error fetching all repositories:', error)
+    let errorMessage = 'Unknown error'
+    if (error instanceof Error) {
+      errorMessage = error.message
+    }
+    // For non-Error types (strings, objects, etc.), use "Unknown error"
     res.status(500).json({
       message: 'Failed to fetch repositories',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: errorMessage,
     })
   }
 }

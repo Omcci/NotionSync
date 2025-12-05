@@ -150,9 +150,9 @@ describe('/api/repos/all', () => {
         updated_at: '2024-01-01T00:00:00Z',
       }))
 
-      ;(GitHubService.getUserRepos as jest.Mock)
-        .mockResolvedValueOnce(firstPageRepos)
-        .mockResolvedValueOnce(secondPageRepos)
+      // getUserRepos now handles pagination internally and returns all repos
+      const allRepos = [...firstPageRepos, ...secondPageRepos]
+      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(allRepos)
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -169,10 +169,9 @@ describe('/api/repos/all', () => {
       expect(data.total).toBe(150)
       expect(data.repos).toHaveLength(150)
 
-      // Verify pagination was used
-      expect(GitHubService.getUserRepos).toHaveBeenCalledTimes(2)
+      // getUserRepos now handles pagination internally, so it's called once
+      expect(GitHubService.getUserRepos).toHaveBeenCalledTimes(1)
       expect(GitHubService.getUserRepos).toHaveBeenCalledWith('test-token', 1, 100)
-      expect(GitHubService.getUserRepos).toHaveBeenCalledWith('test-token', 2, 100)
     })
 
     it('stops pagination when empty page is returned', async () => {
@@ -191,9 +190,8 @@ describe('/api/repos/all', () => {
         },
       ]
 
-      ;(GitHubService.getUserRepos as jest.Mock)
-        .mockResolvedValueOnce(mockRepos)
-        .mockResolvedValueOnce([]) // Empty second page
+      // getUserRepos now handles pagination internally, so it's called once
+      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(mockRepos)
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -205,7 +203,9 @@ describe('/api/repos/all', () => {
       await allReposHandler(req, res)
 
       expect(res._getStatusCode()).toBe(200)
-      expect(GitHubService.getUserRepos).toHaveBeenCalledTimes(2)
+      expect(GitHubService.getUserRepos).toHaveBeenCalledTimes(1)
+      const data = JSON.parse(res._getData())
+      expect(data.repos).toHaveLength(1)
     })
 
     it('returns 500 when GitHub API fails', async () => {

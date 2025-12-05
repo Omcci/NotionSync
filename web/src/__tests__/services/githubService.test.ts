@@ -46,21 +46,26 @@ describe('GitHubService', () => {
     })
 
     it('stops when receiving empty page', async () => {
-      const mockRepos = [{ id: 1, name: 'repo1', full_name: 'owner/repo1' }]
+      // First page has exactly perPage (100) repos, so code will fetch next page
+      const fullPage = Array.from({ length: 100 }, (_, i) => ({
+        id: i,
+        name: `repo${i}`,
+        full_name: `owner/repo${i}`,
+      }))
 
       ;(global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => mockRepos,
+          json: async () => fullPage,
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => [],
+          json: async () => [], // Empty second page
         })
 
       const repos = await GitHubService.getUserRepos('test-token')
 
-      expect(repos).toHaveLength(1)
+      expect(repos).toHaveLength(100)
       expect(global.fetch).toHaveBeenCalledTimes(2)
     })
 
@@ -97,12 +102,15 @@ describe('GitHubService', () => {
     })
 
     it('throws GitHubRateLimitError on rate limit', async () => {
+      const mockHeaders = new Headers()
+      mockHeaders.set('retry-after', '3600')
+      
       ;(global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 403,
         statusText: 'Forbidden',
         text: async () => 'API rate limit exceeded',
-        headers: new Map([['retry-after', '3600']]),
+        headers: mockHeaders,
       })
 
       await expect(GitHubService.getUserRepos('test-token')).rejects.toThrow(

@@ -93,7 +93,7 @@ describe('Icon Components', () => {
       it('applies custom stroke width', () => {
         const { container } = render(<Component strokeWidth="3" />)
         const svg = container.querySelector('svg')
-        expect(svg).toHaveAttribute('strokeWidth', '3')
+        expect(svg).toHaveAttribute('stroke-width', '3')
       })
 
       it('applies custom color via style prop', () => {

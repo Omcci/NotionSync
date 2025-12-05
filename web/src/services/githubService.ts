@@ -64,9 +64,13 @@ export class GitHubService {
           }
 
           // Handle rate limiting specifically
-          if (response.status === 403 && errorText.includes('rate limit')) {
-            const retryAfter = parseInt(response.headers.get('retry-after') || '3600')
-            throw new GitHubRateLimitError(retryAfter)
+          if (response.status === 403) {
+            const errorTextLower = errorText.toLowerCase()
+            if (errorTextLower.includes('rate limit') || errorTextLower.includes('api rate limit')) {
+              const retryAfterHeader = response.headers.get('retry-after')
+              const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 3600
+              throw new GitHubRateLimitError(retryAfter)
+            }
           }
 
           throw new GitHubAPIError(
@@ -77,13 +81,18 @@ export class GitHubService {
 
         const repos = await response.json()
         
-        if (!Array.isArray(repos) || repos.length === 0) {
+        if (!Array.isArray(repos)) {
+          break // Invalid response
+        }
+
+        // If we get an empty page, we're done
+        if (repos.length === 0) {
           break // No more repos
         }
 
         allRepos.push(...repos)
 
-        // Check if we've fetched all pages
+        // Check if we've fetched all pages (less than perPage means last page)
         if (repos.length < perPage) {
           break // Last page
         }

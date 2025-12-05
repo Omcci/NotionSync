@@ -6,7 +6,7 @@ global.fetch = jest.fn()
 
 describe('/api/commits', () => {
     beforeEach(() => {
-        jest.clearAllMocks()
+        jest.resetAllMocks()
     })
 
     it('returns 405 for unsupported methods', async () => {

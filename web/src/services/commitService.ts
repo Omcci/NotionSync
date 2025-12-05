@@ -121,11 +121,12 @@ export class CommitService {
           .gte('date', normalizedStartDate)
           .lte('date', normalizedEndDate)
           .order('date', { ascending: false })
-          .range(page * pageSize, (page + 1) * pageSize - 1)
 
         if (repoIds.length > 0) {
           query = query.in('repo_id', repoIds)
         }
+
+        query = query.range(page * pageSize, (page + 1) * pageSize - 1)
 
         const { data, error } = await query
 

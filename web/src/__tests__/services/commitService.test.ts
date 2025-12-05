@@ -157,19 +157,20 @@ describe('CommitService', () => {
         repositories: { name: 'repo1' },
       }))
 
-      const mockChain = {
+      // Create a factory function that returns a new chain for each page
+      const createMockChain = (pageData: any[]) => ({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         in: jest.fn().mockReturnThis(),
         gte: jest.fn().mockReturnThis(),
         lte: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
-        range: jest.fn()
-          .mockResolvedValueOnce({ data: firstPage, error: null })
-          .mockResolvedValueOnce({ data: secondPage, error: null }),
-      }
+        range: jest.fn().mockResolvedValue({ data: pageData, error: null }),
+      })
 
-      ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
+      ;(supabase.from as jest.Mock)
+        .mockReturnValueOnce(createMockChain(firstPage))
+        .mockReturnValueOnce(createMockChain(secondPage))
 
       const result = await CommitService.getCommits(
         'user-1',
