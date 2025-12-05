@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseClient'
+import { query } from '@/lib/db'
 import { Commit } from '../../types/types'
 import { fetchCommitsWithTimePagination } from '../pages/api/commits'
 
@@ -36,34 +36,53 @@ export class CommitService {
     repoId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const dbCommits: Omit<
-        DatabaseCommit,
-        'id' | 'created_at' | 'updated_at'
-      >[] = commits.map(commit => ({
-        repo_id: repoId,
-        message: commit.commit.message,
-        author: commit.commit.author.name,
-        date: commit.commit.author.date,
-        sha: commit.sha,
-        html_url: commit.html_url,
-        status: commit.status || 'Unverified',
-        avatar_url: commit.avatar_url || commit.committer?.avatar_url,
-        author_details: commit.authorDetails
-          ? JSON.stringify(commit.authorDetails)
-          : null,
-        diff: commit.diff ? JSON.stringify(commit.diff) : null,
-        actions: commit.actions ? JSON.stringify(commit.actions) : null,
-      }))
+      if (commits.length === 0) {
+        return { success: true }
+      }
 
-      const { error } = await supabase.from('commits').upsert(dbCommits, {
-        onConflict: 'repo_id,sha',
-        ignoreDuplicates: false,
+      // Build values for batch insert
+      const values: string[] = []
+      const params: any[] = []
+      let paramIndex = 1
+
+      commits.forEach(commit => {
+        values.push(
+          `($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7}, $${paramIndex + 8}, $${paramIndex + 9}, $${paramIndex + 10})`
+        )
+        params.push(
+          repoId,
+          commit.commit.message,
+          commit.commit.author.name,
+          commit.commit.author.date,
+          commit.sha || null,
+          commit.html_url || null,
+          commit.status || 'Unverified',
+          commit.avatar_url || commit.committer?.avatar_url || null,
+          commit.authorDetails ? JSON.stringify(commit.authorDetails) : null,
+          commit.diff ? JSON.stringify(commit.diff) : null,
+          commit.actions ? JSON.stringify(commit.actions) : null
+        )
+        paramIndex += 11
       })
 
-      if (error) {
-        console.error('Error storing commits:', error)
-        return { success: false, error: error.message }
-      }
+      await query(
+        `INSERT INTO commits (repo_id, message, author, date, sha, html_url, status, avatar_url, author_details, diff, actions)
+         VALUES ${values.join(', ')}
+         ON CONFLICT (repo_id, sha) 
+         DO UPDATE SET
+           message = EXCLUDED.message,
+           author = EXCLUDED.author,
+           date = EXCLUDED.date,
+           html_url = EXCLUDED.html_url,
+           status = EXCLUDED.status,
+           avatar_url = EXCLUDED.avatar_url,
+           author_details = EXCLUDED.author_details,
+           diff = EXCLUDED.diff,
+           actions = EXCLUDED.actions,
+           updated_at = NOW()
+         WHERE commits.sha IS NOT NULL AND EXCLUDED.sha IS NOT NULL`,
+        params
+      )
 
       return { success: true }
     } catch (error) {
@@ -89,86 +108,38 @@ export class CommitService {
       const normalizedStartDate = new Date(startDate).toISOString()
       const normalizedEndDate = new Date(endDate).toISOString()
 
-      // Use a more explicit date range query to ensure proper filtering
-      // Supabase has a default limit of 1000, so we need to handle pagination
-      let allCommits: any[] = []
-      let page = 0
-      const pageSize = 1000
-      let hasMore = true
+      // Build the query with JOIN to repositories table
+      let sql = `
+        SELECT 
+          c.*,
+          r.id as repo_id,
+          r.name as repo_name,
+          r.owner as repo_owner,
+          r.user_id
+        FROM commits c
+        INNER JOIN repositories r ON c.repo_id = r.id
+        WHERE r.user_id = $1
+          AND c.date >= $2
+          AND c.date <= $3
+      `
 
-      console.log(
-        `🔍 Fetching commits with pagination for date range: ${normalizedStartDate} to ${normalizedEndDate}`
-      )
+      const params: any[] = [userId, normalizedStartDate, normalizedEndDate]
 
-      while (hasMore) {
-        console.log(
-          `📄 Fetching page ${page + 1} (${page * pageSize} to ${(page + 1) * pageSize - 1})`
-        )
-        let query = supabase
-          .from('commits')
-          .select(
-            `
-              *,
-              repositories!inner(
-                id,
-                name,
-                owner,
-                user_id
-              )
-            `
-          )
-          .eq('repositories.user_id', userId)
-          .gte('date', normalizedStartDate)
-          .lte('date', normalizedEndDate)
-          .order('date', { ascending: false })
-
-        if (repoIds.length > 0) {
-          query = query.in('repo_id', repoIds)
-        }
-
-        query = query.range(page * pageSize, (page + 1) * pageSize - 1)
-
-        const { data, error } = await query
-
-        if (error) {
-          console.error('Error fetching commits:', error)
-          return { commits: [], error: error.message }
-        }
-
-        if (!data || data.length === 0) {
-          console.log(`✅ No more data on page ${page + 1}`)
-          hasMore = false
-        } else {
-          console.log(`📦 Received ${data.length} commits on page ${page + 1}`)
-          allCommits.push(...data)
-          hasMore = data.length === pageSize
-          page++
-        }
-
-        // Safety check to prevent infinite loops
-        if (page > 50) {
-          console.warn('Stopped pagination after 50 pages (safety limit)')
-          break
-        }
+      // Add repo filter if provided
+      if (repoIds.length > 0) {
+        sql += ` AND c.repo_id = ANY($${params.length + 1})`
+        params.push(repoIds)
       }
 
-      console.log(`📊 Total commits fetched: ${allCommits.length}`)
+      sql += ` ORDER BY c.date DESC LIMIT 50000` // Large limit, but reasonable
 
-      // Additional client-side filtering as a safety measure
-      let filteredData = allCommits
-      if (filteredData.length > 0) {
-        filteredData = filteredData.filter((commit: any) => {
-          const commitDate = new Date(commit.date)
-          const start = new Date(normalizedStartDate)
-          const end = new Date(normalizedEndDate)
-          return commitDate >= start && commitDate <= end
-        })
-      }
-
-      console.log(`✅ Final filtered commits: ${filteredData.length}`)
+      const result = await query<DatabaseCommit & {
+        repo_name: string
+        repo_owner: string
+      }>(sql, params)
 
       // Transform database commits back to Commit format
-      const commits: Commit[] = filteredData.map((dbCommit: any) => ({
+      const commits: Commit[] = result.rows.map((dbCommit: any) => ({
         sha: dbCommit.sha || '',
         html_url: dbCommit.html_url || '',
         commit: {
@@ -188,7 +159,7 @@ export class CommitService {
           ? JSON.parse(dbCommit.author_details)
           : null,
         committer: null,
-        repoName: dbCommit.repositories?.name || '',
+        repoName: dbCommit.repo_name || '',
         date: dbCommit.date,
         status: dbCommit.status || 'Unverified',
         authorDetails: dbCommit.author_details
@@ -214,19 +185,14 @@ export class CommitService {
    */
   static async getCommitsCount(repoId: string): Promise<number> {
     try {
-      const { count, error } = await supabase
-        .from('commits')
-        .select('*', { count: 'exact', head: true })
-        .eq('repo_id', repoId)
+      const result = await query<{ count: string }>(
+        'SELECT COUNT(*) as count FROM commits WHERE repo_id = $1',
+        [repoId]
+      )
 
-      if (error) {
-        console.error('Error getting commits count:', error)
-        return 0
-      }
-
-      return count || 0
+      return parseInt(result.rows[0]?.count || '0', 10)
     } catch (error) {
-      console.error('Error in getCommitsCount:', error)
+      console.error('Error getting commits count:', error)
       return 0
     }
   }
@@ -236,21 +202,31 @@ export class CommitService {
    */
   static async getLatestCommitDate(repoId: string): Promise<string | null> {
     try {
-      const { data, error } = await supabase
-        .from('commits')
-        .select('date')
-        .eq('repo_id', repoId)
-        .order('date', { ascending: false })
-        .limit(1)
+      const result = await query<{ date: string }>(
+        'SELECT date FROM commits WHERE repo_id = $1 ORDER BY date DESC LIMIT 1',
+        [repoId]
+      )
 
-      if (error) {
-        console.error('Error getting latest commit date:', error)
-        return null
-      }
-
-      return data?.[0]?.date || null
+      return result.rows[0]?.date || null
     } catch (error) {
-      console.error('Error in getLatestCommitDate:', error)
+      console.error('Error getting latest commit date:', error)
+      return null
+    }
+  }
+
+  /**
+   * Get oldest commit date for a repository
+   */
+  static async getOldestCommitDate(repoId: string): Promise<string | null> {
+    try {
+      const result = await query<{ date: string }>(
+        'SELECT date FROM commits WHERE repo_id = $1 ORDER BY date ASC LIMIT 1',
+        [repoId]
+      )
+
+      return result.rows[0]?.date || null
+    } catch (error) {
+      console.error('Error getting oldest commit date:', error)
       return null
     }
   }
@@ -262,19 +238,10 @@ export class CommitService {
     repoId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase
-        .from('commits')
-        .delete()
-        .eq('repo_id', repoId)
-
-      if (error) {
-        console.error('Error deleting commits:', error)
-        return { success: false, error: error.message }
-      }
-
+      await query('DELETE FROM commits WHERE repo_id = $1', [repoId])
       return { success: true }
     } catch (error) {
-      console.error('Error in deleteCommitsForRepo:', error)
+      console.error('Error deleting commits:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -408,7 +375,6 @@ export class CommitService {
 
       let totalNewCommits = 0
       let totalFetchedCommits = 0
-      const repoIds = repos.map(repo => repo.id)
 
       // For each repository, find the oldest commit and fetch older commits
       for (const repo of repos) {
@@ -524,30 +490,6 @@ export class CommitService {
         totalCommits: 0,
         error: error instanceof Error ? error.message : 'Unknown error',
       }
-    }
-  }
-
-  /**
-   * Get oldest commit date for a repository
-   */
-  static async getOldestCommitDate(repoId: string): Promise<string | null> {
-    try {
-      const { data, error } = await supabase
-        .from('commits')
-        .select('date')
-        .eq('repo_id', repoId)
-        .order('date', { ascending: true })
-        .limit(1)
-
-      if (error) {
-        console.error('Error getting oldest commit date:', error)
-        return null
-      }
-
-      return data?.[0]?.date || null
-    } catch (error) {
-      console.error('Error in getOldestCommitDate:', error)
-      return null
     }
   }
 }

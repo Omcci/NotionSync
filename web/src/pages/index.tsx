@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+// Removed Supabase import - using session-based auth now
 import { User } from '@supabase/supabase-js'
 import EeDial from '@/components/EeDial'
 import { motion, useScroll, useTransform } from 'framer-motion'
@@ -53,10 +53,29 @@ const Home = () => {
   }, [triggerEe])
 
   const getSession = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    return session
+    if (typeof window === 'undefined') {
+      return null
+    }
+    const sessionToken = localStorage.getItem('session_token')
+    if (!sessionToken) {
+      return null
+    }
+    try {
+      const response = await fetch('/api/auth/session', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionToken}`,
+        },
+      })
+      if (response.ok) {
+        const data = await response.json()
+        return { user: data.user }
+      }
+      return null
+    } catch (error) {
+      return null
+    }
   }
 
   const handleClickOpenEe = () => {

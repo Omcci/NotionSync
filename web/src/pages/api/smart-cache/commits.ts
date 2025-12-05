@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CacheService } from '../../../services/cacheService'
 import { getGitHubToken } from '../../../lib/auth'
-import { supabase } from '../../../lib/supabaseClient'
+import { validateSession } from '@/lib/session'
+import { UserService } from '@/services/userService'
 
 export default async function handler(
   req: NextApiRequest,
@@ -36,21 +37,22 @@ export default async function handler(
       githubToken = authHeader.split(' ')[1]
     } else {
       // Fallback: check server-side session and get token
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession()
-
-      if (sessionError) {
-        console.error('❌ Session error:', sessionError)
-        return res.status(401).json({
-          message: 'Authentication session error',
-          error: sessionError.message,
-          authRequired: true,
-        })
+      const sessionToken = req.headers.authorization?.replace('Bearer ', '')
+      if (sessionToken) {
+        try {
+          const { user } = await validateSession(sessionToken)
+          if (user) {
+            const storedToken = await UserService.getGitHubToken(user.id)
+            if (storedToken) {
+              githubToken = storedToken
+            }
+          }
+        } catch (error) {
+          console.error('❌ Session error:', error)
+        }
       }
 
-      if (!session) {
+      if (!githubToken) {
         console.log('❌ No active session found')
         return res.status(401).json({
           message:
