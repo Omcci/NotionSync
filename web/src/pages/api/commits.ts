@@ -130,12 +130,14 @@ const processCommits = async (
   repoName: string
 ): Promise<Commit[]> => {
   // Batch fetch unique authors to reduce API calls
-  const uniqueAuthors = [...new Set(commits.map(c => c.author?.login).filter(Boolean))] as string[]
-  
+  const uniqueAuthors = [
+    ...new Set(commits.map(c => c.author?.login).filter(Boolean)),
+  ] as string[]
+
   // Fetch all authors in parallel (with cache hits, this is very fast)
   const authorDetailsMap = new Map<string, any>()
   await Promise.all(
-    uniqueAuthors.map(async (login) => {
+    uniqueAuthors.map(async login => {
       try {
         const details = await fetchAuthorDetails(githubToken, login)
         authorDetailsMap.set(login, details)
@@ -165,13 +167,14 @@ const processCommits = async (
       ? 'Verified'
       : 'Unverified'
 
-    const authorDetails = commit.author?.login 
+    const authorDetails = commit.author?.login
       ? authorDetailsMap.get(commit.author.login) || defaultAuthorDetails
       : defaultAuthorDetails
 
     // Skip diff fetching - it creates placeholder data anyway
     // Diffs can be fetched on-demand when viewing commit details
-    const diff: { filename: string; additions: number; deletions: number }[] = []
+    const diff: { filename: string; additions: number; deletions: number }[] =
+      []
 
     return {
       ...commit,
@@ -595,10 +598,12 @@ const fetchCommitsForTimeWindow = async (
       // If it's a rate limit error, use exponential backoff
       if (error instanceof Error && error.message.includes('403')) {
         const retryDelays = [5000, 15000, 30000] // 5s, 15s, 30s exponential backoff
-        
+
         for (let attempt = 0; attempt < retryDelays.length; attempt++) {
           const delay = retryDelays[attempt]
-          console.log(`⏳ Rate limit hit, waiting ${delay/1000}s before retry (attempt ${attempt + 1}/${retryDelays.length})...`)
+          console.log(
+            `⏳ Rate limit hit, waiting ${delay / 1000}s before retry (attempt ${attempt + 1}/${retryDelays.length})...`
+          )
           await new Promise(resolve => setTimeout(resolve, delay))
 
           try {
@@ -613,7 +618,10 @@ const fetchCommitsForTimeWindow = async (
             break // Success, exit retry loop
           } catch (retryError) {
             if (attempt === retryDelays.length - 1) {
-              console.error(`❌ All retries failed for ${repo.name}:`, retryError)
+              console.error(
+                `❌ All retries failed for ${repo.name}:`,
+                retryError
+              )
             }
           }
         }
