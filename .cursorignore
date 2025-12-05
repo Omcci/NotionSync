@@ -15,7 +15,7 @@ dist/
 tsconfig.tsbuildinfo
 
 # Ignore large generated files
-package-lock.json
+# package-lock.json (removed - needed for CI/CD)
 
 # Ignore test coverage
 coverage/
