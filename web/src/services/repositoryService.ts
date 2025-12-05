@@ -35,13 +35,17 @@ export class RepositoryService {
         .select()
 
       if (error) {
-        console.error('Error upserting repositories:', error)
+        if (process.env.NODE_ENV !== 'test') {
+          console.error('Error upserting repositories:', error)
+        }
         return { success: false, error: error.message }
       }
 
       return { success: true, repositories: data || [] }
     } catch (error) {
-      console.error('Error in upsertRepositories:', error)
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Error in upsertRepositories:', error)
+      }
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -63,13 +67,17 @@ export class RepositoryService {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching user repositories:', error)
+        if (process.env.NODE_ENV !== 'test') {
+          console.error('Error fetching user repositories:', error)
+        }
         return { repositories: [], error: error.message }
       }
 
       return { repositories: data || [] }
     } catch (error) {
-      console.error('Error in getUserRepositories:', error)
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Error in getUserRepositories:', error)
+      }
       return {
         repositories: [],
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -99,13 +107,17 @@ export class RepositoryService {
           // No rows returned
           return { repository: undefined }
         }
-        console.error('Error fetching repository:', error)
+        if (process.env.NODE_ENV !== 'test') {
+          console.error('Error fetching repository:', error)
+        }
         return { repository: undefined, error: error.message }
       }
 
       return { repository: data }
     } catch (error) {
-      console.error('Error in getRepository:', error)
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Error in getRepository:', error)
+      }
       return {
         repository: undefined,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -133,13 +145,17 @@ export class RepositoryService {
         .eq('id', repositoryId)
 
       if (error) {
-        console.error('Error updating sync status:', error)
+        if (process.env.NODE_ENV !== 'test') {
+          console.error('Error updating sync status:', error)
+        }
         return { success: false, error: error.message }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error in updateSyncStatus:', error)
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Error in updateSyncStatus:', error)
+      }
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -160,13 +176,17 @@ export class RepositoryService {
         .eq('id', repositoryId)
 
       if (error) {
-        console.error('Error deleting repository:', error)
+        if (process.env.NODE_ENV !== 'test') {
+          console.error('Error deleting repository:', error)
+        }
         return { success: false, error: error.message }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error in deleteRepository:', error)
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Error in deleteRepository:', error)
+      }
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -214,7 +234,9 @@ export class RepositoryService {
 
       return await this.upsertRepositories(repositoryData)
     } catch (error) {
-      console.error('Error in syncRepositoriesFromGitHub:', error)
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Error in syncRepositoriesFromGitHub:', error)
+      }
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',

@@ -23,7 +23,9 @@ export const getDbPool = (): Pool => {
 
     // Handle pool errors
     pool.on('error', err => {
-      console.error('Unexpected error on idle client', err)
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Unexpected error on idle client', err)
+      }
     })
   }
 
@@ -40,10 +42,14 @@ export const query = async <T extends QueryResultRow = any>(
   try {
     const res = await pool.query<T>(text, params)
     const duration = Date.now() - start
-    console.log('Executed query', { text, duration, rows: res.rowCount })
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('Executed query', { text, duration, rows: res.rowCount })
+    }
     return res
   } catch (error) {
-    console.error('Database query error', { text, error })
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Database query error', { text, error })
+    }
     throw error
   }
 }
