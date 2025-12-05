@@ -44,12 +44,10 @@ export default async function handler(
   }
 
   if (!githubToken) {
-    return res
-      .status(401)
-      .json({
-        error:
-          'Authorization required. Provide GitHub token in Authorization header.',
-      })
+    return res.status(401).json({
+      error:
+        'Authorization required. Provide GitHub token in Authorization header.',
+    })
   }
 
   try {
