@@ -5,8 +5,6 @@ import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-// Removed Supabase import - using session-based auth now
-import { User } from '@supabase/supabase-js'
 import EeDial from '@/components/EeDial'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import SteamButton from '@/components/SteamButton'
