@@ -153,11 +153,7 @@ describe('RepositoryService', () => {
 
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
 
-      const result = await RepositoryService.getRepository(
-        'user-1',
-        'repo1',
-        'owner1'
-      )
+      const result = await RepositoryService.getRepository('user-1', 'repo1', 'owner1')
 
       expect(result.repository).toEqual(mockRepo)
     })
@@ -174,11 +170,7 @@ describe('RepositoryService', () => {
 
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
 
-      const result = await RepositoryService.getRepository(
-        'user-1',
-        'repo1',
-        'owner1'
-      )
+      const result = await RepositoryService.getRepository('user-1', 'repo1', 'owner1')
 
       expect(result.repository).toBeUndefined()
       expect(result.error).toBeUndefined()
@@ -196,11 +188,7 @@ describe('RepositoryService', () => {
 
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
 
-      const result = await RepositoryService.getRepository(
-        'user-1',
-        'repo1',
-        'owner1'
-      )
+      const result = await RepositoryService.getRepository('user-1', 'repo1', 'owner1')
 
       expect(result.error).toBe('Database error')
     })
@@ -247,9 +235,7 @@ describe('RepositoryService', () => {
     it('returns error when update fails', async () => {
       const mockChain = {
         update: jest.fn().mockReturnThis(),
-        eq: jest
-          .fn()
-          .mockResolvedValue({ error: { message: 'Update failed' } }),
+        eq: jest.fn().mockResolvedValue({ error: { message: 'Update failed' } }),
       }
 
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
@@ -280,9 +266,7 @@ describe('RepositoryService', () => {
     it('returns error when delete fails', async () => {
       const mockChain = {
         delete: jest.fn().mockReturnThis(),
-        eq: jest
-          .fn()
-          .mockResolvedValue({ error: { message: 'Delete failed' } }),
+        eq: jest.fn().mockResolvedValue({ error: { message: 'Delete failed' } }),
       }
 
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
@@ -350,13 +334,11 @@ describe('RepositoryService', () => {
 
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
 
-      const result = await RepositoryService.syncRepositoriesFromGitHub(
-        'user-1',
-        []
-      )
+      const result = await RepositoryService.syncRepositoriesFromGitHub('user-1', [])
 
       expect(result.success).toBe(true)
       expect(result.repositories).toEqual([])
     })
   })
 })
+

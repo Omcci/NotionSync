@@ -59,11 +59,7 @@ describe('CommitService', () => {
 
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
 
-      const result = await CommitService.storeCommits(
-        commits as any,
-        'user-1',
-        'repo-1'
-      )
+      const result = await CommitService.storeCommits(commits as any, 'user-1', 'repo-1')
 
       expect(result.success).toBe(true)
       expect(supabase.from).toHaveBeenCalledWith('commits')
@@ -82,9 +78,7 @@ describe('CommitService', () => {
 
     it('returns error when storage fails', async () => {
       const mockChain = {
-        upsert: jest
-          .fn()
-          .mockResolvedValue({ error: { message: 'Storage error' } }),
+        upsert: jest.fn().mockResolvedValue({ error: { message: 'Storage error' } }),
       }
 
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
@@ -171,11 +165,8 @@ describe('CommitService', () => {
         gte: jest.fn().mockReturnThis(),
         lte: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
-        range: jest
-          .fn()
-          .mockResolvedValueOnce({ data: firstPage, error: null })
-          .mockResolvedValueOnce({ data: secondPage, error: null }),
-      }
+        range: jest.fn().mockResolvedValue({ data: pageData, error: null }),
+      })
 
       ;(supabase.from as jest.Mock)
         .mockReturnValueOnce(createMockChain(firstPage))
@@ -275,9 +266,7 @@ describe('CommitService', () => {
     it('returns 0 on error', async () => {
       ;(supabase.from as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnThis(),
-        eq: jest
-          .fn()
-          .mockResolvedValue({ count: null, error: { message: 'Error' } }),
+        eq: jest.fn().mockResolvedValue({ count: null, error: { message: 'Error' } }),
       })
 
       const count = await CommitService.getCommitsCount('repo-1')
@@ -392,7 +381,9 @@ describe('CommitService', () => {
 
   describe('syncCommitsWithTimePagination', () => {
     it('syncs commits using time pagination', async () => {
-      const mockRepos = [{ id: 'repo-1', name: 'repo1', owner: 'owner1' }]
+      const mockRepos = [
+        { id: 'repo-1', name: 'repo1', owner: 'owner1' },
+      ]
 
       const mockResults = {
         results: [
@@ -400,10 +391,7 @@ describe('CommitService', () => {
             commits: [
               {
                 sha: 'abc123',
-                commit: {
-                  message: 'Test',
-                  author: { name: 'Author', date: '2024-01-01' },
-                },
+                commit: { message: 'Test', author: { name: 'Author', date: '2024-01-01' } },
               },
             ],
             pagination: { repository: 'owner1/repo1', totalFetched: 1 },
@@ -412,9 +400,7 @@ describe('CommitService', () => {
         timeWindows: [],
       }
 
-      ;(fetchCommitsWithTimePagination as jest.Mock).mockResolvedValue(
-        mockResults
-      )
+      ;(fetchCommitsWithTimePagination as jest.Mock).mockResolvedValue(mockResults)
 
       // Mock storeCommits
       const mockStoreChain = {
@@ -456,3 +442,4 @@ describe('CommitService', () => {
     })
   })
 })
+
