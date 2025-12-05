@@ -16,7 +16,6 @@ export const addCommitToNotion = async (
 ) => {
   const commitDiff = await fetchCommitDiff(commit)
   if (!commitDiff) {
-    console.error(`Could not fetch diff for commit ${commit}. Skipping.`)
     return
   }
 
@@ -76,10 +75,7 @@ export const addCommitToNotion = async (
         },
       },
     })
-    console.log(`Commit added to Notion successfully: ${commit}`)
-  } catch (error) {
-    console.error(`Failed to add commit to Notion: ${(error as Error).message}`)
-  }
+  } catch (error) {}
 }
 
 const fetchCommitDiff = async (commitSha: string) => {
@@ -100,7 +96,6 @@ const fetchCommitDiff = async (commitSha: string) => {
     }
     return await response.text()
   } catch (error) {
-    console.error((error as Error).message)
     return null
   }
 }
@@ -122,7 +117,6 @@ export const commitExistsInNotion = async (
     })
     return response.results.length > 0
   } catch (error) {
-    console.error(`Error: ${(error as Error).message}`)
     return false
   }
 }
@@ -154,8 +148,6 @@ const summarizeCommitWithMistral = async (
       maxTokens: 1000,
     })
 
-    console.log('Mistral response:', chatResponse)
-
     if (chatResponse.choices && chatResponse.choices.length > 0) {
       const summary = chatResponse.choices[0].message.content
       if (summary) {
@@ -165,7 +157,6 @@ const summarizeCommitWithMistral = async (
     }
     return 'No summary available'
   } catch (error) {
-    console.error('Error making API request:', error)
     return 'Failed to generate summary'
   }
 }

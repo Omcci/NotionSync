@@ -20,7 +20,6 @@ export const fetchRepoBranches = async (
     }
     return data.map((branch: any) => branch.name)
   } catch (error: any) {
-    console.error(error.message)
     return []
   }
 }
@@ -60,10 +59,10 @@ const getBranches = async (req: NextApiRequest, res: NextApiResponse) => {
       +perPage,
       +page
     )
-    console.log('API is sending branches:', branches)
+    if (process.env.NODE_ENV !== 'test') {
+    }
     res.status(200).json({ branches })
   } catch (error: any) {
-    console.error('Error fetching branches:', error.message)
     res.status(500).json({ error: error.message })
   }
 }

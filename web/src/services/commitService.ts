@@ -61,13 +61,11 @@ export class CommitService {
       })
 
       if (error) {
-        console.error('Error storing commits:', error)
         return { success: false, error: error.message }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error in storeCommits:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -96,14 +94,7 @@ export class CommitService {
       const pageSize = 1000
       let hasMore = true
 
-      console.log(
-        `🔍 Fetching commits with pagination for date range: ${normalizedStartDate} to ${normalizedEndDate}`
-      )
-
       while (hasMore) {
-        console.log(
-          `📄 Fetching page ${page + 1} (${page * pageSize} to ${(page + 1) * pageSize - 1})`
-        )
         let query = supabase
           .from('commits')
           .select(
@@ -130,15 +121,12 @@ export class CommitService {
         const { data, error } = await query
 
         if (error) {
-          console.error('Error fetching commits:', error)
           return { commits: [], error: error.message }
         }
 
         if (!data || data.length === 0) {
-          console.log(`✅ No more data on page ${page + 1}`)
           hasMore = false
         } else {
-          console.log(`📦 Received ${data.length} commits on page ${page + 1}`)
           allCommits.push(...data)
           hasMore = data.length === pageSize
           page++
@@ -146,12 +134,9 @@ export class CommitService {
 
         // Safety check to prevent infinite loops
         if (page > 50) {
-          console.warn('Stopped pagination after 50 pages (safety limit)')
           break
         }
       }
-
-      console.log(`📊 Total commits fetched: ${allCommits.length}`)
 
       // Additional client-side filtering as a safety measure
       let filteredData = allCommits
@@ -163,8 +148,6 @@ export class CommitService {
           return commitDate >= start && commitDate <= end
         })
       }
-
-      console.log(`✅ Final filtered commits: ${filteredData.length}`)
 
       // Transform database commits back to Commit format
       const commits: Commit[] = filteredData.map((dbCommit: any) => ({
@@ -200,7 +183,6 @@ export class CommitService {
 
       return { commits }
     } catch (error) {
-      console.error('Error in getCommits:', error)
       return {
         commits: [],
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -219,13 +201,11 @@ export class CommitService {
         .eq('repo_id', repoId)
 
       if (error) {
-        console.error('Error getting commits count:', error)
         return 0
       }
 
       return count || 0
     } catch (error) {
-      console.error('Error in getCommitsCount:', error)
       return 0
     }
   }
@@ -243,13 +223,11 @@ export class CommitService {
         .limit(1)
 
       if (error) {
-        console.error('Error getting latest commit date:', error)
         return null
       }
 
       return data?.[0]?.date || null
     } catch (error) {
-      console.error('Error in getLatestCommitDate:', error)
       return null
     }
   }
@@ -267,13 +245,11 @@ export class CommitService {
         .eq('repo_id', repoId)
 
       if (error) {
-        console.error('Error deleting commits:', error)
         return { success: false, error: error.message }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error in deleteCommitsForRepo:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -327,7 +303,6 @@ export class CommitService {
         error: undefined,
       }
     } catch (error) {
-      console.error('Error in syncCommitsWithTimePagination:', error)
       return {
         success: false,
         newCommits: 0,
@@ -381,7 +356,6 @@ export class CommitService {
         error: result.success ? undefined : result.error,
       }
     } catch (error) {
-      console.error('Error in syncCommitsForRepos:', error)
       return {
         success: false,
         newCommits: 0,
@@ -401,10 +375,6 @@ export class CommitService {
     requestedStartDate?: string
   ): Promise<CommitSyncResult> {
     try {
-      console.log(
-        `🔍 Starting backfill process for ${repos.length} repositories`
-      )
-
       let totalNewCommits = 0
       let totalFetchedCommits = 0
       const repoIds = repos.map(repo => repo.id)
@@ -412,11 +382,8 @@ export class CommitService {
       // For each repository, find the oldest commit and fetch older commits
       for (const repo of repos) {
         try {
-          console.log(`📂 Backfilling repository: ${repo.owner}/${repo.name}`)
-
           // Get the oldest commit date for this repository
           const oldestCommitDate = await this.getOldestCommitDate(repo.id)
-          console.log(`📅 Oldest commit in DB: ${oldestCommitDate || 'none'}`)
 
           // Determine the date range for backfill
           let backfillEndDate = oldestCommitDate || new Date().toISOString()
@@ -430,22 +397,13 @@ export class CommitService {
             if (requestedDate < oldestDate) {
               // Need to backfill from requested date to oldest commit
               backfillEndDate = oldestCommitDate
-              console.log(
-                `🔄 Backfilling from ${backfillStartDate} to ${backfillEndDate}`
-              )
             } else {
               // We already have commits for the requested range
-              console.log(
-                `✅ No backfill needed for ${repo.name} - already have commits for requested range`
-              )
               continue
             }
           } else if (!oldestCommitDate && requestedStartDate) {
             // No commits in DB, fetch from requested date to now
             backfillEndDate = new Date().toISOString()
-            console.log(
-              `🆕 No existing commits, fetching from ${backfillStartDate} to ${backfillEndDate}`
-            )
           }
 
           // Fetch commits from GitHub for the backfill period
@@ -465,17 +423,12 @@ export class CommitService {
           })
 
           if (!response.ok) {
-            const errorData = await response.json()
-            console.error(
-              `❌ Failed to fetch commits for ${repo.name}: ${errorData.error}`
-            )
             continue
           }
 
           const result = await response.json()
           const commits = result.results?.[0]?.commits || []
 
-          console.log(`📦 Fetched ${commits.length} commits for backfill`)
           totalFetchedCommits += commits.length
 
           // Store the commits
@@ -487,27 +440,12 @@ export class CommitService {
             )
             if (storeResult.success) {
               totalNewCommits += commits.length
-              console.log(
-                `✅ Stored ${commits.length} new commits for ${repo.name}`
-              )
-            } else {
-              console.error(
-                `❌ Failed to store commits for ${repo.name}: ${storeResult.error}`
-              )
             }
           }
         } catch (repoError) {
-          console.error(
-            `❌ Error processing repository ${repo.name}:`,
-            repoError
-          )
           continue
         }
       }
-
-      console.log(
-        `✅ Backfill completed: ${totalNewCommits} new commits stored out of ${totalFetchedCommits} fetched`
-      )
 
       return {
         success: true,
@@ -516,7 +454,6 @@ export class CommitService {
         error: undefined,
       }
     } catch (error) {
-      console.error('❌ Error in backfillOlderCommits:', error)
       return {
         success: false,
         newCommits: 0,
@@ -539,13 +476,11 @@ export class CommitService {
         .limit(1)
 
       if (error) {
-        console.error('Error getting oldest commit date:', error)
         return null
       }
 
       return data?.[0]?.date || null
     } catch (error) {
-      console.error('Error in getOldestCommitDate:', error)
       return null
     }
   }

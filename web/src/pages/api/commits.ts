@@ -59,26 +59,19 @@ const fetchCommits = async (
     since && until ? `&since=${since}&until=${until}` : ''
   }`
 
-  console.log(`🌐 GitHub API call: ${commitsUrl}`)
-
   const response = await fetch(commitsUrl, {
     headers: { Authorization: `token ${githubToken}` },
   })
 
   if (!response.ok) {
-    console.error(
-      `❌ GitHub API error: ${response.status} - ${response.statusText}`
-    )
     throw new Error(`Error fetching commits: ${response.status}`)
   }
 
   const commits = await response.json()
   if (!commits || !Array.isArray(commits)) {
-    console.error(`❌ Invalid commits response:`, commits)
     throw new Error(`Invalid commits response: ${JSON.stringify(commits)}`)
   }
 
-  console.log(`✅ GitHub API returned ${commits.length} commits`)
   return commits
 }
 
@@ -142,7 +135,7 @@ const processCommits = async (
         const details = await fetchAuthorDetails(githubToken, login)
         authorDetailsMap.set(login, details)
       } catch (error) {
-        console.error(`Error fetching author details for ${login}: ${error}`)
+        // Silently fail for author details
       }
     })
   )
@@ -198,16 +191,8 @@ export const fetchCommitsWithPagination = async (
 ): Promise<CommitFetchResult[]> => {
   const results: CommitFetchResult[] = []
 
-  console.log(
-    `🔍 Fetching commits with pagination for ${repos.length} repositories`
-  )
-  console.log(`📅 Date range: ${startDate} to ${endDate}`)
-  console.log(`🎯 Max commits per repo: ${maxCommitsPerRepo}`)
-
   for (const repo of repos) {
     try {
-      console.log(`\n📂 Processing repository: ${repo.owner}/${repo.name}`)
-
       let page = 1
       const perPage = 100
       let allCommits: Commit[] = []
@@ -215,8 +200,6 @@ export const fetchCommitsWithPagination = async (
       let reachedLimit = false
 
       while (hasMore && allCommits.length < maxCommitsPerRepo) {
-        console.log(`  📄 Fetching page ${page} for ${repo.name}`)
-
         const commits = await fetchCommits(
           token,
           repo.owner,
@@ -228,12 +211,9 @@ export const fetchCommitsWithPagination = async (
         )
 
         if (!commits || commits.length === 0) {
-          console.log(`  ✅ No more commits on page ${page} for ${repo.name}`)
           hasMore = false
           break
         }
-
-        console.log(`  📦 Found ${commits.length} commits on page ${page}`)
 
         const processedCommits = await processCommits(
           commits,
@@ -246,9 +226,6 @@ export const fetchCommitsWithPagination = async (
 
         // Check if we've reached our limit
         if (allCommits.length >= maxCommitsPerRepo) {
-          console.log(
-            `  ⚠️  Reached limit of ${maxCommitsPerRepo} commits for ${repo.name}`
-          )
           allCommits = allCommits.slice(0, maxCommitsPerRepo)
           reachedLimit = true
           hasMore = false
@@ -256,7 +233,6 @@ export const fetchCommitsWithPagination = async (
 
         // If we got less than requested, we've reached the end
         if (commits.length < perPage) {
-          console.log(`  ✅ Reached end of commits for ${repo.name}`)
           hasMore = false
         }
 
@@ -264,9 +240,6 @@ export const fetchCommitsWithPagination = async (
 
         // Safety check: prevent infinite loops
         if (page > 100) {
-          console.warn(
-            `⚠️  Stopped fetching after 100 pages for ${repo.name} (safety limit)`
-          )
           hasMore = false
           reachedLimit = true
         }
@@ -292,10 +265,8 @@ export const fetchCommitsWithPagination = async (
           : `Fetched all ${allCommits.length} commits`,
       }
 
-      console.log(`✅ Repository ${repo.name}: ${result.message}`)
       results.push(result)
     } catch (error) {
-      console.error(`❌ Error fetching commits for repo ${repo.name}:`, error)
       results.push({
         commits: [],
         pagination: {
@@ -310,20 +281,6 @@ export const fetchCommitsWithPagination = async (
       continue
     }
   }
-
-  const totalCommits = results.reduce(
-    (sum, result) => sum + result.commits.length,
-    0
-  )
-  console.log(`\n🎯 Pagination Summary:`)
-  console.log(`  - Total commits fetched: ${totalCommits}`)
-  console.log(`  - Repositories processed: ${results.length}`)
-
-  results.forEach(result => {
-    console.log(
-      `  - ${result.pagination.repository}: ${result.pagination.totalFetched} commits ${result.reachedLimit ? '(limited)' : '(complete)'}`
-    )
-  })
 
   return results
 }
@@ -426,7 +383,6 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
     const monthsToFetch = monthsBack ? parseInt(monthsBack) : 24 // Increased from 12 to 24 months
 
     if (useTimeBasedPagination) {
-      console.log(`🚀 Using intelligent time-based pagination`)
       const { results, timeWindows } = await fetchCommitsWithTimePagination(
         token,
         repoList,
@@ -448,7 +404,6 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       })
     } else if (usePagination) {
-      console.log(`📄 Using traditional pagination`)
       const results = await fetchCommitsWithPagination(
         token,
         repoList,
@@ -470,7 +425,6 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
       })
     } else {
       // Legacy mode for backward compatibility
-      console.log(`⚠️  Using legacy mode (not recommended for large datasets)`)
       const commits = await fetchCommitsForMultipleRepos(
         token,
         repoList,
@@ -481,7 +435,6 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(200).json(commits)
     }
   } catch (error: any) {
-    console.error(error.message)
     res.status(500).json({ error: error.message })
   }
 }
@@ -493,18 +446,10 @@ const fetchCommitsForTimeWindow = async (
   timeWindow: TimeWindow,
   maxCommitsPerRepo: number = 10000 // Increased for better coverage
 ): Promise<CommitFetchResult[]> => {
-  console.log(`\n📅 Fetching commits for period: ${timeWindow.period}`)
-  console.log(
-    `   From: ${format(new Date(timeWindow.startDate), 'yyyy-MM-dd')}`
-  )
-  console.log(`   To: ${format(new Date(timeWindow.endDate), 'yyyy-MM-dd')}`)
-
   const results: CommitFetchResult[] = []
 
   for (const repo of repos) {
     try {
-      console.log(`\n📂 Processing repository: ${repo.owner}/${repo.name}`)
-
       let page = 1
       const perPage = 100
       let allCommits: Commit[] = []
@@ -512,8 +457,6 @@ const fetchCommitsForTimeWindow = async (
       let reachedLimit = false
 
       while (hasMore && allCommits.length < maxCommitsPerRepo) {
-        console.log(`  📄 Fetching page ${page} for ${repo.name}`)
-
         const commits = await fetchCommits(
           token,
           repo.owner,
@@ -525,12 +468,9 @@ const fetchCommitsForTimeWindow = async (
         )
 
         if (!commits || commits.length === 0) {
-          console.log(`  ✅ No more commits on page ${page} for ${repo.name}`)
           hasMore = false
           break
         }
-
-        console.log(`  📦 Found ${commits.length} commits on page ${page}`)
 
         const processedCommits = await processCommits(
           commits,
@@ -543,9 +483,6 @@ const fetchCommitsForTimeWindow = async (
 
         // Check if we've reached our limit
         if (allCommits.length >= maxCommitsPerRepo) {
-          console.log(
-            `  ⚠️  Reached limit of ${maxCommitsPerRepo} commits for ${repo.name}`
-          )
           allCommits = allCommits.slice(0, maxCommitsPerRepo)
           reachedLimit = true
           hasMore = false
@@ -553,7 +490,6 @@ const fetchCommitsForTimeWindow = async (
 
         // If we got less than requested, we've reached the end
         if (commits.length < perPage) {
-          console.log(`  ✅ Reached end of commits for ${repo.name}`)
           hasMore = false
         }
 
@@ -562,9 +498,6 @@ const fetchCommitsForTimeWindow = async (
         // Safety check: prevent infinite loops
         if (page > 50) {
           // Increased from 10 to 50 for better coverage
-          console.warn(
-            `⚠️  Stopped fetching after 50 pages for ${repo.name} (safety limit)`
-          )
           hasMore = false
           reachedLimit = true
         }
@@ -590,24 +523,17 @@ const fetchCommitsForTimeWindow = async (
           : `Fetched all ${allCommits.length} commits`,
       }
 
-      console.log(`✅ Repository ${repo.name}: ${result.message}`)
       results.push(result)
     } catch (error) {
-      console.error(`❌ Error fetching commits for repo ${repo.name}:`, error)
-
       // If it's a rate limit error, use exponential backoff
       if (error instanceof Error && error.message.includes('403')) {
         const retryDelays = [5000, 15000, 30000] // 5s, 15s, 30s exponential backoff
 
         for (let attempt = 0; attempt < retryDelays.length; attempt++) {
           const delay = retryDelays[attempt]
-          console.log(
-            `⏳ Rate limit hit, waiting ${delay / 1000}s before retry (attempt ${attempt + 1}/${retryDelays.length})...`
-          )
           await new Promise(resolve => setTimeout(resolve, delay))
 
           try {
-            console.log(`🔄 Retrying ${repo.owner}/${repo.name}...`)
             const retryResult = await fetchCommitsForTimeWindow(
               token,
               [repo],
@@ -617,12 +543,7 @@ const fetchCommitsForTimeWindow = async (
             results.push(...retryResult)
             break // Success, exit retry loop
           } catch (retryError) {
-            if (attempt === retryDelays.length - 1) {
-              console.error(
-                `❌ All retries failed for ${repo.name}:`,
-                retryError
-              )
-            }
+            // Retry failed, continue to next attempt
           }
         }
         continue
@@ -643,14 +564,6 @@ const fetchCommitsForTimeWindow = async (
     }
   }
 
-  const totalCommits = results.reduce(
-    (sum, result) => sum + result.commits.length,
-    0
-  )
-  console.log(`\n📊 Period Summary (${timeWindow.period}):`)
-  console.log(`  - Total commits fetched: ${totalCommits}`)
-  console.log(`  - Repositories processed: ${results.length}`)
-
   return results
 }
 
@@ -661,16 +574,10 @@ export const fetchCommitsWithTimePagination = async (
   monthsBack: number = 24, // Increased from 12 to 24 months
   maxCommitsPerRepo: number = 10000 // Increased for better coverage
 ): Promise<{ results: CommitFetchResult[]; timeWindows: TimeWindow[] }> => {
-  console.log(`🔍 Starting intelligent time-based pagination`)
-  console.log(`📅 Fetching commits for the last ${monthsBack} months`)
-  console.log(`🎯 Max commits per repo per period: ${maxCommitsPerRepo}`)
-
   const timeWindows = generateTimeWindows(monthsBack)
   const allResults: CommitFetchResult[] = []
 
   for (const timeWindow of timeWindows) {
-    console.log(`\n🕐 Processing time window: ${timeWindow.period}`)
-
     const windowResults = await fetchCommitsForTimeWindow(
       token,
       repos,
@@ -680,15 +587,6 @@ export const fetchCommitsWithTimePagination = async (
 
     allResults.push(...windowResults)
   }
-
-  const totalCommits = allResults.reduce(
-    (sum, result) => sum + result.commits.length,
-    0
-  )
-  console.log(`\n🎯 Final Summary:`)
-  console.log(`  - Total commits fetched: ${totalCommits}`)
-  console.log(`  - Time windows processed: ${timeWindows.length}`)
-  console.log(`  - Repositories processed: ${repos.length}`)
 
   return { results: allResults, timeWindows }
 }

@@ -45,7 +45,6 @@ export default async function handler(
       type: commits.length === 1 ? 'single' : 'multiple',
     })
   } catch (error) {
-    console.error('Error generating summary:', error)
     res.status(500).json({
       message: 'Failed to generate summary',
       error: error instanceof Error ? error.message : 'Unknown error',

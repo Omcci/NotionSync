@@ -43,10 +43,6 @@ export default async function handler(
           const { user } = await validateSession(sessionToken)
           if (user) {
             if (user.id !== userId) {
-              console.log('❌ User ID mismatch:', {
-                sessionUserId: user.id,
-                requestUserId: userId,
-              })
               return res.status(403).json({
                 message: 'User ID mismatch. Please re-authenticate.',
                 authRequired: true,
@@ -59,12 +55,11 @@ export default async function handler(
             }
           }
         } catch (error) {
-          console.error('❌ Session error:', error)
+          // Session validation failed
         }
       }
 
       if (!githubToken) {
-        console.log('❌ No active session found')
         return res.status(401).json({
           message:
             'No active authentication session. Please log in with GitHub.',
@@ -150,8 +145,6 @@ export default async function handler(
       },
     })
   } catch (error) {
-    console.error('❌ Smart cache error:', error)
-
     // Handle specific authentication errors
     if (error instanceof Error) {
       if (

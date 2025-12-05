@@ -211,7 +211,7 @@ describe('CommitService', () => {
         '2024-12-31'
       )
 
-      expect(result.commits).toEqual([])
+      expect(result.commits).toHaveLength(0)
       expect(result.error).toBe('Fetch error')
     })
 
