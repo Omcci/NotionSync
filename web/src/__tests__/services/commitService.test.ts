@@ -140,7 +140,7 @@ describe('CommitService', () => {
         '2024-12-31'
       )
 
-      expect(result.commits.length).toBeGreaterThan(0)
+      expect(result.commits.length).toBe(1)
       expect(result.error).toBeUndefined()
     })
 
@@ -189,10 +189,10 @@ describe('CommitService', () => {
     })
 
     it('returns error when fetch fails', async () => {
+      // When repoIds is empty, .in() is not called, so the chain is different
       const mockChain = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        in: jest.fn().mockReturnThis(),
         gte: jest.fn().mockReturnThis(),
         lte: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),

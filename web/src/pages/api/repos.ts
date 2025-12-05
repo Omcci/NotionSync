@@ -11,7 +11,6 @@ export const fetchUserRepos = async (githubToken: string) => {
       owner: repo.full_name.split('/')[0],
     }))
   } catch (error) {
-    console.error('Error in fetchUserRepos:', error)
     throw error
   }
 }
@@ -24,18 +23,39 @@ export default async function handler(
     res.setHeader('Allow', ['GET'])
     return res.status(405).end(`Method ${req.method} Not Allowed`)
   }
-  const { githubToken } = req.query
+
+  // Check for token in Authorization header first, then query param
+  const authHeader = req.headers.authorization
+  let githubToken: string | undefined
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    githubToken = authHeader.split(' ')[1]
+  } else {
+    githubToken = req.query.githubToken as string | undefined
+  }
 
   if (!githubToken || typeof githubToken !== 'string') {
-    console.error('Invalid or missing GitHub token')
-    return res.status(400).json({ error: 'GitHub token is required' })
+    return res.status(401).json({ error: 'Authorization required' })
   }
 
   try {
     const repos = await fetchUserRepos(githubToken)
     res.status(200).json({ repos })
   } catch (error: any) {
-    console.error('Error in repos API handler:', error.message)
+    // Handle specific GitHub errors
+    if (error instanceof Error) {
+      if (
+        error.message.includes('401') ||
+        error.message.includes('Unauthorized')
+      ) {
+        return res
+          .status(401)
+          .json({ error: 'Invalid or expired GitHub token' })
+      }
+      if (error.message.includes('rate limit')) {
+        return res.status(429).json({ error: error.message })
+      }
+    }
     res.status(500).json({ error: error.message })
   }
 }
