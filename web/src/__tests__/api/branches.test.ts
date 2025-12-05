@@ -148,7 +148,9 @@ describe('/api/branches', () => {
     })
 
     it('handles network errors gracefully', async () => {
-      ;(global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
+      ;(global.fetch as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error')
+      )
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -202,7 +204,9 @@ describe('/api/branches', () => {
     })
 
     it('returns empty array on network failure', async () => {
-      ;(global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
+      ;(global.fetch as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error')
+      )
 
       const result = await fetchRepoBranches('test-token', 'org', 'repo', 10, 1)
 
@@ -210,4 +214,3 @@ describe('/api/branches', () => {
     })
   })
 })
-

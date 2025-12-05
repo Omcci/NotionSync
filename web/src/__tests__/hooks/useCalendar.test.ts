@@ -1,6 +1,14 @@
 import { renderHook, act } from '@testing-library/react'
 import { useCalendar, CalendarEvent } from '@/hooks/useCalendar'
-import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns'
+import {
+  format,
+  addMonths,
+  subMonths,
+  addWeeks,
+  subWeeks,
+  addDays,
+  subDays,
+} from 'date-fns'
 
 describe('useCalendar', () => {
   const fixedDate = new Date('2024-06-15T12:00:00Z')
@@ -19,7 +27,9 @@ describe('useCalendar', () => {
       const { result } = renderHook(() => useCalendar())
 
       expect(result.current.view).toBe('month')
-      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe('2024-06-15')
+      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe(
+        '2024-06-15'
+      )
     })
 
     it('initializes with custom date', () => {
@@ -28,13 +38,13 @@ describe('useCalendar', () => {
         useCalendar({ initialDate: customDate })
       )
 
-      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe('2024-01-01')
+      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe(
+        '2024-01-01'
+      )
     })
 
     it('initializes with custom view', () => {
-      const { result } = renderHook(() =>
-        useCalendar({ initialView: 'week' })
-      )
+      const { result } = renderHook(() => useCalendar({ initialView: 'week' }))
 
       expect(result.current.view).toBe('week')
     })
@@ -58,8 +68,8 @@ describe('useCalendar', () => {
     })
 
     it('initializes with custom weekStartsOn', () => {
-      const { result } = renderHook(() =>
-        useCalendar({ weekStartsOn: 1 }) // Monday
+      const { result } = renderHook(
+        () => useCalendar({ weekStartsOn: 1 }) // Monday
       )
 
       // First day of week should be Monday
@@ -89,9 +99,7 @@ describe('useCalendar', () => {
     })
 
     it('navigates to next week in week view', () => {
-      const { result } = renderHook(() =>
-        useCalendar({ initialView: 'week' })
-      )
+      const { result } = renderHook(() => useCalendar({ initialView: 'week' }))
 
       const initialDate = result.current.currentDate
 
@@ -106,9 +114,7 @@ describe('useCalendar', () => {
     })
 
     it('navigates to previous week in week view', () => {
-      const { result } = renderHook(() =>
-        useCalendar({ initialView: 'week' })
-      )
+      const { result } = renderHook(() => useCalendar({ initialView: 'week' }))
 
       const initialDate = result.current.currentDate
 
@@ -123,27 +129,27 @@ describe('useCalendar', () => {
     })
 
     it('navigates to next day in day view', () => {
-      const { result } = renderHook(() =>
-        useCalendar({ initialView: 'day' })
-      )
+      const { result } = renderHook(() => useCalendar({ initialView: 'day' }))
 
       act(() => {
         result.current.goToNext()
       })
 
-      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe('2024-06-16')
+      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe(
+        '2024-06-16'
+      )
     })
 
     it('navigates to previous day in day view', () => {
-      const { result } = renderHook(() =>
-        useCalendar({ initialView: 'day' })
-      )
+      const { result } = renderHook(() => useCalendar({ initialView: 'day' }))
 
       act(() => {
         result.current.goToPrevious()
       })
 
-      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe('2024-06-14')
+      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe(
+        '2024-06-14'
+      )
     })
 
     it('goes to today', () => {
@@ -156,7 +162,9 @@ describe('useCalendar', () => {
         result.current.goToToday()
       })
 
-      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe('2024-06-15')
+      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe(
+        '2024-06-15'
+      )
     })
 
     it('goes to specific date', () => {
@@ -166,7 +174,9 @@ describe('useCalendar', () => {
         result.current.goToDate(new Date('2025-12-25'))
       })
 
-      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe('2025-12-25')
+      expect(format(result.current.currentDate, 'yyyy-MM-dd')).toBe(
+        '2025-12-25'
+      )
     })
   })
 
@@ -215,12 +225,12 @@ describe('useCalendar', () => {
       // With weekStartsOn: 0 (Sunday)
       const startDate = result.current.dateRange.start
       const endDate = result.current.dateRange.end
-      
+
       // Start should be in May (month index 4, 0-based) or June (month index 5)
       // End should be in June (month index 5) or July (month index 6)
       expect(startDate.getMonth()).toBeLessThanOrEqual(5) // May or June
       expect(endDate.getMonth()).toBeGreaterThanOrEqual(5) // June or July
-      
+
       // If start is in May, it should be May 26
       if (startDate.getMonth() === 4) {
         expect(startDate.getDate()).toBe(26)
@@ -229,7 +239,10 @@ describe('useCalendar', () => {
 
     it('calculates correct date range for week view', () => {
       const { result } = renderHook(() =>
-        useCalendar({ initialDate: new Date('2024-06-15'), initialView: 'week' })
+        useCalendar({
+          initialDate: new Date('2024-06-15'),
+          initialView: 'week',
+        })
       )
 
       // Should be 7 days
@@ -244,7 +257,9 @@ describe('useCalendar', () => {
 
       // Should be 1 day
       expect(result.current.days).toHaveLength(1)
-      expect(format(result.current.days[0].date, 'yyyy-MM-dd')).toBe('2024-06-15')
+      expect(format(result.current.days[0].date, 'yyyy-MM-dd')).toBe(
+        '2024-06-15'
+      )
     })
   })
 
@@ -280,9 +295,7 @@ describe('useCalendar', () => {
     })
 
     it('returns empty weeks array for non-month views', () => {
-      const { result } = renderHook(() =>
-        useCalendar({ initialView: 'week' })
-      )
+      const { result } = renderHook(() => useCalendar({ initialView: 'week' }))
 
       expect(result.current.weeks).toHaveLength(0)
     })
@@ -341,7 +354,9 @@ describe('useCalendar', () => {
 
       const { result } = renderHook(() => useCalendar({ events }))
 
-      const eventsForDate = result.current.getEventsForDate(new Date('2024-06-15'))
+      const eventsForDate = result.current.getEventsForDate(
+        new Date('2024-06-15')
+      )
       expect(eventsForDate).toHaveLength(1)
       expect(eventsForDate[0].title).toBe('All Day Event')
     })
@@ -359,9 +374,15 @@ describe('useCalendar', () => {
       const { result } = renderHook(() => useCalendar({ events }))
 
       // Event should appear on all three days
-      const day14Events = result.current.getEventsForDate(new Date('2024-06-14'))
-      const day15Events = result.current.getEventsForDate(new Date('2024-06-15'))
-      const day16Events = result.current.getEventsForDate(new Date('2024-06-16'))
+      const day14Events = result.current.getEventsForDate(
+        new Date('2024-06-14')
+      )
+      const day15Events = result.current.getEventsForDate(
+        new Date('2024-06-15')
+      )
+      const day16Events = result.current.getEventsForDate(
+        new Date('2024-06-16')
+      )
 
       expect(day14Events).toHaveLength(1)
       expect(day15Events).toHaveLength(1)
@@ -387,7 +408,10 @@ describe('useCalendar', () => {
 
     it('returns correct header for week view', () => {
       const { result } = renderHook(() =>
-        useCalendar({ initialDate: new Date('2024-06-15'), initialView: 'week' })
+        useCalendar({
+          initialDate: new Date('2024-06-15'),
+          initialView: 'week',
+        })
       )
 
       // Week of June 15 should show date range
@@ -406,22 +430,17 @@ describe('useCalendar', () => {
 
   describe('weekDays', () => {
     it('returns correct week day headers starting from Sunday', () => {
-      const { result } = renderHook(() =>
-        useCalendar({ weekStartsOn: 0 })
-      )
+      const { result } = renderHook(() => useCalendar({ weekStartsOn: 0 }))
 
       expect(result.current.weekDays[0].short).toBe('Sun')
       expect(result.current.weekDays[6].short).toBe('Sat')
     })
 
     it('returns correct week day headers starting from Monday', () => {
-      const { result } = renderHook(() =>
-        useCalendar({ weekStartsOn: 1 })
-      )
+      const { result } = renderHook(() => useCalendar({ weekStartsOn: 1 }))
 
       expect(result.current.weekDays[0].short).toBe('Mon')
       expect(result.current.weekDays[6].short).toBe('Sun')
     })
   })
 })
-

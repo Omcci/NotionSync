@@ -104,7 +104,6 @@ describe('GitHubService', () => {
     it('throws GitHubRateLimitError on rate limit', async () => {
       const mockHeaders = new Headers()
       mockHeaders.set('retry-after', '3600')
-      
       ;(global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         status: 403,
@@ -207,7 +206,11 @@ describe('GitHubService', () => {
         json: async () => mockRepo,
       })
 
-      const repo = await GitHubService.getRepository('test-token', 'owner', 'test-repo')
+      const repo = await GitHubService.getRepository(
+        'test-token',
+        'owner',
+        'test-repo'
+      )
 
       expect(repo).toEqual(mockRepo)
       expect(global.fetch).toHaveBeenCalledWith(
@@ -252,7 +255,9 @@ describe('GitHubService', () => {
     })
 
     it('returns false on network error', async () => {
-      ;(global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
+      ;(global.fetch as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error')
+      )
 
       const isValid = await GitHubService.validateToken('test-token')
 
@@ -359,4 +364,3 @@ describe('Error Classes', () => {
     })
   })
 })
-
