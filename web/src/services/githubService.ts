@@ -101,7 +101,7 @@ export class GitHubService {
       }
 
       return allRepos
-    } catch (error) {
+    } catch (error: unknown) {
       throw error
     }
   }
@@ -150,7 +150,7 @@ export class GitHubService {
       }
 
       return await response.json()
-    } catch (error) {
+    } catch (error: unknown) {
       throw error
     }
   }
@@ -175,7 +175,7 @@ export class GitHubService {
       }
 
       return await response.json()
-    } catch (error) {
+    } catch (error: unknown) {
       throw error
     }
   }
@@ -225,7 +225,7 @@ export class GitHubService {
       }
 
       throw new Error('No content found in file')
-    } catch (error) {
+    } catch (error: unknown) {
       throw error
     }
   }

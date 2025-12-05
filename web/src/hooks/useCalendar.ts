@@ -61,7 +61,7 @@ export function useCalendar({
   // we pre-index them once and look up by date key
   const eventsByDate = useMemo(() => {
     const index = new Map<string, CalendarEvent[]>()
-    
+
     for (const event of events) {
       if (event.allDay) {
         const key = getDateKey(event.start)
@@ -72,7 +72,7 @@ export function useCalendar({
         // For non-allDay events, index by each day they span
         let current = startOfDay(event.start)
         const end = endOfDay(event.end)
-        
+
         while (current <= end) {
           const key = getDateKey(current)
           const existing = index.get(key) || []
@@ -82,7 +82,7 @@ export function useCalendar({
         }
       }
     }
-    
+
     return index
   }, [events])
 

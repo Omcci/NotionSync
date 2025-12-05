@@ -159,11 +159,11 @@ export default async function handler(
     // Compute repository stats from already-fetched commits (avoids N+1 queries)
     // Group commits by repoName for O(n) stats computation
     const commitsByRepo = new Map<string, { count: number; dates: string[] }>()
-    
+
     for (const commit of commits) {
       const repoName = commit.repoName
       if (!repoName) continue
-      
+
       const existing = commitsByRepo.get(repoName) || { count: 0, dates: [] }
       existing.count++
       const commitDate = commit.commit?.author?.date
@@ -176,8 +176,10 @@ export default async function handler(
     // Build stats from the grouped data
     const repoStats = repos.map(repo => {
       const repoData = commitsByRepo.get(repo.name) || { count: 0, dates: [] }
-      const sortedDates = repoData.dates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
-      
+      const sortedDates = repoData.dates.sort(
+        (a, b) => new Date(b).getTime() - new Date(a).getTime()
+      )
+
       return {
         id: repo.id,
         name: repo.name,

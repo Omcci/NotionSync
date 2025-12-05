@@ -36,13 +36,20 @@ export default async function handler(
     // Fallback to query param for backward compatibility (deprecated)
     const queryToken = req.query.githubToken
     if (queryToken && typeof queryToken === 'string') {
-      console.warn('DEPRECATED: GitHub token passed as query parameter. Use Authorization header instead.')
+      console.warn(
+        'DEPRECATED: GitHub token passed as query parameter. Use Authorization header instead.'
+      )
       githubToken = queryToken
     }
   }
 
   if (!githubToken) {
-    return res.status(401).json({ error: 'Authorization required. Provide GitHub token in Authorization header.' })
+    return res
+      .status(401)
+      .json({
+        error:
+          'Authorization required. Provide GitHub token in Authorization header.',
+      })
   }
 
   try {
@@ -50,15 +57,18 @@ export default async function handler(
     res.status(200).json({ repos })
   } catch (error: any) {
     console.error('Error in repos API handler:', error.message)
-    
+
     // Handle specific GitHub errors
-    if (error.message?.includes('401') || error.message?.includes('Bad credentials')) {
+    if (
+      error.message?.includes('401') ||
+      error.message?.includes('Bad credentials')
+    ) {
       return res.status(401).json({ error: 'Invalid or expired GitHub token' })
     }
     if (error.rateLimited) {
       return res.status(429).json({ error: 'GitHub API rate limit exceeded' })
     }
-    
+
     res.status(500).json({ error: error.message })
   }
 }
