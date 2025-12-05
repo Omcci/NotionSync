@@ -108,7 +108,7 @@ describe('Icon Components', () => {
     it('icons are focusable when tabIndex is provided', () => {
       const { container } = render(<GithubIcon tabIndex={0} />)
       const svg = container.querySelector('svg')
-      expect(svg).toHaveAttribute('tabIndex', '0')
+      expect(svg).toHaveAttribute('tabindex', '0')
     })
 
     it('icons can have aria-hidden attribute', () => {
