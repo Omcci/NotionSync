@@ -130,9 +130,9 @@ const processCommits = async (
   repoName: string
 ): Promise<Commit[]> => {
   // Batch fetch unique authors to reduce API calls
-  const uniqueAuthors = [
-    ...new Set(commits.map(c => c.author?.login).filter(Boolean)),
-  ] as string[]
+  const uniqueAuthors = Array.from(
+    new Set(commits.map(c => c.author?.login).filter(Boolean))
+  ) as string[]
 
   // Fetch all authors in parallel (with cache hits, this is very fast)
   const authorDetailsMap = new Map<string, any>()

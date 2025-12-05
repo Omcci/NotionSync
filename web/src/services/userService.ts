@@ -2,6 +2,22 @@ import { supabase } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import { SupabaseUser } from '../../types/user'
 
+export interface GitHubUserData {
+  id: string
+  email: string | null
+  github_username: string
+  full_name: string | null
+  avatar_url: string | null
+  user_metadata?: {
+    user_name?: string
+    preferred_username?: string
+    full_name?: string
+    name?: string
+    avatar_url?: string
+    email?: string | null
+  }
+}
+
 export class UserService {
   static async getUserById(userId: string): Promise<SupabaseUser | null> {
     try {
@@ -25,16 +41,31 @@ export class UserService {
   /**
    * Create a new user record in Supabase
    */
-  static async createUser(githubUser: User): Promise<SupabaseUser> {
+  static async createUser(
+    githubUser: User | GitHubUserData
+  ): Promise<SupabaseUser> {
     try {
-      const userMetadata = githubUser.user_metadata || {}
+      const userMetadata =
+        'user_metadata' in githubUser
+          ? githubUser.user_metadata
+          : githubUser.user_metadata
       const userData = {
         id: githubUser.id,
-        email: githubUser.email || userMetadata.email,
+        email:
+          ('email' in githubUser ? githubUser.email : null) ||
+          userMetadata?.email ||
+          null,
         github_username:
-          userMetadata.user_name || userMetadata.preferred_username,
-        full_name: userMetadata.full_name || userMetadata.name,
-        avatar_url: userMetadata.avatar_url,
+          userMetadata?.user_name ||
+          userMetadata?.preferred_username ||
+          ('github_username' in githubUser ? githubUser.github_username : ''),
+        full_name:
+          userMetadata?.full_name ||
+          userMetadata?.name ||
+          ('full_name' in githubUser ? githubUser.full_name : null),
+        avatar_url:
+          userMetadata?.avatar_url ||
+          ('avatar_url' in githubUser ? githubUser.avatar_url : null),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         isPremium: false,
@@ -58,17 +89,30 @@ export class UserService {
    * Update existing user record with latest GitHub data
    */
   static async updateUser(
-    githubUser: User,
-    existingUser: SupabaseUser,
+    githubUser: User | GitHubUserData,
+    existingUser: SupabaseUser
   ): Promise<SupabaseUser> {
     try {
-      const userMetadata = githubUser.user_metadata || {}
+      const userMetadata =
+        'user_metadata' in githubUser
+          ? githubUser.user_metadata
+          : githubUser.user_metadata
       const updateData = {
-        email: githubUser.email || userMetadata.email,
+        email:
+          ('email' in githubUser ? githubUser.email : null) ||
+          userMetadata?.email ||
+          null,
         github_username:
-          userMetadata.user_name || userMetadata.preferred_username,
-        full_name: userMetadata.full_name || userMetadata.name,
-        avatar_url: userMetadata.avatar_url,
+          userMetadata?.user_name ||
+          userMetadata?.preferred_username ||
+          ('github_username' in githubUser ? githubUser.github_username : ''),
+        full_name:
+          userMetadata?.full_name ||
+          userMetadata?.name ||
+          ('full_name' in githubUser ? githubUser.full_name : null),
+        avatar_url:
+          userMetadata?.avatar_url ||
+          ('avatar_url' in githubUser ? githubUser.avatar_url : null),
         updated_at: new Date().toISOString(),
         isPremium: existingUser.isPremium,
         onboarding_completed: existingUser.onboarding_completed,
@@ -91,7 +135,9 @@ export class UserService {
   /**
    * Sync GitHub user with Supabase database (create or update)
    */
-  static async syncUserWithDatabase(githubUser: User): Promise<SupabaseUser> {
+  static async syncUserWithDatabase(
+    githubUser: User | GitHubUserData
+  ): Promise<SupabaseUser> {
     try {
       const existingUser = await this.getUserById(githubUser.id)
 
@@ -130,7 +176,7 @@ export class UserService {
    */
   static async updatePremiumStatus(
     userId: string,
-    isPremium: boolean,
+    isPremium: boolean
   ): Promise<void> {
     try {
       const { error } = await supabase
@@ -171,7 +217,7 @@ export class UserService {
   static async storeGitHubToken(
     userId: string,
     token: string,
-    refreshToken?: string,
+    refreshToken?: string
   ): Promise<void> {
     try {
       const updateData: any = {

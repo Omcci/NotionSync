@@ -144,3 +144,33 @@ export class GitHubService {
     }
   }
 }
+
+// Error classes for GitHub API
+export class GitHubAPIError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public rateLimited: boolean = false,
+    public retryAfter?: number
+  ) {
+    super(message)
+    this.name = 'GitHubAPIError'
+  }
+}
+
+export class GitHubAuthError extends Error {
+  public status: number = 401
+  constructor(message: string = 'GitHub authentication failed') {
+    super(message)
+    this.name = 'GitHubAuthError'
+  }
+}
+
+export class GitHubRateLimitError extends Error {
+  public status: number = 403
+  public rateLimited: boolean = true
+  constructor(public retryAfter: number = 3600) {
+    super('GitHub API rate limit exceeded')
+    this.name = 'GitHubRateLimitError'
+  }
+}

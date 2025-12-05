@@ -18,12 +18,18 @@ export default async function handler(
 
   // Check for OAuth errors
   if (error) {
+    const errorMsg = Array.isArray(error_description) 
+      ? error_description[0] 
+      : (error_description || (Array.isArray(error) ? error[0] : error))
     return res.redirect(
-      `/login?error=${encodeURIComponent(error_description || error)}`
+      `/login?error=${encodeURIComponent(errorMsg as string)}`
     )
   }
 
-  if (!code || !state) {
+  const codeValue = Array.isArray(code) ? code[0] : code
+  const stateValue = Array.isArray(state) ? state[0] : state
+
+  if (!codeValue || !stateValue) {
     return res.redirect('/login?error=missing_code_or_state')
   }
 
@@ -49,8 +55,8 @@ export default async function handler(
         body: JSON.stringify({
           client_id: clientId,
           client_secret: clientSecret,
-          code,
-          state,
+          code: codeValue,
+          state: stateValue,
         }),
       }
     )

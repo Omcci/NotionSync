@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CacheService } from '../../../services/cacheService'
 import { getGitHubToken } from '../../../lib/auth'
-import { supabase } from '../../../lib/supabaseClient'
+import { validateSession } from '@/lib/session'
+import { UserService } from '@/services/userService'
 
 export default async function handler(
   req: NextApiRequest,
@@ -36,69 +37,37 @@ export default async function handler(
       githubToken = authHeader.split(' ')[1]
     } else {
       // Fallback: check server-side session and get token
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession()
-
-      if (sessionError) {
-        console.error('❌ Session error:', sessionError)
-        return res.status(401).json({
-          message: 'Authentication session error',
-          error: sessionError.message,
-          authRequired: true,
-        })
+      const sessionToken = req.headers.authorization?.replace('Bearer ', '')
+      if (sessionToken) {
+        try {
+          const { user } = await validateSession(sessionToken)
+          if (user) {
+            if (user.id !== userId) {
+              console.log('❌ User ID mismatch:', {
+                sessionUserId: user.id,
+                requestUserId: userId,
+              })
+              return res.status(403).json({
+                message: 'User ID mismatch. Please re-authenticate.',
+                authRequired: true,
+                redirectTo: '/login',
+              })
+            }
+            const storedToken = await UserService.getGitHubToken(user.id)
+            if (storedToken) {
+              githubToken = storedToken
+            }
+          }
+        } catch (error) {
+          console.error('❌ Session error:', error)
+        }
       }
 
-      if (!session) {
+      if (!githubToken) {
         console.log('❌ No active session found')
         return res.status(401).json({
           message:
             'No active authentication session. Please log in with GitHub.',
-          authRequired: true,
-          redirectTo: '/login',
-        })
-      }
-
-      if (session.user.id !== userId) {
-        console.log('❌ User ID mismatch:', {
-          sessionUserId: session.user.id,
-          requestUserId: userId,
-        })
-        return res.status(403).json({
-          message: 'User ID mismatch. Please re-authenticate.',
-          authRequired: true,
-          redirectTo: '/login',
-        })
-      }
-
-      // Try to get GitHub token from session or database
-      try {
-        githubToken = await getGitHubToken()
-      } catch (error) {
-        console.error('❌ GitHub token error:', error)
-
-        if (
-          error instanceof Error &&
-          error.message.includes('No valid GitHub token')
-        ) {
-          return res.status(401).json({
-            message: 'GitHub authentication required',
-            error:
-              'No valid GitHub token found. Please authenticate with GitHub to access your repositories.',
-            authRequired: true,
-            redirectTo: '/login',
-            suggestion:
-              'Click "Connect GitHub Account" to authenticate and sync your repositories.',
-          })
-        }
-
-        return res.status(401).json({
-          message: 'GitHub authentication error',
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Unknown authentication error',
           authRequired: true,
           redirectTo: '/login',
         })

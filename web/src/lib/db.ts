@@ -1,4 +1,4 @@
-import { Pool, QueryResult } from 'pg'
+import { Pool, QueryResult, QueryResultRow } from 'pg'
 
 // Create a connection pool
 let pool: Pool | null = null
@@ -31,7 +31,7 @@ export const getDbPool = (): Pool => {
 }
 
 // Helper function to execute queries
-export const query = async <T = any>(
+export const query = async <T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> => {
