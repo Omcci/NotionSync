@@ -1,7 +1,10 @@
 import { useAppContext } from '@/context/AppContext'
-import { FolderSyncIcon } from '../../public/icon/FolderSyncIcon'
-import { GithubIcon } from '../../public/icon/GithubIcon'
-import { RepeatIcon } from '../../public/icon/RepeatIcon'
+import {
+  FolderSyncIcon,
+  GithubIcon,
+  RepeatIcon,
+  GitBranchIcon,
+} from '@/components/icons'
 import SelectComponent from './SelectComponent'
 import { Button } from './ui/button'
 import { Select } from './ui/select'
@@ -20,7 +23,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from './ui/sheet'
-import { GitBranchIcon } from '../../public/icon/GitBranchIcon'
 
 // import { signIn, signOut, useSession } from "next-auth/react";
 //TODO : add session with github oauth
@@ -85,7 +87,7 @@ const HeaderV0 = () => {
   }
 
   const handleRepoSelect = (repoId: string) => {
-    const repo = repos.find((r) => r.id === repoId)
+    const repo = repos.find(r => r.id === repoId)
     if (repo) {
       setSelectedRepo(repo)
       updateFormValues(repo.name, repo.owner)
@@ -94,7 +96,7 @@ const HeaderV0 = () => {
     }
   }
 
-  const repoOptions = repos.map((repo) => ({
+  const repoOptions = repos.map(repo => ({
     value: repo.id,
     label: repo.name,
   }))
@@ -118,7 +120,7 @@ const HeaderV0 = () => {
             placeholder={getSelectPlaceholder()}
             options={repoOptions}
             value={selectedRepo ? selectedRepo.id : ''}
-            onChange={(id) => handleRepoSelect(id)}
+            onChange={id => handleRepoSelect(id)}
             disabled={isSelectDisabled}
           />
         </div>

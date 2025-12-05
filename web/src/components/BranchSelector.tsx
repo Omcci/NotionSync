@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { EyeIcon } from '../../public/icon/EyeIcon'
-import { GitBranchIcon } from '../../public/icon/GitBranchIcon'
-import { GithubIcon } from '../../public/icon/GithubIcon'
+import { EyeIcon, GitBranchIcon, GithubIcon } from '@/components/icons'
 import SelectComponent from './SelectComponent'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
@@ -23,7 +21,7 @@ const fetchBranches = async (
   githubToken: string,
   trackedBranch: Set<string>,
   page: number,
-  perPage: number = 5,
+  perPage: number = 5
 ) => {
   const response = await fetch(
     `/api/branches?repoName=${encodeURIComponent(repoName)}&orgName=${encodeURIComponent(orgName)}&page=${page}&perPage=${perPage}`,
@@ -31,7 +29,7 @@ const fetchBranches = async (
       headers: {
         Authorization: `Bearer ${githubToken}`,
       },
-    },
+    }
   )
   const data = await response.json()
   if (!response.ok) {
@@ -87,14 +85,14 @@ const BranchSelector = () => {
         githubToken!,
         trackedBranch,
         page,
-        perPage,
+        perPage
       ),
     enabled: !!selectedRepo && !!githubToken,
     staleTime: 1000 * 60 * 5,
   })
 
   const handleTrackChange = (branchName: string, isChecked: boolean) => {
-    setTrackedBranch((prevTrackedBranch) => {
+    setTrackedBranch(prevTrackedBranch => {
       const updatedTrackedBranch = new Set(prevTrackedBranch)
       if (isChecked) {
         updatedTrackedBranch.add(branchName)
@@ -140,7 +138,7 @@ const BranchSelector = () => {
 
   if (isError) {
     return renderContent(
-      `Error: ${error?.message || 'Failed to load branches'}`,
+      `Error: ${error?.message || 'Failed to load branches'}`
     )
   }
 
@@ -153,7 +151,7 @@ const BranchSelector = () => {
             placeholder="Select a branch"
             options={branchOptions}
             value={selectedBranch}
-            onChange={(value) => handleBranchSelect(value)}
+            onChange={value => handleBranchSelect(value)}
             disabled={branches.length === 0}
           />
           {selectedBranch && (
@@ -162,10 +160,10 @@ const BranchSelector = () => {
                 id="track-branch"
                 type="checkbox"
                 checked={trackedBranch.has(selectedBranch)}
-                onChange={(e) => {
+                onChange={e => {
                   handleTrackChange(
                     selectedBranch,
-                    (e.target as HTMLInputElement).checked,
+                    (e.target as HTMLInputElement).checked
                   )
                 }}
               />

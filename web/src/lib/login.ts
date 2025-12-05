@@ -7,7 +7,7 @@ import type {
   User,
 } from '@supabase/supabase-js'
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 const signInWithGitHub = async (forceReauth = false) => {
   const maxRetries = 3
@@ -63,7 +63,7 @@ const signInWithGitHub = async (forceReauth = false) => {
   // If we've exhausted retries, return the last error
   return {
     error: new Error(
-      'Failed to authenticate with GitHub after multiple attempts. Please try again later.',
+      'Failed to authenticate with GitHub after multiple attempts. Please try again later.'
     ),
   }
 }

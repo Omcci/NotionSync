@@ -43,3 +43,10 @@ jobs:
         if: success()
         run: |
           curl -X POST ${{ secrets.WEBHOOK_URL_PROD }}
+
+      - name: Health check
+        if: success()
+        run: |
+          echo "Waiting for deployment to complete..."
+          sleep 30
+          curl -f ${{ secrets.PRODUCTION_URL }}/api/health || echo "Health check failed"

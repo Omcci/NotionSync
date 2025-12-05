@@ -6,7 +6,6 @@ import {
   endOfWeek,
   eachDayOfInterval,
   isSameMonth,
-  isSameDay,
   addMonths,
   subMonths,
   addWeeks,
@@ -15,7 +14,6 @@ import {
   isToday,
   startOfDay,
   endOfDay,
-  isWithinInterval,
   addDays,
   subDays,
 } from 'date-fns'
@@ -46,6 +44,9 @@ export interface UseCalendarOptions {
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6
 }
 
+// Helper to create a date key for indexing (YYYY-MM-DD format)
+const getDateKey = (date: Date): string => format(date, 'yyyy-MM-dd')
+
 export function useCalendar({
   initialDate = new Date(),
   initialView = 'month',
@@ -55,9 +56,39 @@ export function useCalendar({
   const [currentDate, setCurrentDate] = useState(initialDate)
   const [view, setView] = useState<CalendarView>(initialView)
 
+  // Build an index of events by date for O(1) lookup instead of O(n) filtering
+  // This is the key optimization - instead of filtering all events for each day,
+  // we pre-index them once and look up by date key
+  const eventsByDate = useMemo(() => {
+    const index = new Map<string, CalendarEvent[]>()
+
+    for (const event of events) {
+      if (event.allDay) {
+        const key = getDateKey(event.start)
+        const existing = index.get(key) || []
+        existing.push(event)
+        index.set(key, existing)
+      } else {
+        // For non-allDay events, index by each day they span
+        let current = startOfDay(event.start)
+        const end = endOfDay(event.end)
+
+        while (current <= end) {
+          const key = getDateKey(current)
+          const existing = index.get(key) || []
+          existing.push(event)
+          index.set(key, existing)
+          current = addDays(current, 1)
+        }
+      }
+    }
+
+    return index
+  }, [events])
+
   // Navigation functions
   const goToNext = useCallback(() => {
-    setCurrentDate((prev) => {
+    setCurrentDate(prev => {
       switch (view) {
         case 'month':
           return addMonths(prev, 1)
@@ -72,7 +103,7 @@ export function useCalendar({
   }, [view])
 
   const goToPrevious = useCallback(() => {
-    setCurrentDate((prev) => {
+    setCurrentDate(prev => {
       switch (view) {
         case 'month':
           return subMonths(prev, 1)
@@ -119,26 +150,14 @@ export function useCalendar({
     }
   }, [currentDate, view, weekStartsOn])
 
-  // Get all days for current view
+  // Get all days for current view - now O(days) instead of O(days * events)
   const days = useMemo(() => {
     const interval = { start: dateRange.start, end: dateRange.end }
     const allDays = eachDayOfInterval(interval)
 
-    return allDays.map((date) => {
-      const dayEvents = events.filter((event) => {
-        if (event.allDay) {
-          return isSameDay(event.start, date)
-        }
-
-        const dayStart = startOfDay(date)
-        const dayEnd = endOfDay(date)
-
-        return (
-          isWithinInterval(event.start, { start: dayStart, end: dayEnd }) ||
-          isWithinInterval(event.end, { start: dayStart, end: dayEnd }) ||
-          (event.start <= dayStart && event.end >= dayEnd)
-        )
-      })
+    return allDays.map(date => {
+      // O(1) lookup using our pre-built index
+      const dayEvents = eventsByDate.get(getDateKey(date)) || []
 
       return {
         date,
@@ -148,7 +167,7 @@ export function useCalendar({
         events: dayEvents,
       } as CalendarDay
     })
-  }, [dateRange, events, currentDate, view])
+  }, [dateRange, eventsByDate, currentDate, view])
 
   // Get weeks (for month view)
   const weeks = useMemo(() => {
@@ -184,31 +203,18 @@ export function useCalendar({
     }
   }, [currentDate, view, dateRange])
 
-  // Get events for a specific date
+  // Get events for a specific date - O(1) lookup using index
   const getEventsForDate = useCallback(
     (date: Date) => {
-      return events.filter((event) => {
-        if (event.allDay) {
-          return isSameDay(event.start, date)
-        }
-
-        const dayStart = startOfDay(date)
-        const dayEnd = endOfDay(date)
-
-        return (
-          isWithinInterval(event.start, { start: dayStart, end: dayEnd }) ||
-          isWithinInterval(event.end, { start: dayStart, end: dayEnd }) ||
-          (event.start <= dayStart && event.end >= dayEnd)
-        )
-      })
+      return eventsByDate.get(getDateKey(date)) || []
     },
-    [events],
+    [eventsByDate]
   )
 
   // Get week day headers
   const weekDays = useMemo(() => {
     const start = startOfWeek(new Date(), { weekStartsOn })
-    return eachDayOfInterval({ start, end: addDays(start, 6) }).map((date) => ({
+    return eachDayOfInterval({ start, end: addDays(start, 6) }).map(date => ({
       short: format(date, 'EEE'),
       long: format(date, 'EEEE'),
       date,

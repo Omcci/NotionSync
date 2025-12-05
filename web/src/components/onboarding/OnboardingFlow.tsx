@@ -14,7 +14,7 @@ import ConfigurationStep from './steps/ConfigurationStep'
 import CompletionStep from './steps/CompletionStep'
 
 const fetchAllRepositories = async (
-  githubToken: string,
+  githubToken: string
 ): Promise<SyncRepo[]> => {
   const response = await fetch('/api/repos/all', {
     headers: {
@@ -85,8 +85,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
       setCurrentStep(currentStep + 1)
     } else {
       const selectedRepoObjects: SyncRepo[] = availableRepos
-        .filter((repo) => selectedRepos.has(repo.id))
-        .map((repo) => ({
+        .filter(repo => selectedRepos.has(repo.id))
+        .map(repo => ({
           ...repo,
           syncEnabled: true, // Enable sync for selected repos
         }))

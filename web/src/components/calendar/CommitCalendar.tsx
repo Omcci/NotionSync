@@ -1,10 +1,35 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Calendar, CalendarEvent } from './index'
 import { Commit } from '../../../types/types'
 import { format } from 'date-fns'
-import { Button } from '@/components/ui/button'
-import { RefreshCw, Github } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+
+// Memoized color mapping to avoid repeated string checks
+const COMMIT_COLORS = {
+  fix: '#ef4444', // Red
+  bug: '#ef4444', // Red
+  feat: '#10b981', // Emerald
+  add: '#10b981', // Emerald
+  docs: '#f59e0b', // Amber
+  readme: '#f59e0b', // Amber
+  refactor: '#8b5cf6', // Violet
+  clean: '#8b5cf6', // Violet
+  test: '#06b6d4', // Cyan
+  style: '#ec4899', // Pink
+  ui: '#ec4899', // Pink
+  default: '#6366f1', // Indigo
+} as const
+
+// Get color based on commit message - optimized version
+const getCommitColor = (message: string): string => {
+  const lowerMessage = message.toLowerCase()
+  for (const [keyword, color] of Object.entries(COMMIT_COLORS)) {
+    if (keyword !== 'default' && lowerMessage.includes(keyword)) {
+      return color
+    }
+  }
+  return COMMIT_COLORS.default
+}
 
 interface CommitCalendarProps {
   commits: Commit[]
@@ -41,83 +66,56 @@ export function CommitCalendar({
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null)
   const [popupCommits, setPopupCommits] = useState<Commit[]>([])
 
-  // Transform commits to calendar events
+  // Transform commits to calendar events - optimized with Map for O(1) lookups
   const events = useMemo(() => {
-    let commitsToUse = commits
-
-    // Filter by selected repo
-    if (selectedRepo) {
-      commitsToUse = commits.filter(
-        (commit: Commit) => commit.repoName === selectedRepo.name,
-      )
+    // Early return for empty commits
+    if (!commits || commits.length === 0) {
+      return []
     }
 
-    // Group commits by date and repo
-    const groupedCommits: Record<string, Record<string, Commit[]>> = {}
+    // Use Map for O(1) grouping instead of nested objects
+    const groupedCommits = new Map<string, Map<string, Commit[]>>()
 
-    for (const commit of commitsToUse) {
-      const commitDate = commit.date || commit.commit.author.date
-      if (commitDate && commit.repoName) {
-        const date = commitDate.split('T')[0]
-
-        if (!groupedCommits[date]) {
-          groupedCommits[date] = {}
-        }
-
-        if (!groupedCommits[date][commit.repoName]) {
-          groupedCommits[date][commit.repoName] = []
-        }
-
-        groupedCommits[date][commit.repoName].push(commit)
+    for (const commit of commits) {
+      // Filter by selected repo inline (avoids creating intermediate array)
+      if (selectedRepo && commit.repoName !== selectedRepo.name) {
+        continue
       }
+
+      const commitDate = commit.date || commit.commit.author.date
+      if (!commitDate || !commit.repoName) continue
+
+      const date = commitDate.split('T')[0]
+
+      let dateGroup = groupedCommits.get(date)
+      if (!dateGroup) {
+        dateGroup = new Map()
+        groupedCommits.set(date, dateGroup)
+      }
+
+      let repoCommits = dateGroup.get(commit.repoName)
+      if (!repoCommits) {
+        repoCommits = []
+        dateGroup.set(commit.repoName, repoCommits)
+      }
+
+      repoCommits.push(commit)
     }
 
-    // Create calendar events
+    // Create calendar events - preallocate array for better performance
     const calendarEvents: CalendarEvent[] = []
-    for (const date in groupedCommits) {
-      for (const repoName in groupedCommits[date]) {
-        const repoCommits = groupedCommits[date][repoName]
+
+    for (const [date, dateGroup] of groupedCommits) {
+      for (const [repoName, repoCommits] of dateGroup) {
         const commitCount = repoCommits.length
-
-        let title: string
-        let color: string
-
-        // Determine color based on commit content
         const firstCommit = repoCommits[0]
         const message = firstCommit.commit?.message || ''
 
-        if (
-          message.toLowerCase().includes('fix') ||
-          message.toLowerCase().includes('bug')
-        ) {
-          color = '#ef4444' // Red
-        } else if (
-          message.toLowerCase().includes('feat') ||
-          message.toLowerCase().includes('add')
-        ) {
-          color = '#10b981' // Emerald
-        } else if (
-          message.toLowerCase().includes('docs') ||
-          message.toLowerCase().includes('readme')
-        ) {
-          color = '#f59e0b' // Amber
-        } else if (
-          message.toLowerCase().includes('refactor') ||
-          message.toLowerCase().includes('clean')
-        ) {
-          color = '#8b5cf6' // Violet
-        } else if (message.toLowerCase().includes('test')) {
-          color = '#06b6d4' // Cyan
-        } else if (
-          message.toLowerCase().includes('style') ||
-          message.toLowerCase().includes('ui')
-        ) {
-          color = '#ec4899' // Pink
-        } else {
-          color = '#6366f1' // Default indigo
-        }
+        // Use optimized color function
+        const color = getCommitColor(message)
 
-        // Create title
+        // Create title with conditional logic
+        let title: string
         if (selectedRepo) {
           title =
             commitCount === 1
@@ -221,12 +219,12 @@ export function CommitCalendar({
     date: Date,
     events: CalendarEvent[],
     isCurrentMonth: boolean,
-    isToday: boolean,
+    isToday: boolean
   ) => {
     const dayCommits: Commit[] = []
     const commitsByRepo: Record<string, Commit[]> = {}
 
-    events.forEach((event) => {
+    events.forEach(event => {
       if (event.data?.commits) {
         const repoName = event.data.repoName || 'Unknown'
         dayCommits.push(...event.data.commits)
@@ -279,16 +277,11 @@ export function CommitCalendar({
       handleDayClick()
     }
 
-    // Calculate if popup should appear on left or right based on day cell position
-    const shouldShowOnLeft = (() => {
-      if (typeof window === 'undefined') return false
-      const dayCell = document.querySelector(
-        `[data-date="${format(date, 'yyyy-MM-dd')}"]`,
-      )
-      if (!dayCell) return window.innerWidth < 768 // fallback for mobile
-      const rect = dayCell.getBoundingClientRect()
-      return rect.right + 680 > window.innerWidth // 640px popup + 40px margin
-    })()
+    // Calculate if popup should appear on left or right based on day position
+    // Use day-of-week calculation instead of DOM query for better performance
+    const dayOfWeek = date.getDay()
+    // Show on left for days on the right side of the calendar (Thu, Fri, Sat)
+    const shouldShowOnLeft = dayOfWeek >= 4
 
     // Build dynamic classes for day styling
     let dayClasses =
@@ -372,7 +365,7 @@ export function CommitCalendar({
 
         {/* Events */}
         <div className="space-y-1">
-          {events.slice(0, 3).map((event) => renderEvent(event, date))}
+          {events.slice(0, 3).map(event => renderEvent(event, date))}
           {events.length > 3 && (
             <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-1 font-medium">
               +{events.length - 3} more
@@ -458,7 +451,7 @@ export function CommitCalendar({
                               const time = commit.commit?.author?.date
                                 ? format(
                                     new Date(commit.commit.author.date),
-                                    'HH:mm',
+                                    'HH:mm'
                                   )
                                 : ''
 
@@ -489,7 +482,7 @@ export function CommitCalendar({
                             )}
                           </div>
                         </div>
-                      ),
+                      )
                     )}
                   </div>
                 </div>
@@ -526,11 +519,11 @@ export function CommitCalendar({
           initialView={initialView || 'month'}
           initialDate={initialDate}
           onNavigate={onCalendarNavigate}
-          onDateClick={(date) => {
+          onDateClick={date => {
             setSelectedDate(date)
             onDateClick?.(date)
           }}
-          onEventClick={(event) => {
+          onEventClick={event => {
             if (event.data?.commits?.[0]) {
               onCommitClick?.(event.data.commits[0])
             }

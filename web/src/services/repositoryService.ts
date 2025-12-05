@@ -19,7 +19,7 @@ export class RepositoryService {
    * Create or update repositories in the database
    */
   static async upsertRepositories(
-    repositories: RepositoryCreateData[],
+    repositories: RepositoryCreateData[]
   ): Promise<{
     success: boolean
     repositories?: DatabaseRepository[]
@@ -53,7 +53,7 @@ export class RepositoryService {
    * Get repositories for a user
    */
   static async getUserRepositories(
-    userId: string,
+    userId: string
   ): Promise<{ repositories: DatabaseRepository[]; error?: string }> {
     try {
       const { data, error } = await supabase
@@ -83,7 +83,7 @@ export class RepositoryService {
   static async getRepository(
     userId: string,
     name: string,
-    owner: string,
+    owner: string
   ): Promise<{ repository?: DatabaseRepository; error?: string }> {
     try {
       const { data, error } = await supabase
@@ -119,7 +119,7 @@ export class RepositoryService {
   static async updateSyncStatus(
     repositoryId: string,
     syncEnabled: boolean,
-    lastSync?: string,
+    lastSync?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const updateData: any = { sync_enabled: syncEnabled }
@@ -151,7 +151,7 @@ export class RepositoryService {
    * Delete a repository
    */
   static async deleteRepository(
-    repositoryId: string,
+    repositoryId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
@@ -190,7 +190,7 @@ export class RepositoryService {
       stars: number
       forks: number
       lastUpdated: string
-    }>,
+    }>
   ): Promise<{
     success: boolean
     repositories?: DatabaseRepository[]
@@ -198,7 +198,7 @@ export class RepositoryService {
   }> {
     try {
       const repositoryData: RepositoryCreateData[] = githubRepositories.map(
-        (repo) => ({
+        repo => ({
           user_id: userId,
           name: repo.name,
           owner: repo.owner,
@@ -209,7 +209,7 @@ export class RepositoryService {
           stars: repo.stars,
           forks: repo.forks,
           last_updated: repo.lastUpdated,
-        }),
+        })
       )
 
       return await this.upsertRepositories(repositoryData)

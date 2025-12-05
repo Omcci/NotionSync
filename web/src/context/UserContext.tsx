@@ -77,7 +77,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
             await UserService.storeGitHubToken(
               data.user.id,
               githubToken,
-              data.provider_refresh_token || undefined,
+              data.provider_refresh_token || undefined
             )
           } catch (error) {
             console.error('Error storing GitHub token:', error)
@@ -94,7 +94,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
             // Fallback: check onboarding status directly
             try {
               const onboardingStatus = await UserService.getOnboardingStatus(
-                data.user.id,
+                data.user.id
               )
               setHasCompletedOnboarding(onboardingStatus)
             } catch (fallbackError) {

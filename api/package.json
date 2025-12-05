@@ -2,18 +2,24 @@
   "name": "notionsync",
   "version": "1.0.0",
   "type": "module",
-  "description": "![NotionSync Overview](https://github.com/Omcci/NotionSync/assets/119880787/dc733a83-fba3-4984-aa3e-34851c67a05c)",
+  "description": "NotionSync - Sync GitHub commits to Notion",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "clean": "node cleanNotionDB.js"
+    "clean": "node cleanNotionDB.js",
+    "audit:fix": "npm audit fix"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Omcci/NotionSync.git"
   },
-  "keywords": [],
+  "keywords": [
+    "notion",
+    "github",
+    "sync",
+    "commits"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -21,12 +27,17 @@
   },
   "homepage": "https://github.com/Omcci/NotionSync#readme",
   "dependencies": {
-    "@mistralai/mistralai": "^0.1.3",
+    "@mistralai/mistralai": "^1.0.0",
     "@notionhq/client": "^2.2.15",
-    "@supabase/supabase-js": "^2.45.1",
+    "@supabase/supabase-js": "^2.49.4",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.21.2",
     "node-fetch": "^3.3.2"
+  },
+  "overrides": {
+    "cross-spawn": "^7.0.6",
+    "braces": "^3.0.3",
+    "micromatch": "^4.0.8"
   }
 }

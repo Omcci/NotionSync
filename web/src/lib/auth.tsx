@@ -15,7 +15,7 @@ export const getGitHubToken = async (): Promise<string> => {
   if (session?.user?.id) {
     try {
       const validToken = await TokenValidationService.getValidGitHubToken(
-        session.user.id,
+        session.user.id
       )
       if (validToken) {
         return validToken
@@ -25,6 +25,6 @@ export const getGitHubToken = async (): Promise<string> => {
     }
   }
   throw new Error(
-    'Unauthorized: No valid GitHub token available. Please re-authenticate with GitHub.',
+    'Unauthorized: No valid GitHub token available. Please re-authenticate with GitHub.'
   )
 }

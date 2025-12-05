@@ -30,7 +30,7 @@ export interface CalendarProps extends UseCalendarOptions {
     date: Date,
     events: CalendarEvent[],
     isCurrentMonth: boolean,
-    isToday: boolean,
+    isToday: boolean
   ) => React.ReactNode
   renderHeader?: (title: string, subtitle: string) => React.ReactNode
 
@@ -66,7 +66,7 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
       maxEventsPerDay = 3,
       ...calendarOptions
     },
-    ref,
+    ref
   ) => {
     const calendar = useCalendar(calendarOptions)
     const lastNavigateDate = useRef<Date | null>(null)
@@ -148,7 +148,7 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
         </div>
       </div>
     )
-  },
+  }
 )
 
 Calendar.displayName = 'Calendar'

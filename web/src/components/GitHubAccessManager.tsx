@@ -28,7 +28,7 @@ import {
 import Image from 'next/image'
 
 const fetchOrganizations = async (
-  githubToken: string,
+  githubToken: string
 ): Promise<Organization[]> => {
   const response = await fetch('/api/github/organizations', {
     headers: {
@@ -63,7 +63,7 @@ const GitHubAccessManager: React.FC = () => {
       }
       return failureCount < 3
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 
   React.useEffect(() => {
@@ -212,7 +212,7 @@ const GitHubAccessManager: React.FC = () => {
               onClick={() =>
                 window.open(
                   `https://github.com/${userInfo.user_name || userInfo.preferred_username}`,
-                  '_blank',
+                  '_blank'
                 )
               }
             >
@@ -253,7 +253,7 @@ const GitHubAccessManager: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {organizations.map((org) => (
+              {organizations.map(org => (
                 <Card key={org.id} className="border-l-4 border-l-blue-500">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
@@ -336,7 +336,7 @@ const GitHubAccessManager: React.FC = () => {
               onClick={() =>
                 window.open(
                   'https://docs.github.com/en/organizations/managing-access-to-your-organizations-repositories',
-                  '_blank',
+                  '_blank'
                 )
               }
             >
@@ -349,7 +349,7 @@ const GitHubAccessManager: React.FC = () => {
               onClick={() =>
                 window.open(
                   'https://github.com/settings/applications',
-                  '_blank',
+                  '_blank'
                 )
               }
             >

@@ -54,7 +54,7 @@ const ContactPage: React.FC = () => {
             id="name"
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={e => setName(e.target.value)}
             placeholder="John Doe"
             className="my-2"
           />
@@ -65,7 +65,7 @@ const ContactPage: React.FC = () => {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             placeholder="you@example.com"
             className="my-2"
           />
@@ -75,7 +75,7 @@ const ContactPage: React.FC = () => {
           <Textarea
             id="message"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={e => setMessage(e.target.value)}
             placeholder="How can we help you?"
             className="my-2"
           />

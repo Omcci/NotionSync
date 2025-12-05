@@ -2,7 +2,7 @@ import React from 'react'
 import { AlertTriangle } from 'lucide-react'
 import signInWithGitHub from '@/lib/login'
 import { ReauthenticatePromptProps } from '../../types'
-import { GithubIcon } from '../../public/icon/GithubIcon'
+import { GithubIcon } from '@/components/icons'
 
 export const ReauthenticatePrompt: React.FC<ReauthenticatePromptProps> = ({
   reason = 'GitHub access required',

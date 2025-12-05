@@ -1,11 +1,13 @@
 # Node.js dependencies
 node_modules/
+node_modules 2/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 # Environment variables
 .env
+.env.*
 
 # Logs
 logs/
@@ -22,16 +24,22 @@ out/
 build/
 dist/
 
+# TypeScript build cache (can cause IDE issues)
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Test coverage
+coverage/
+
 # Operating system files
 .DS_Store
 Thumbs.db
+**/.DS_Store
 
 # IDE/editor files
 .vscode/
 .idea/
-.env
-node_modules/
-**/.DS_Store
 
+# Deploy scripts
 fetch-and-deploy-main.sh
 fetch-and-deploy-dev.sh

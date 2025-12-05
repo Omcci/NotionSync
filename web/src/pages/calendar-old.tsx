@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { CalendarDaysIcon } from '../../public/icon/CalendarDaysIcon'
+import { CalendarDaysIcon } from '@/components/icons'
 import { format } from 'date-fns'
 import {
   Github,
@@ -37,7 +37,7 @@ const fetchCommitsFromDatabase = async (
   startDate: string,
   endDate: string,
   sync: boolean = false,
-  githubToken?: string,
+  githubToken?: string
 ) => {
   // Early validation
   if (!userId) {
@@ -93,7 +93,7 @@ const fetchCommitsFromDatabase = async (
     // Handle rate limit errors
     if (response.status === 429) {
       const error = new Error(
-        errorData?.message || 'GitHub API rate limit exceeded',
+        errorData?.message || 'GitHub API rate limit exceeded'
       )
       Object.assign(error, {
         rateLimited: true,
@@ -164,7 +164,7 @@ const CalendarPage = () => {
         dateRange.startDate.toISOString(),
         dateRange.endDate.toISOString(),
         false, // Don't sync by default to avoid rate limits
-        githubToken,
+        githubToken
       )
     },
     enabled: !!user?.id && !!githubToken, // Only enable if user is authenticated AND has GitHub token
@@ -192,7 +192,7 @@ const CalendarPage = () => {
     const commits = commitResponse?.commits || []
     console.log(`🔄 Commit data updated: ${commits.length} commits`)
     // Trigger a re-render when commits change
-    setDataUpdateTrigger((prev) => prev + 1)
+    setDataUpdateTrigger(prev => prev + 1)
     return commits
   }, [commitResponse?.commits])
 
@@ -238,7 +238,7 @@ const CalendarPage = () => {
           headers: {
             Authorization: `Bearer ${githubToken}`,
           },
-        },
+        }
       )
 
       if (!response.ok) {
@@ -268,17 +268,17 @@ const CalendarPage = () => {
       }
 
       // Update date range state
-      setDateRange((prev) => ({
+      setDateRange(prev => ({
         startDate: updatedStartDate,
         endDate: updatedEndDate,
       }))
 
       console.log(
-        `✅ Auto-loaded ${returnedCount} commits (${direction === 'older' ? '1 month back' : '1 month forward'})`,
+        `✅ Auto-loaded ${returnedCount} commits (${direction === 'older' ? '1 month back' : '1 month forward'})`
       )
       if (hasMore) {
         console.log(
-          `📊 ${count - returnedCount} more commits available in database`,
+          `📊 ${count - returnedCount} more commits available in database`
         )
       }
 
@@ -287,7 +287,7 @@ const CalendarPage = () => {
       const newEndDate = updatedEndDate.toISOString().split('T')[0]
 
       console.log(
-        `🔄 Invalidating cache for date range: ${newStartDate} to ${newEndDate}`,
+        `🔄 Invalidating cache for date range: ${newStartDate} to ${newEndDate}`
       )
 
       // Invalidate all database-commits queries to ensure fresh data
@@ -300,7 +300,7 @@ const CalendarPage = () => {
         queryKey: ['database-commits', user?.id],
       })
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Auto-load failed:', error)
 
       // Handle authentication errors specifically
@@ -332,11 +332,11 @@ const CalendarPage = () => {
       if (repoId === 'all') {
         setSelectedRepo(null)
       } else {
-        const repo = repos.find((r) => r.id === repoId)
+        const repo = repos.find(r => r.id === repoId)
         setSelectedRepo(repo || null)
       }
     },
-    [repos, setSelectedRepo],
+    [repos, setSelectedRepo]
   )
 
   const handleDateClick = useCallback(
@@ -347,7 +347,7 @@ const CalendarPage = () => {
       // Get commits for this specific date
       const dayCommits = filteredCommits.filter((commit: Commit) => {
         const commitDate = (commit.date || commit.commit.author.date)?.split(
-          'T',
+          'T'
         )[0]
         return commitDate === dateStr
       })
@@ -355,13 +355,13 @@ const CalendarPage = () => {
       setCommitDetails(dayCommits)
       setOpen(true)
     },
-    [filteredCommits],
+    [filteredCommits]
   )
 
   const handleCommitClick = useCallback(
     (commit: Commit) => {
       const commitDate = (commit.date || commit.commit.author.date)?.split(
-        'T',
+        'T'
       )[0]
       if (commitDate) {
         setSelectedDate(commitDate)
@@ -376,7 +376,7 @@ const CalendarPage = () => {
         setOpen(true)
       }
     },
-    [filteredCommits],
+    [filteredCommits]
   )
 
   const handleCalendarNavigate = useCallback(
@@ -397,7 +397,7 @@ const CalendarPage = () => {
 
       if (isOutsideRange) {
         console.log(
-          `📅 Date ${format(date, 'MMM yyyy')} is outside loaded range, auto-loading more data`,
+          `📅 Date ${format(date, 'MMM yyyy')} is outside loaded range, auto-loading more data`
         )
         setIsNavigating(true)
 
@@ -411,7 +411,7 @@ const CalendarPage = () => {
         }
       } else {
         console.log(
-          `📅 Date ${format(date, 'MMM yyyy')} is within loaded range, forcing data refresh`,
+          `📅 Date ${format(date, 'MMM yyyy')} is within loaded range, forcing data refresh`
         )
 
         // Force a complete cache invalidation and refetch to ensure we have the latest data
@@ -430,7 +430,7 @@ const CalendarPage = () => {
         })
       }
     },
-    [dateRange, autoLoadMutation, isNavigating, queryClient, user?.id],
+    [dateRange, autoLoadMutation, isNavigating, queryClient, user?.id]
   )
 
   // Check for authentication errors
@@ -444,7 +444,7 @@ const CalendarPage = () => {
   // Filter commits based on selected repository and current month
   useEffect(() => {
     console.log(
-      `🔍 Filtering commits: ${commitData.length} total, selectedRepo: ${selectedRepo?.name || 'all'}, currentDate: ${format(currentDate, 'MMM yyyy')}`,
+      `🔍 Filtering commits: ${commitData.length} total, selectedRepo: ${selectedRepo?.name || 'all'}, currentDate: ${format(currentDate, 'MMM yyyy')}`
     )
 
     let filtered = commitData
@@ -452,10 +452,10 @@ const CalendarPage = () => {
     // Filter by selected repository
     if (selectedRepo) {
       filtered = filtered.filter(
-        (commit: Commit) => commit.repoName === selectedRepo.name,
+        (commit: Commit) => commit.repoName === selectedRepo.name
       )
       console.log(
-        `📊 Filtered to ${filtered.length} commits for ${selectedRepo.name}`,
+        `📊 Filtered to ${filtered.length} commits for ${selectedRepo.name}`
       )
     }
 
@@ -505,7 +505,7 @@ const CalendarPage = () => {
       autoLoadMutation.isPending,
       isError,
       error,
-    ],
+    ]
   )
 
   if (!user) {
@@ -549,7 +549,7 @@ const CalendarPage = () => {
                 onChange={handleRepoSelect}
                 options={[
                   { value: 'all', label: 'All Repositories' },
-                  ...repos.map((repo) => ({
+                  ...repos.map(repo => ({
                     value: repo.id,
                     label: `${repo.owner}/${repo.name}`,
                   })),

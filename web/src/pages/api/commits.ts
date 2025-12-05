@@ -2,7 +2,9 @@ import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Action, Commit, Repo } from '../../../types/types'
 
-const TIMEZONE_OFFSET_PARIS = 2
+// Cache for author details to avoid duplicate API calls
+const authorCache = new Map<string, any>()
+const AUTHOR_CACHE_TTL = 1000 * 60 * 60 // 1 hour
 
 interface PaginationInfo {
   currentPage: number
@@ -51,7 +53,7 @@ const fetchCommits = async (
   page: number = 1,
   per_page: number = 100,
   since?: string,
-  until?: string,
+  until?: string
 ) => {
   const commitsUrl = `https://api.github.com/repos/${owner}/${repoName}/commits?page=${page}&per_page=${per_page}${
     since && until ? `&since=${since}&until=${until}` : ''
@@ -65,7 +67,7 @@ const fetchCommits = async (
 
   if (!response.ok) {
     console.error(
-      `❌ GitHub API error: ${response.status} - ${response.statusText}`,
+      `❌ GitHub API error: ${response.status} - ${response.statusText}`
     )
     throw new Error(`Error fetching commits: ${response.status}`)
   }
@@ -81,60 +83,23 @@ const fetchCommits = async (
 }
 
 const fetchAuthorDetails = async (githubToken: string, username: string) => {
+  // Check cache first
+  const cacheKey = `author_${username}`
+  const cached = authorCache.get(cacheKey)
+  if (cached && Date.now() - cached.timestamp < AUTHOR_CACHE_TTL) {
+    return cached.data
+  }
+
   const userUrl = `https://api.github.com/users/${username}`
   const response = await fetch(userUrl, {
     headers: { Authorization: `token ${githubToken}` },
   })
 
-  if (!response.ok)
-    throw new Error(`Error fetching user details: ${response.status}`)
-  return response.json()
-}
-
-const fetchCommitDiff = async (
-  commitSha: string,
-  githubToken: string,
-  owner: string,
-  repoName: string,
-) => {
-  const diffUrl = `https://api.github.com/repos/${owner}/${repoName}/commits/${commitSha}`
-  const response = await fetch(diffUrl, {
-    headers: {
-      Authorization: `token ${githubToken}`,
-      Accept: 'application/vnd.github.v3.diff',
-    },
-  })
-
-  if (!response.ok) throw new Error(`Error fetching diff: ${response.status}`)
-  return response.text()
-}
-
-const parisTz = (dateString: string, formatPattern: string): string => {
-  const dateUTC = new Date(dateString)
-  const dateParis = new Date(
-    dateUTC.getTime() + TIMEZONE_OFFSET_PARIS * 60 * 60 * 1000,
-  )
-  return format(dateParis, formatPattern)
-}
-
-const processCommits = async (
-  commits: Commit[],
-  githubToken: string,
-  owner: string,
-  repoName: string,
-): Promise<Commit[]> => {
-  return Promise.all(
-    commits.map(async (commit: Commit): Promise<Commit> => {
-      const formattedDate = parisTz(
-        commit.commit.author.date,
-        "yyyy-MM-dd'T'HH:mm:ssXXX",
-      )
-      const status = commit.commit.verification?.verified
-        ? 'Verified'
-        : 'Unverified'
-
-      let authorDetails = {
-        name: 'Unknown Author',
+  if (!response.ok) {
+    // Return default author for non-critical failures
+    if (response.status === 404) {
+      return {
+        name: username,
         bio: '',
         location: '',
         blog: '',
@@ -142,45 +107,86 @@ const processCommits = async (
         avatar_url: 'https://github.com/identicons/default.png',
         created_at: '',
       }
+    }
+    throw new Error(`Error fetching user details: ${response.status}`)
+  }
 
-      if (commit.author?.login) {
-        try {
-          authorDetails = await fetchAuthorDetails(
-            githubToken,
-            commit.author.login,
-          )
-        } catch (error) {
-          console.error(`Error fetching author details: ${error}`)
-        }
-      }
+  const data = await response.json()
+  // Cache the result
+  authorCache.set(cacheKey, { data, timestamp: Date.now() })
+  return data
+}
 
-      let diff: { filename: string; additions: number; deletions: number }[] =
-        []
+// Use UTC consistently for all date operations to avoid timezone issues
+const formatDateUTC = (dateString: string, formatPattern: string): string => {
+  const date = new Date(dateString)
+  return format(date, formatPattern)
+}
+
+const processCommits = async (
+  commits: Commit[],
+  githubToken: string,
+  owner: string,
+  repoName: string
+): Promise<Commit[]> => {
+  // Batch fetch unique authors to reduce API calls
+  const uniqueAuthors = [
+    ...new Set(commits.map(c => c.author?.login).filter(Boolean)),
+  ] as string[]
+
+  // Fetch all authors in parallel (with cache hits, this is very fast)
+  const authorDetailsMap = new Map<string, any>()
+  await Promise.all(
+    uniqueAuthors.map(async login => {
       try {
-        const diffText = await fetchCommitDiff(
-          commit.sha,
-          githubToken,
-          owner,
-          repoName,
-        )
-        // Parse diff text to extract file changes (simplified)
-        diff = [{ filename: 'diff.txt', additions: 0, deletions: 0 }]
+        const details = await fetchAuthorDetails(githubToken, login)
+        authorDetailsMap.set(login, details)
       } catch (error) {
-        console.error(`Error fetching diff for commit ${commit.sha}: ${error}`)
+        console.error(`Error fetching author details for ${login}: ${error}`)
       }
-
-      return {
-        ...commit,
-        repoName,
-        date: formattedDate,
-        status,
-        authorDetails,
-        actions: [{ name: 'View on GitHub', url: commit.html_url }] as Action[],
-        avatar_url: commit.committer?.avatar_url || authorDetails.avatar_url,
-        diff,
-      }
-    }),
+    })
   )
+
+  const defaultAuthorDetails = {
+    name: 'Unknown Author',
+    bio: '',
+    location: '',
+    blog: '',
+    company: '',
+    avatar_url: 'https://github.com/identicons/default.png',
+    created_at: '',
+  }
+
+  // Process commits synchronously (fast operation now)
+  return commits.map((commit: Commit): Commit => {
+    const formattedDate = formatDateUTC(
+      commit.commit.author.date,
+      "yyyy-MM-dd'T'HH:mm:ssXXX"
+    )
+    const status = commit.commit.verification?.verified
+      ? 'Verified'
+      : 'Unverified'
+
+    const authorDetails = commit.author?.login
+      ? authorDetailsMap.get(commit.author.login) || defaultAuthorDetails
+      : defaultAuthorDetails
+
+    // Skip diff fetching - it creates placeholder data anyway
+    // Diffs can be fetched on-demand when viewing commit details
+    const diff: { filename: string; additions: number; deletions: number }[] =
+      []
+
+    return {
+      ...commit,
+      repoName,
+      date: formattedDate,
+      status,
+      authorDetails,
+      actions: [{ name: 'View on GitHub', url: commit.html_url }] as Action[],
+      avatar_url: commit.committer?.avatar_url || authorDetails.avatar_url,
+      diff,
+    }
+  })
 }
 
 export const fetchCommitsWithPagination = async (
@@ -188,12 +194,12 @@ export const fetchCommitsWithPagination = async (
   repos: { owner: string; name: string }[],
   maxCommitsPerRepo: number = 10000,
   startDate?: string,
-  endDate?: string,
+  endDate?: string
 ): Promise<CommitFetchResult[]> => {
   const results: CommitFetchResult[] = []
 
   console.log(
-    `🔍 Fetching commits with pagination for ${repos.length} repositories`,
+    `🔍 Fetching commits with pagination for ${repos.length} repositories`
   )
   console.log(`📅 Date range: ${startDate} to ${endDate}`)
   console.log(`🎯 Max commits per repo: ${maxCommitsPerRepo}`)
@@ -218,7 +224,7 @@ export const fetchCommitsWithPagination = async (
           page,
           perPage,
           startDate,
-          endDate,
+          endDate
         )
 
         if (!commits || commits.length === 0) {
@@ -233,7 +239,7 @@ export const fetchCommitsWithPagination = async (
           commits,
           token,
           repo.owner,
-          repo.name,
+          repo.name
         )
 
         allCommits.push(...processedCommits)
@@ -241,7 +247,7 @@ export const fetchCommitsWithPagination = async (
         // Check if we've reached our limit
         if (allCommits.length >= maxCommitsPerRepo) {
           console.log(
-            `  ⚠️  Reached limit of ${maxCommitsPerRepo} commits for ${repo.name}`,
+            `  ⚠️  Reached limit of ${maxCommitsPerRepo} commits for ${repo.name}`
           )
           allCommits = allCommits.slice(0, maxCommitsPerRepo)
           reachedLimit = true
@@ -259,7 +265,7 @@ export const fetchCommitsWithPagination = async (
         // Safety check: prevent infinite loops
         if (page > 100) {
           console.warn(
-            `⚠️  Stopped fetching after 100 pages for ${repo.name} (safety limit)`,
+            `⚠️  Stopped fetching after 100 pages for ${repo.name} (safety limit)`
           )
           hasMore = false
           reachedLimit = true
@@ -307,15 +313,15 @@ export const fetchCommitsWithPagination = async (
 
   const totalCommits = results.reduce(
     (sum, result) => sum + result.commits.length,
-    0,
+    0
   )
   console.log(`\n🎯 Pagination Summary:`)
   console.log(`  - Total commits fetched: ${totalCommits}`)
   console.log(`  - Repositories processed: ${results.length}`)
 
-  results.forEach((result) => {
+  results.forEach(result => {
     console.log(
-      `  - ${result.pagination.repository}: ${result.pagination.totalFetched} commits ${result.reachedLimit ? '(limited)' : '(complete)'}`,
+      `  - ${result.pagination.repository}: ${result.pagination.totalFetched} commits ${result.reachedLimit ? '(limited)' : '(complete)'}`
     )
   })
 
@@ -327,16 +333,16 @@ export const fetchCommitsForMultipleRepos = async (
   token: string,
   repos: { owner: string; name: string }[],
   startDate?: string,
-  endDate?: string,
+  endDate?: string
 ) => {
   const results = await fetchCommitsWithPagination(
     token,
     repos,
     10000,
     startDate,
-    endDate,
+    endDate
   )
-  return results.flatMap((result) => result.commits)
+  return results.flatMap(result => result.commits)
 }
 
 export const fetchCommitsForUserInRepo = async (
@@ -346,7 +352,7 @@ export const fetchCommitsForUserInRepo = async (
   page: string,
   per_page: string,
   since?: string,
-  until?: string,
+  until?: string
 ) => {
   const commits = await fetchCommits(
     githubToken,
@@ -355,7 +361,7 @@ export const fetchCommitsForUserInRepo = async (
     parseInt(page),
     parseInt(per_page),
     since,
-    until,
+    until
   )
   return { commits }
 }
@@ -425,7 +431,7 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
         token,
         repoList,
         monthsToFetch,
-        maxCommitsPerRepo,
+        maxCommitsPerRepo
       )
 
       res.status(200).json({
@@ -434,11 +440,11 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
         summary: {
           totalCommits: results.reduce(
             (sum, result) => sum + result.commits.length,
-            0,
+            0
           ),
           repositories: repoList.length,
           timeWindowsProcessed: timeWindows.length,
-          limitedRepositories: results.filter((r) => r.reachedLimit).length,
+          limitedRepositories: results.filter(r => r.reachedLimit).length,
         },
       })
     } else if (usePagination) {
@@ -448,7 +454,7 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
         repoList,
         maxCommitsPerRepo,
         startDate,
-        endDate,
+        endDate
       )
 
       res.status(200).json({
@@ -456,10 +462,10 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
         summary: {
           totalCommits: results.reduce(
             (sum, result) => sum + result.commits.length,
-            0,
+            0
           ),
           repositories: results.length,
-          limitedRepositories: results.filter((r) => r.reachedLimit).length,
+          limitedRepositories: results.filter(r => r.reachedLimit).length,
         },
       })
     } else {
@@ -469,7 +475,7 @@ const getCommits = async (req: NextApiRequest, res: NextApiResponse) => {
         token,
         repoList,
         startDate,
-        endDate,
+        endDate
       )
 
       res.status(200).json(commits)
@@ -485,11 +491,11 @@ const fetchCommitsForTimeWindow = async (
   token: string,
   repos: { owner: string; name: string }[],
   timeWindow: TimeWindow,
-  maxCommitsPerRepo: number = 10000, // Increased for better coverage
+  maxCommitsPerRepo: number = 10000 // Increased for better coverage
 ): Promise<CommitFetchResult[]> => {
   console.log(`\n📅 Fetching commits for period: ${timeWindow.period}`)
   console.log(
-    `   From: ${format(new Date(timeWindow.startDate), 'yyyy-MM-dd')}`,
+    `   From: ${format(new Date(timeWindow.startDate), 'yyyy-MM-dd')}`
   )
   console.log(`   To: ${format(new Date(timeWindow.endDate), 'yyyy-MM-dd')}`)
 
@@ -515,7 +521,7 @@ const fetchCommitsForTimeWindow = async (
           page,
           perPage,
           timeWindow.startDate,
-          timeWindow.endDate,
+          timeWindow.endDate
         )
 
         if (!commits || commits.length === 0) {
@@ -530,7 +536,7 @@ const fetchCommitsForTimeWindow = async (
           commits,
           token,
           repo.owner,
-          repo.name,
+          repo.name
         )
 
         allCommits.push(...processedCommits)
@@ -538,7 +544,7 @@ const fetchCommitsForTimeWindow = async (
         // Check if we've reached our limit
         if (allCommits.length >= maxCommitsPerRepo) {
           console.log(
-            `  ⚠️  Reached limit of ${maxCommitsPerRepo} commits for ${repo.name}`,
+            `  ⚠️  Reached limit of ${maxCommitsPerRepo} commits for ${repo.name}`
           )
           allCommits = allCommits.slice(0, maxCommitsPerRepo)
           reachedLimit = true
@@ -557,7 +563,7 @@ const fetchCommitsForTimeWindow = async (
         if (page > 50) {
           // Increased from 10 to 50 for better coverage
           console.warn(
-            `⚠️  Stopped fetching after 50 pages for ${repo.name} (safety limit)`,
+            `⚠️  Stopped fetching after 50 pages for ${repo.name} (safety limit)`
           )
           hasMore = false
           reachedLimit = true
@@ -589,24 +595,37 @@ const fetchCommitsForTimeWindow = async (
     } catch (error) {
       console.error(`❌ Error fetching commits for repo ${repo.name}:`, error)
 
-      // If it's a rate limit error, wait and retry once
+      // If it's a rate limit error, use exponential backoff
       if (error instanceof Error && error.message.includes('403')) {
-        console.log(`⏳ Rate limit hit, waiting 60 seconds before retry...`)
-        await new Promise((resolve) => setTimeout(resolve, 60000))
+        const retryDelays = [5000, 15000, 30000] // 5s, 15s, 30s exponential backoff
 
-        try {
-          console.log(`🔄 Retrying ${repo.owner}/${repo.name}...`)
-          const retryResult = await fetchCommitsForTimeWindow(
-            token,
-            [repo],
-            timeWindow,
-            maxCommitsPerRepo,
+        for (let attempt = 0; attempt < retryDelays.length; attempt++) {
+          const delay = retryDelays[attempt]
+          console.log(
+            `⏳ Rate limit hit, waiting ${delay / 1000}s before retry (attempt ${attempt + 1}/${retryDelays.length})...`
           )
-          results.push(...retryResult)
-          continue
-        } catch (retryError) {
-          console.error(`❌ Retry failed for ${repo.name}:`, retryError)
+          await new Promise(resolve => setTimeout(resolve, delay))
+
+          try {
+            console.log(`🔄 Retrying ${repo.owner}/${repo.name}...`)
+            const retryResult = await fetchCommitsForTimeWindow(
+              token,
+              [repo],
+              timeWindow,
+              maxCommitsPerRepo
+            )
+            results.push(...retryResult)
+            break // Success, exit retry loop
+          } catch (retryError) {
+            if (attempt === retryDelays.length - 1) {
+              console.error(
+                `❌ All retries failed for ${repo.name}:`,
+                retryError
+              )
+            }
+          }
         }
+        continue
       }
 
       results.push({
@@ -626,7 +645,7 @@ const fetchCommitsForTimeWindow = async (
 
   const totalCommits = results.reduce(
     (sum, result) => sum + result.commits.length,
-    0,
+    0
   )
   console.log(`\n📊 Period Summary (${timeWindow.period}):`)
   console.log(`  - Total commits fetched: ${totalCommits}`)
@@ -640,7 +659,7 @@ export const fetchCommitsWithTimePagination = async (
   token: string,
   repos: { owner: string; name: string }[],
   monthsBack: number = 24, // Increased from 12 to 24 months
-  maxCommitsPerRepo: number = 10000, // Increased for better coverage
+  maxCommitsPerRepo: number = 10000 // Increased for better coverage
 ): Promise<{ results: CommitFetchResult[]; timeWindows: TimeWindow[] }> => {
   console.log(`🔍 Starting intelligent time-based pagination`)
   console.log(`📅 Fetching commits for the last ${monthsBack} months`)
@@ -656,7 +675,7 @@ export const fetchCommitsWithTimePagination = async (
       token,
       repos,
       timeWindow,
-      maxCommitsPerRepo,
+      maxCommitsPerRepo
     )
 
     allResults.push(...windowResults)
@@ -664,7 +683,7 @@ export const fetchCommitsWithTimePagination = async (
 
   const totalCommits = allResults.reduce(
     (sum, result) => sum + result.commits.length,
-    0,
+    0
   )
   console.log(`\n🎯 Final Summary:`)
   console.log(`  - Total commits fetched: ${totalCommits}`)

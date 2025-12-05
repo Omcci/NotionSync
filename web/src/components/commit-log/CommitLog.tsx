@@ -17,17 +17,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { CalendarDaysIcon } from '../../../public/icon/CalendarDaysIcon'
-import { GitBranchIcon } from '../../../public/icon/GitBranchIcon'
-import { GitCommitVerticalIcon } from '../../../public/icon/GitCommitVerticalIcon'
-import { UserIcon } from '../../../public/icon/UserIcon'
+import {
+  CalendarDaysIcon,
+  GitBranchIcon,
+  GitCommitVerticalIcon,
+  UserIcon,
+  EyeIcon,
+  GithubIcon,
+} from '@/components/icons'
 import { Commit } from '../../../types/github'
 import CommitLogFilters from './CommitLogFilters'
 import Link from 'next/link'
-import { EyeIcon } from '../../../public/icon/EyeIcon'
 import { Badge } from '@/components/ui/badge'
 import { Action } from '../../../types/types'
-import { GithubIcon } from '../../../public/icon/GithubIcon'
 
 export type Filter = {
   name: string
@@ -53,7 +55,7 @@ const fetchCommits = async (
   owner: string,
   repoName: string,
   page: number,
-  perPage: number,
+  perPage: number
 ) => {
   const githubToken = await getGitHubToken()
 
@@ -65,7 +67,7 @@ const fetchCommits = async (
       headers: {
         Authorization: `Bearer ${githubToken}`,
       },
-    },
+    }
   )
 
   if (!response.ok) {
@@ -93,7 +95,7 @@ const CommitLog = () => {
         selectedRepo?.owner!,
         selectedRepo?.name!,
         page,
-        commitsPerPage,
+        commitsPerPage
       ),
     enabled: !!selectedRepo,
     staleTime: 1000 * 60 * 10,
@@ -102,7 +104,7 @@ const CommitLog = () => {
 
   const filteredCommits = Array.isArray(commits)
     ? commits.filter((commit: Commit) =>
-        commit.commit.message.toLowerCase().includes(searchInput.toLowerCase()),
+        commit.commit.message.toLowerCase().includes(searchInput.toLowerCase())
       )
     : []
 
@@ -169,7 +171,7 @@ const CommitLog = () => {
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-800">
-                {theader.map((header) => (
+                {theader.map(header => (
                   <th key={header} className="px-4 py-2 text-left">
                     {header}
                   </th>
@@ -256,7 +258,7 @@ const CommitLog = () => {
                                 Membre depuis:{' '}
                                 {commit.authorDetails?.created_at &&
                                   formattedDate(
-                                    commit.authorDetails.created_at,
+                                    commit.authorDetails.created_at
                                   )}{' '}
                               </p>
                             </div>

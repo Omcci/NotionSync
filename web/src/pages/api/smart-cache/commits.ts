@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabaseClient'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -126,7 +126,7 @@ export default async function handler(
     const repositoriesResult = await CacheService.getRepositories(
       userId as string,
       githubToken,
-      { repositoryCacheTime: cacheConfig.repositoryCacheTime },
+      { repositoryCacheTime: cacheConfig.repositoryCacheTime }
     )
 
     if (repositoriesResult.data.length === 0) {
@@ -159,7 +159,7 @@ export default async function handler(
       startDate as string,
       endDate as string,
       parseInt(maxCommitsPerRepo as string),
-      cacheConfig,
+      cacheConfig
     )
 
     return res.status(200).json({

@@ -1,0 +1,33 @@
+# Ignore node_modules directories (including duplicates)
+node_modules/
+node_modules 2/
+**/node_modules/
+**/node_modules 2/
+
+# Ignore build outputs
+.next/
+out/
+build/
+dist/
+
+# Ignore TypeScript build cache (can cause stale errors)
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Ignore large generated files
+# package-lock.json (removed - needed for CI/CD)
+
+# Ignore test coverage
+coverage/
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore environment files
+.env*
+
+# API node_modules
+api/node_modules/
+
+

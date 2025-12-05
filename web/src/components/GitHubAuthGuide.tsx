@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Info,
 } from 'lucide-react'
-import { GithubIcon } from '../../public/icon/GithubIcon'
+import { GithubIcon } from '@/components/icons'
 import {
   Dialog,
   DialogContent,
@@ -303,7 +303,7 @@ const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
           onClick={() =>
             window.open(
               'https://docs.github.com/en/developers/apps/managing-oauth-apps/authorizing-oauth-apps',
-              '_blank',
+              '_blank'
             )
           }
           className="px-8 py-4 text-lg font-semibold"
