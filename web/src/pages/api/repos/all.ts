@@ -5,7 +5,7 @@ import { Repository, AllReposResponse } from '../../../../types/repository'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<AllReposResponse | { message: string; error?: string }>,
+  res: NextApiResponse<AllReposResponse | { message: string; error?: string }>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -42,7 +42,7 @@ export default async function handler(
     }
 
     // Transform the data
-    const transformedRepos: Repository[] = allRepos.map((repo) => ({
+    const transformedRepos: Repository[] = allRepos.map(repo => ({
       id: repo.id.toString(),
       name: repo.name,
       owner: repo.full_name.split('/')[0],
@@ -58,7 +58,7 @@ export default async function handler(
     // Sort by last updated (most recent first)
     transformedRepos.sort(
       (a, b) =>
-        new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
+        new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
     )
 
     res.status(200).json({

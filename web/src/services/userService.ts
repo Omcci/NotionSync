@@ -59,7 +59,7 @@ export class UserService {
    */
   static async updateUser(
     githubUser: User,
-    existingUser: SupabaseUser,
+    existingUser: SupabaseUser
   ): Promise<SupabaseUser> {
     try {
       const userMetadata = githubUser.user_metadata || {}
@@ -130,7 +130,7 @@ export class UserService {
    */
   static async updatePremiumStatus(
     userId: string,
-    isPremium: boolean,
+    isPremium: boolean
   ): Promise<void> {
     try {
       const { error } = await supabase
@@ -171,7 +171,7 @@ export class UserService {
   static async storeGitHubToken(
     userId: string,
     token: string,
-    refreshToken?: string,
+    refreshToken?: string
   ): Promise<void> {
     try {
       const updateData: any = {

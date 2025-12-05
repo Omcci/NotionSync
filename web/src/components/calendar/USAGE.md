@@ -51,7 +51,7 @@ import { CommitCalendar } from '@/components/calendar/CommitCalendar'
 
 ```tsx
 <Calendar
-  eventClassName={(event) => {
+  eventClassName={event => {
     if (event.title.includes('bug')) return 'bg-red-100 border-red-500'
     if (event.title.includes('feat')) return 'bg-green-100 border-green-500'
     return 'bg-blue-100 border-blue-500'

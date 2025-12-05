@@ -38,7 +38,7 @@ const fetchCommitsFromDatabase = async (
   endDate: string,
   sync: boolean = false,
   githubToken?: string,
-  backfill: boolean = false,
+  backfill: boolean = false
 ) => {
   // Early validation
   if (!userId) {
@@ -96,7 +96,7 @@ const fetchCommitsFromDatabase = async (
     // Handle rate limit errors
     if (response.status === 429) {
       const error = new Error(
-        errorData?.message || 'GitHub API rate limit exceeded',
+        errorData?.message || 'GitHub API rate limit exceeded'
       )
       Object.assign(error, {
         rateLimited: true,
@@ -153,7 +153,7 @@ const CalendarPage = () => {
         endDate.toISOString(),
         false,
         githubToken,
-        false, // Don't backfill on initial load
+        false // Don't backfill on initial load
       )
     },
     enabled: !!user?.id && !!githubToken,
@@ -172,7 +172,7 @@ const CalendarPage = () => {
       }
       return failureCount < 3 // Increased retry attempts
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   })
 
   // Backfill mutation for fetching older commits when needed
@@ -189,7 +189,7 @@ const CalendarPage = () => {
       backfillEndDate.setMonth(backfillEndDate.getMonth() + 1)
 
       console.log(
-        `🔄 Backfilling commits from ${format(backfillStartDate, 'MMM yyyy')} to ${format(backfillEndDate, 'MMM yyyy')}`,
+        `🔄 Backfilling commits from ${format(backfillStartDate, 'MMM yyyy')} to ${format(backfillEndDate, 'MMM yyyy')}`
       )
 
       return fetchCommitsFromDatabase(
@@ -198,13 +198,13 @@ const CalendarPage = () => {
         backfillEndDate.toISOString(),
         false,
         githubToken,
-        true, // Enable backfill
+        true // Enable backfill
       )
     },
-    onSuccess: (result) => {
+    onSuccess: result => {
       const newCommits = result.summary?.totalCommits || 0
       console.log(
-        `✅ Backfill completed: ${newCommits} total commits in database`,
+        `✅ Backfill completed: ${newCommits} total commits in database`
       )
 
       // Invalidate and refetch the main query to show new data
@@ -217,7 +217,7 @@ const CalendarPage = () => {
         })
       }
     },
-    onError: (error) => {
+    onError: error => {
       console.error('❌ Backfill failed:', error)
       toast({
         title: 'Failed to load older commits',
@@ -268,7 +268,7 @@ const CalendarPage = () => {
     // Filter by selected repository
     if (selectedRepo) {
       filtered = filtered.filter(
-        (commit: Commit) => commit.repoName === selectedRepo.name,
+        (commit: Commit) => commit.repoName === selectedRepo.name
       )
     }
 
@@ -280,11 +280,11 @@ const CalendarPage = () => {
       if (repoId === 'all') {
         setSelectedRepo(null)
       } else {
-        const repo = repos.find((r) => r.id === repoId)
+        const repo = repos.find(r => r.id === repoId)
         setSelectedRepo(repo || null)
       }
     },
-    [repos, setSelectedRepo],
+    [repos, setSelectedRepo]
   )
 
   const handleDateClick = useCallback(
@@ -295,7 +295,7 @@ const CalendarPage = () => {
       // Get commits for this specific date from current filtered commits
       const dayCommits = filteredCommits.filter((commit: Commit) => {
         const commitDate = (commit.date || commit.commit.author.date)?.split(
-          'T',
+          'T'
         )[0]
         return commitDate === dateStr
       })
@@ -303,13 +303,13 @@ const CalendarPage = () => {
       setCommitDetails(dayCommits)
       setOpen(true)
     },
-    [filteredCommits],
+    [filteredCommits]
   )
 
   const handleCommitClick = useCallback(
     (commit: Commit) => {
       const commitDate = (commit.date || commit.commit.author.date)?.split(
-        'T',
+        'T'
       )[0]
       if (commitDate) {
         setSelectedDate(commitDate)
@@ -324,7 +324,7 @@ const CalendarPage = () => {
         setOpen(true)
       }
     },
-    [filteredCommits],
+    [filteredCommits]
   )
 
   const handleCalendarNavigate = useCallback(
@@ -345,7 +345,7 @@ const CalendarPage = () => {
       })
 
       console.log(
-        `📅 Navigated to ${format(date, 'MMM yyyy')}, hasCommits: ${hasCommitsForPeriod}`,
+        `📅 Navigated to ${format(date, 'MMM yyyy')}, hasCommits: ${hasCommitsForPeriod}`
       )
 
       // If no commits found for this period and it's in the past, trigger backfill
@@ -355,12 +355,12 @@ const CalendarPage = () => {
         !backfillMutation.isPending
       ) {
         console.log(
-          `🔄 No commits found for ${format(date, 'MMM yyyy')}, triggering backfill...`,
+          `🔄 No commits found for ${format(date, 'MMM yyyy')}, triggering backfill...`
         )
         backfillMutation.mutate(date)
       }
     },
-    [commitData, backfillMutation],
+    [commitData, backfillMutation]
   )
 
   // Check for authentication errors
@@ -403,7 +403,7 @@ const CalendarPage = () => {
       isFetching,
       isError,
       error,
-    ],
+    ]
   )
 
   if (!user) {
@@ -497,7 +497,7 @@ const CalendarPage = () => {
                   onChange={handleRepoSelect}
                   options={[
                     { value: 'all', label: 'All Repositories' },
-                    ...repos.map((repo) => ({
+                    ...repos.map(repo => ({
                       value: repo.id,
                       label: `${repo.owner}/${repo.name}`,
                     })),
