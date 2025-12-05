@@ -18,9 +18,9 @@ export default async function handler(
 
   // Check for OAuth errors
   if (error) {
-    const errorMsg = Array.isArray(error_description) 
-      ? error_description[0] 
-      : (error_description || (Array.isArray(error) ? error[0] : error))
+    const errorMsg = Array.isArray(error_description)
+      ? error_description[0]
+      : error_description || (Array.isArray(error) ? error[0] : error)
     return res.redirect(
       `/login?error=${encodeURIComponent(errorMsg as string)}`
     )
