@@ -40,11 +40,13 @@ SELECT * FROM information_schema.tables WHERE table_name = 'sessions';
 ## Step 2: Update VPS Deployment Script
 
 ### Location
+
 `~/deployment-scripts/deploy-notionsync.sh` on your VPS
 
 ### Changes Required
 
 **Remove these lines:**
+
 ```bash
 -e NEXT_PUBLIC_SUPABASE_URL="https://tmlfppynimzitryqyzrg.supabase.co" \
 -e NEXT_PUBLIC_SUPABASE_ANON_KEY="..." \
@@ -52,6 +54,7 @@ SELECT * FROM information_schema.tables WHERE table_name = 'sessions';
 ```
 
 **Keep/Add these lines:**
+
 ```bash
 -e DATABASE_URL="postgresql://[DB_USER]:[DB_PASSWORD]@notionsync-prod-db:5432/notionsync" \
 -e GITHUB_CLIENT_ID="[YOUR_GITHUB_CLIENT_ID]" \
@@ -70,6 +73,7 @@ cd ~/deployment-scripts
 ## Step 3: Update GitHub OAuth App Callback URLs
 
 ### Staging Environment
+
 1. Go to [GitHub OAuth Apps](https://github.com/settings/developers)
 2. Select your OAuth App
 3. Update **Authorization callback URL** to:
@@ -78,6 +82,7 @@ cd ~/deployment-scripts
    ```
 
 ### Production Environment
+
 1. Same as above, or if you have a separate OAuth App:
 2. Update **Authorization callback URL** to:
    ```
@@ -85,6 +90,7 @@ cd ~/deployment-scripts
    ```
 
 ### Verify
+
 - Test login on staging: `https://staging.notionsync.fr/login`
 - Test login on production: `https://notionsync.fr/login`
 - Verify redirect to `/api/auth/callback` after GitHub authorization
@@ -92,9 +98,11 @@ cd ~/deployment-scripts
 ## Step 4: Update GitHub Repository Secrets
 
 ### Remove Secrets
+
 Go to: Repository → Settings → Secrets and variables → Actions
 
 Remove:
+
 - ❌ `NEXT_PUBLIC_SUPABASE_URL`
 - ❌ `NEXT_PUBLIC_SUPABASE_KEY`
 - ❌ `SUPABASE_SERVICE_ROLE_KEY` (if exists)
@@ -102,6 +110,7 @@ Remove:
 ### Add/Verify Secrets
 
 **Required:**
+
 - ✅ `NEXT_PUBLIC_GITHUB_CLIENT_ID` = `Ov23lijZ38JQsomOLWpN`
 - ✅ `GITHUB_CLIENT_ID` = `Ov23lijZ38JQsomOLWpN` (if not already set)
 - ✅ `GITHUB_CLIENT_SECRET` = `d73dfb3d5ad56e86e95741e9267cfbaec8932e6c` (if not already set)
@@ -111,6 +120,7 @@ See `GITHUB_SECRETS_UPDATE.md` for detailed instructions.
 ## Step 5: Test Everything
 
 ### 1. Test Database Connection
+
 ```bash
 # On your VPS, test database connection
 docker exec -it notionsync-prod-web node -e "
@@ -121,6 +131,7 @@ pool.query('SELECT NOW()').then(r => console.log('✅ DB Connected:', r.rows[0])
 ```
 
 ### 2. Test Authentication Flow
+
 1. Visit staging: `https://staging.notionsync.fr/login`
 2. Click "Sign in with GitHub"
 3. Authorize the app
@@ -129,6 +140,7 @@ pool.query('SELECT NOW()').then(r => console.log('✅ DB Connected:', r.rows[0])
 6. Check that session is stored in localStorage
 
 ### 3. Test API Endpoints
+
 ```bash
 # Test health endpoint
 curl https://staging.notionsync.fr/api/health
@@ -138,6 +150,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" https://staging.notionsync.fr/api/aut
 ```
 
 ### 4. Check Logs
+
 ```bash
 # On VPS
 docker logs notionsync-staging-web
@@ -147,12 +160,15 @@ docker logs notionsync-prod-web
 ## Troubleshooting
 
 ### Migration Issues
+
 - **Error: relation "sessions" already exists**
   - Table already exists, migration can be skipped
   - Or drop and recreate: `DROP TABLE IF EXISTS sessions CASCADE;`
 
 ### Authentication Issues
+
 - **Error: Invalid callback URL**
+
   - Verify GitHub OAuth App callback URL matches exactly
   - Check for trailing slashes or protocol mismatches
 
@@ -162,12 +178,14 @@ docker logs notionsync-prod-web
   - Check that session is being created in database
 
 ### Database Connection Issues
+
 - **Error: Connection refused**
   - Verify DATABASE_URL is correct
   - Check PostgreSQL is running
   - Verify network connectivity between containers
 
 ### Deployment Issues
+
 - **Error: Build fails**
   - Check GitHub secrets are set correctly
   - Verify `NEXT_PUBLIC_GITHUB_CLIENT_ID` is in build args
@@ -184,6 +202,7 @@ If something goes wrong:
 ## Support
 
 If you encounter issues:
+
 1. Check application logs
 2. Check database logs
 3. Verify all environment variables are set
@@ -199,10 +218,9 @@ If you encounter issues:
 ✅ Staging environment working  
 ✅ Production environment working  
 ✅ Users can log in successfully  
-✅ Sessions persist across page reloads  
+✅ Sessions persist across page reloads
 
 ---
 
 **Last Updated:** $(date)  
 **Migration Version:** 1.0
-

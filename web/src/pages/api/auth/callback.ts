@@ -38,19 +38,22 @@ export default async function handler(
     }
 
     // Exchange code for access token
-    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        code,
-        state,
-      }),
-    })
+    const tokenResponse = await fetch(
+      'https://github.com/login/oauth/access_token',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          state,
+        }),
+      }
+    )
 
     if (!tokenResponse.ok) {
       throw new Error('Failed to exchange code for token')
@@ -84,12 +87,15 @@ export default async function handler(
     let email = githubUser.email
     if (!email) {
       try {
-        const emailResponse = await fetch('https://api.github.com/user/emails', {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: 'application/vnd.github.v3+json',
-          },
-        })
+        const emailResponse = await fetch(
+          'https://api.github.com/user/emails',
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              Accept: 'application/vnd.github.v3+json',
+            },
+          }
+        )
         if (emailResponse.ok) {
           const emails = await emailResponse.json()
           const primaryEmail = emails.find((e: any) => e.primary)
@@ -137,7 +143,10 @@ export default async function handler(
 
     // Redirect to dashboard with session token
     // Store token in a secure cookie or return it in the redirect
-    const redirectUrl = new URL('/auth/callback', req.headers.origin || 'http://localhost:9001')
+    const redirectUrl = new URL(
+      '/auth/callback',
+      req.headers.origin || 'http://localhost:9001'
+    )
     redirectUrl.searchParams.set('token', token)
     redirectUrl.searchParams.set('success', 'true')
 
@@ -151,4 +160,3 @@ export default async function handler(
     )
   }
 }
-

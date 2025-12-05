@@ -21,13 +21,13 @@ export const signOut = async (): Promise<Error | null> => {
         } catch (error) {
           console.error('Error deleting session:', error)
         }
-        
+
         // Clear local storage
         localStorage.removeItem('session_token')
         localStorage.removeItem('onboarding_completed')
       }
     }
-    
+
     return null
   } catch (error) {
     console.error('Error signing out:', error)

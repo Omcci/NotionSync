@@ -47,9 +47,7 @@ export const getGitHubToken = async (): Promise<string> => {
 
   const sessionToken = localStorage.getItem('session_token')
   if (!sessionToken) {
-    throw new Error(
-      'Unauthorized: No session found. Please log in.'
-    )
+    throw new Error('Unauthorized: No session found. Please log in.')
   }
 
   try {

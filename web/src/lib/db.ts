@@ -22,7 +22,7 @@ export const getDbPool = (): Pool => {
     })
 
     // Handle pool errors
-    pool.on('error', (err) => {
+    pool.on('error', err => {
       console.error('Unexpected error on idle client', err)
     })
   }
@@ -74,4 +74,3 @@ export const closePool = async (): Promise<void> => {
     pool = null
   }
 }
-

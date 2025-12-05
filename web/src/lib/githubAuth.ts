@@ -91,4 +91,3 @@ export const initiateGitHubOAuth = (
 
   return { url, state }
 }
-

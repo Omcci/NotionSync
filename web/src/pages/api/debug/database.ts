@@ -13,7 +13,13 @@ export default async function handler(
     console.log('🔍 Checking database structure...')
 
     // Check if tables exist and get their structure
-    const tables = ['users', 'repositories', 'commits', 'commit_summaries', 'sessions']
+    const tables = [
+      'users',
+      'repositories',
+      'commits',
+      'commit_summaries',
+      'sessions',
+    ]
     const tableInfo: Record<string, any> = {}
 
     for (const tableName of tables) {

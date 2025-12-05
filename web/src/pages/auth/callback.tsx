@@ -14,7 +14,7 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-          const urlParams = new URLSearchParams(window.location.search)
+        const urlParams = new URLSearchParams(window.location.search)
         const token = urlParams.get('token')
         const success = urlParams.get('success')
         const errorParam = urlParams.get('error')
@@ -22,14 +22,14 @@ const AuthCallback = () => {
         // Check for errors
         if (errorParam) {
           setError(decodeURIComponent(errorParam))
-                setStatus('Authentication failed')
-                return
-              }
+          setStatus('Authentication failed')
+          return
+        }
 
         // Check if we have a token
         if (success === 'true' && token) {
           setStatus('Storing session...')
-          
+
           // Store token in localStorage
           localStorage.setItem('session_token', token)
 
@@ -66,15 +66,17 @@ const AuthCallback = () => {
           }
         } else {
           // No token - might be direct GitHub redirect, redirect to login
-          setError('No authentication token received. Please try logging in again.')
+          setError(
+            'No authentication token received. Please try logging in again.'
+          )
           setStatus('Authentication failed')
         }
-        } catch (error) {
-          console.error('Auth callback error:', error)
-            setError(
-              error instanceof Error ? error.message : 'Authentication failed'
-            )
-            setStatus('Authentication failed')
+      } catch (error) {
+        console.error('Auth callback error:', error)
+        setError(
+          error instanceof Error ? error.message : 'Authentication failed'
+        )
+        setStatus('Authentication failed')
       }
     }
 
@@ -119,7 +121,7 @@ const AuthCallback = () => {
           {isRedirecting ? (
             <CheckCircle className="h-12 w-12 text-green-500" />
           ) : (
-          <LoadingSpinner className="h-12 w-12 text-blue-500" />
+            <LoadingSpinner className="h-12 w-12 text-blue-500" />
           )}
         </div>
 
@@ -134,7 +136,7 @@ const AuthCallback = () => {
             <p className="text-green-800 text-sm text-center">
               Authentication successful! Redirecting...
             </p>
-              </div>
+          </div>
         )}
       </div>
     </div>
