@@ -100,7 +100,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     const startNextStep = () => {
       if (currentStepIndex < loadingSteps.length - 1) {
         stepTimer = setTimeout(() => {
-          setCurrentStepIndex(prev => prev + 1)
+          setCurrentStepIndex((prev) => prev + 1)
           setProgress(((currentStepIndex + 2) / loadingSteps.length) * 100)
         }, loadingSteps[currentStepIndex].duration)
       } else {
@@ -118,7 +118,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
         stepProgress / (loadingSteps[currentStepIndex].duration / 50)
 
       progressTimer = setInterval(() => {
-        setProgress(prev => {
+        setProgress((prev) => {
           const newProgress = prev + progressIncrement
           if (newProgress >= stepProgress) {
             clearInterval(progressTimer)
@@ -142,7 +142,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
   useEffect(() => {
     if (showTips) {
       const tipTimer = setInterval(() => {
-        setCurrentTipIndex(prev => (prev + 1) % calendarTips.length)
+        setCurrentTipIndex((prev) => (prev + 1) % calendarTips.length)
       }, 3500)
 
       return () => clearInterval(tipTimer)

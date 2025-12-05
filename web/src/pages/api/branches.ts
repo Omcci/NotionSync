@@ -5,7 +5,7 @@ export const fetchRepoBranches = async (
   orgName: string,
   repoName: string,
   perPage: number,
-  page: number
+  page: number,
 ) => {
   const url = `https://api.github.com/repos/${orgName}/${repoName}/branches?per_page=${perPage}&page=${page}`
   try {
@@ -15,7 +15,7 @@ export const fetchRepoBranches = async (
     const data = await response.json()
     if (!response.ok) {
       throw new Error(
-        `Error fetching branches for ${repoName}: ${response.status}`
+        `Error fetching branches for ${repoName}: ${response.status}`,
       )
     }
     return data.map((branch: any) => branch.name)
@@ -58,7 +58,7 @@ const getBranches = async (req: NextApiRequest, res: NextApiResponse) => {
       orgName,
       repoName,
       +perPage,
-      +page
+      +page,
     )
     console.log('API is sending branches:', branches)
     res.status(200).json({ branches })

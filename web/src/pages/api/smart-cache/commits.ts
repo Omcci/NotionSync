@@ -1,12 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CacheService } from '../../../services/cacheService'
 import { getGitHubToken } from '../../../lib/auth'
-import { validateSession } from '@/lib/session'
-import { UserService } from '@/services/userService'
+import { supabase } from '../../../lib/supabaseClient'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -37,22 +36,21 @@ export default async function handler(
       githubToken = authHeader.split(' ')[1]
     } else {
       // Fallback: check server-side session and get token
-      const sessionToken = req.headers.authorization?.replace('Bearer ', '')
-      if (sessionToken) {
-        try {
-          const { user } = await validateSession(sessionToken)
-          if (user) {
-            const storedToken = await UserService.getGitHubToken(user.id)
-            if (storedToken) {
-              githubToken = storedToken
-            }
-          }
-        } catch (error) {
-          console.error('❌ Session error:', error)
-        }
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError)
+        return res.status(401).json({
+          message: 'Authentication session error',
+          error: sessionError.message,
+          authRequired: true,
+        })
       }
 
-      if (!githubToken) {
+      if (!session) {
         console.log('❌ No active session found')
         return res.status(401).json({
           message:
@@ -128,7 +126,7 @@ export default async function handler(
     const repositoriesResult = await CacheService.getRepositories(
       userId as string,
       githubToken,
-      { repositoryCacheTime: cacheConfig.repositoryCacheTime }
+      { repositoryCacheTime: cacheConfig.repositoryCacheTime },
     )
 
     if (repositoriesResult.data.length === 0) {
@@ -161,7 +159,7 @@ export default async function handler(
       startDate as string,
       endDate as string,
       parseInt(maxCommitsPerRepo as string),
-      cacheConfig
+      cacheConfig,
     )
 
     return res.status(200).json({

@@ -1,4 +1,4 @@
-import { SettingsIcon } from '@/components/icons'
+import { SettingsIcon } from '../../../public/icon/SettingsIcon'
 import { Button } from '../ui/button'
 import ConfigSettingsForm from './ConfigSettingsForm'
 import {

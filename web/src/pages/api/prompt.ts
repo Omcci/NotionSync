@@ -44,7 +44,7 @@ Make it read like a story of actual work accomplished, not a technical specifica
 `
 
 export const summary_prompt_multiple = (
-  commits: Array<{ commitMessage: string; diff: string }>
+  commits: Array<{ commitMessage: string; diff: string }>,
 ) => `
 You are an expert software developer analyzing a development session. Create an engaging summary of what was actually accomplished across ${commits.length} commits.
 
@@ -63,7 +63,7 @@ ${commits
 ### Commit ${index + 1}:
 **Message:** ${commit.commitMessage}
 **Changes:** ${commit.diff}
-`
+`,
   )
   .join('\n')}
 

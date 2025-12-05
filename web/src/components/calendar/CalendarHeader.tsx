@@ -47,7 +47,7 @@ export function CalendarHeader({
     <div
       className={cn(
         'calendar-header flex items-center justify-between p-6 bg-slate-800 text-white border-b-2 border-slate-600 rounded-t-lg',
-        className
+        className,
       )}
     >
       {/* Left: Navigation */}
@@ -100,7 +100,7 @@ export function CalendarHeader({
                 'h-8 px-3 transition-colors',
                 view === 'month'
                   ? 'bg-white/15 text-white hover:bg-white/20'
-                  : 'text-white hover:bg-white/10'
+                  : 'text-white hover:bg-white/10',
               )}
             >
               Month
@@ -113,7 +113,7 @@ export function CalendarHeader({
                 'h-8 px-3 transition-colors',
                 view === 'week'
                   ? 'bg-white/15 text-white hover:bg-white/20'
-                  : 'text-white hover:bg-white/10'
+                  : 'text-white hover:bg-white/10',
               )}
             >
               Week
@@ -126,7 +126,7 @@ export function CalendarHeader({
                 'h-8 px-3 transition-colors',
                 view === 'day'
                   ? 'bg-white/15 text-white hover:bg-white/20'
-                  : 'text-white hover:bg-white/10'
+                  : 'text-white hover:bg-white/10',
               )}
             >
               Day

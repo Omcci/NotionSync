@@ -1,10 +1,10 @@
 import { Client } from '@notionhq/client'
 import { mistral_prompt } from './prompt'
-import { Mistral } from '@mistralai/mistralai'
+import MistralClient from '@mistralai/mistralai'
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN })
 const mistralToken = process.env.MISTRAL_TOKEN
-const client = new Mistral({ apiKey: mistralToken })
+const client = new MistralClient(mistralToken)
 
 export const addCommitToNotion = async (
   commit: string,
@@ -12,7 +12,7 @@ export const addCommitToNotion = async (
   notionToken: string,
   databaseId: string,
   repoName: string,
-  branchName: string
+  branchName: string,
 ) => {
   const commitDiff = await fetchCommitDiff(commit)
   if (!commitDiff) {
@@ -22,7 +22,7 @@ export const addCommitToNotion = async (
 
   let summaryWithTokenCount = await summarizeCommitWithMistral(
     commitMessage,
-    commitDiff
+    commitDiff,
   )
 
   try {
@@ -95,7 +95,7 @@ const fetchCommitDiff = async (commitSha: string) => {
     })
     if (!response.ok) {
       throw new Error(
-        `Error retrieving commit diff for ${process.env.REPO_NAME} on commit ${commitSha}: ${response.status}`
+        `Error retrieving commit diff for ${process.env.REPO_NAME} on commit ${commitSha}: ${response.status}`,
       )
     }
     return await response.text()
@@ -108,7 +108,7 @@ const fetchCommitDiff = async (commitSha: string) => {
 export const commitExistsInNotion = async (
   notion: Client,
   databaseId: string,
-  commitSha: string
+  commitSha: string,
 ) => {
   try {
     const response = await notion.databases.query({
@@ -129,12 +129,12 @@ export const commitExistsInNotion = async (
 
 const summarizeCommitWithMistral = async (
   commitMessage: string,
-  diff: string
+  diff: string,
 ) => {
   const filteredDiffLines: string[] = []
   let skipCurrentFile = false
 
-  diff.split('\n').forEach(line => {
+  diff.split('\n').forEach((line) => {
     if (line.startsWith('diff --git')) {
       skipCurrentFile = line.includes('.svg')
     }
@@ -147,7 +147,7 @@ const summarizeCommitWithMistral = async (
   const prompt = mistral_prompt(commitMessage, filteredDiff)
 
   try {
-    const chatResponse = await client.chat.complete({
+    const chatResponse = await client.chat({
       model: 'mistral-small-latest',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
@@ -158,9 +158,6 @@ const summarizeCommitWithMistral = async (
 
     if (chatResponse.choices && chatResponse.choices.length > 0) {
       const summary = chatResponse.choices[0].message.content
-      if (!summary) {
-        return 'No summary available'
-      }
       const tokenCount = Math.ceil(summary.length / 3)
       return `${summary}\n\nToken count: ${tokenCount}`
     } else {

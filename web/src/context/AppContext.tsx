@@ -10,7 +10,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 
 const fetchReposWithCache = async (
   userId: string,
-  githubToken: string
+  githubToken: string,
 ): Promise<SyncRepo[]> => {
   try {
     // Use CacheService to get repositories with proper caching strategy
@@ -20,19 +20,19 @@ const fetchReposWithCache = async (
       {
         repositoryCacheTime: 60, // 1 hour cache
         forceRefresh: false,
-      }
+      },
     )
 
     // If no repositories found and cache is not fresh, this might be a first-time user
     if (cacheResult.data.length === 0 && !cacheResult.isFresh) {
       console.log(
-        '📭 No repositories found in cache. User may need to sync repositories first.'
+        '📭 No repositories found in cache. User may need to sync repositories first.',
       )
       return []
     }
 
     // Transform DatabaseRepository to SyncRepo format
-    const transformedRepos: SyncRepo[] = cacheResult.data.map(repo => ({
+    const transformedRepos: SyncRepo[] = cacheResult.data.map((repo) => ({
       id: repo.id,
       name: repo.name,
       owner: repo.owner,
@@ -56,7 +56,7 @@ const fetchReposWithCache = async (
     try {
       const { repositories: dbRepos } =
         await RepositoryService.getUserRepositories(userId)
-      return dbRepos.map(repo => ({
+      return dbRepos.map((repo) => ({
         id: repo.id,
         name: repo.name,
         owner: repo.owner,
@@ -116,14 +116,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({
       // Don't retry rate limit errors
       if (error?.message?.includes('rate limit')) {
         setTokenValidationError(
-          'GitHub API rate limit exceeded. Please try again later.'
+          'GitHub API rate limit exceeded. Please try again later.',
         )
         return false
       }
 
       return failureCount < 3
     },
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   })
 
   // Update local state when query data changes

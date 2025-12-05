@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CommitService } from '@/services/commitService'
 import { RepositoryService } from '@/services/repositoryService'
-import { validateSession } from '@/lib/session'
-import { UserService } from '@/services/userService'
+import { supabase } from '@/lib/supabaseClient'
 
 interface DatabaseRequest {
   userId: string
@@ -16,7 +15,7 @@ interface DatabaseRequest {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -44,20 +43,10 @@ export default async function handler(
 
     if (!githubToken) {
       // Fallback to session token
-      const sessionToken = req.headers.authorization?.replace('Bearer ', '')
-      if (sessionToken) {
-        try {
-          const { user } = await validateSession(sessionToken)
-          if (user) {
-            const storedToken = await UserService.getGitHubToken(user.id)
-            if (storedToken) {
-              githubToken = storedToken
-            }
-          }
-        } catch (error) {
-          console.error('Error getting GitHub token from session:', error)
-        }
-      }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      githubToken = session?.provider_token || undefined
 
       if (!githubToken) {
         return res.status(401).json({
@@ -87,19 +76,19 @@ export default async function handler(
     if (backfill === 'true' && githubToken) {
       console.log(`🔄 Starting intelligent backfill process...`)
 
-      const repoIds = repos.map(repo => repo.id)
+      const repoIds = repos.map((repo) => repo.id)
       const backfillResult = await CommitService.backfillOlderCommits(
         userId,
         repos,
         githubToken,
-        startDate
+        startDate,
       )
 
       if (!backfillResult.success) {
         console.error(`❌ Backfill failed: ${backfillResult.error}`)
       } else {
         console.log(
-          `✅ Backfill completed: ${backfillResult.newCommits} new commits`
+          `✅ Backfill completed: ${backfillResult.newCommits} new commits`,
         )
       }
     }
@@ -113,7 +102,7 @@ export default async function handler(
           userId,
           repos,
           githubToken!,
-          monthsToFetch
+          monthsToFetch,
         )
 
         if (!syncResult.success) {
@@ -129,7 +118,7 @@ export default async function handler(
           repos,
           githubToken!,
           startDate,
-          endDate
+          endDate,
         )
 
         if (!syncResult.success) {
@@ -142,7 +131,7 @@ export default async function handler(
     }
 
     // Fetch commits from database
-    const repoIds = repos.map(repo => repo.id)
+    const repoIds = repos.map((repo) => repo.id)
     const actualStartDate = startDate || '2020-01-01'
     const actualEndDate = endDate || new Date().toISOString()
 
@@ -150,7 +139,7 @@ export default async function handler(
       userId,
       repoIds,
       actualStartDate,
-      actualEndDate
+      actualEndDate,
     )
 
     if (error) {
@@ -163,43 +152,42 @@ export default async function handler(
     // Check if we have commits for the requested start date
     const hasCommitsForRequestedRange = startDate
       ? commits.some(
-          commit => commit.date && new Date(commit.date) >= new Date(startDate!)
+          (commit) =>
+            commit.date && new Date(commit.date) >= new Date(startDate!),
         )
       : true
 
-    // Compute repository stats from already-fetched commits (avoids N+1 queries)
-    // Group commits by repoName for O(n) stats computation
-    const commitsByRepo = new Map<string, { count: number; dates: string[] }>()
+    // Get repository stats
+    const repoStats = await Promise.all(
+      repos.map(async (repo) => {
+        // Get commits for this specific repo to calculate stats
+        const { commits: repoCommits } = await CommitService.getCommits(
+          userId,
+          [repo.id],
+          actualStartDate,
+          actualEndDate,
+        )
 
-    for (const commit of commits) {
-      const repoName = commit.repoName
-      if (!repoName) continue
+        const commitCount = repoCommits.length
+        const latestCommitDate =
+          repoCommits.length > 0
+            ? repoCommits[0].commit?.author?.date || null
+            : null
+        const oldestCommitDate =
+          repoCommits.length > 0
+            ? repoCommits[repoCommits.length - 1].commit?.author?.date || null
+            : null
 
-      const existing = commitsByRepo.get(repoName) || { count: 0, dates: [] }
-      existing.count++
-      const commitDate = commit.commit?.author?.date
-      if (commitDate) {
-        existing.dates.push(commitDate)
-      }
-      commitsByRepo.set(repoName, existing)
-    }
-
-    // Build stats from the grouped data
-    const repoStats = repos.map(repo => {
-      const repoData = commitsByRepo.get(repo.name) || { count: 0, dates: [] }
-      const sortedDates = repoData.dates.sort(
-        (a, b) => new Date(b).getTime() - new Date(a).getTime()
-      )
-
-      return {
-        id: repo.id,
-        name: repo.name,
-        owner: repo.owner,
-        commitCount: repoData.count,
-        latestCommitDate: sortedDates[0] || null,
-        oldestCommitDate: sortedDates[sortedDates.length - 1] || null,
-      }
-    })
+        return {
+          id: repo.id,
+          name: repo.name,
+          owner: repo.owner,
+          commitCount,
+          latestCommitDate,
+          oldestCommitDate,
+        }
+      }),
+    )
 
     res.status(200).json({
       commits: commits,

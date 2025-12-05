@@ -65,7 +65,7 @@ export function CalendarEventComponent({
         'calendar-event px-2 py-1 rounded text-xs font-medium cursor-pointer transition-all hover:shadow-sm',
         'border-l-2 bg-opacity-10 hover:bg-opacity-20',
         computedEventClassName,
-        className
+        className,
       )}
       style={{
         borderLeftColor: eventColor,

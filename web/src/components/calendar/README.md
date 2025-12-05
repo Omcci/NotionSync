@@ -64,7 +64,7 @@ const events = [
   renderDay={(date, events, isCurrentMonth, isToday) => (
     <div className={`p-2 ${isToday ? 'bg-blue-50' : ''}`}>
       <span className="text-sm">{format(date, 'd')}</span>
-      {events.map(event => (
+      {events.map((event) => (
         <div key={event.id} className="mt-1 text-xs">
           {event.title}
         </div>
@@ -72,7 +72,7 @@ const events = [
     </div>
   )}
   // Custom header
-  renderHeader={title => (
+  renderHeader={(title) => (
     <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
       <h1 className="text-2xl font-bold">{title}</h1>
     </div>
@@ -92,7 +92,7 @@ const CalendarPage = () => {
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         events={events}
-        eventContent={arg => ({
+        eventContent={(arg) => ({
           html: `<div class="custom-event">...</div>`, // Hard to customize
         })}
       />
@@ -159,7 +159,7 @@ const eventClassName = (event: CalendarEvent) => {
 const dayClassName = (
   date: Date,
   isCurrentMonth: boolean,
-  isToday: boolean
+  isToday: boolean,
 ) => {
   if (isToday) return 'bg-blue-50 border-blue-200'
   if (!isCurrentMonth) return 'bg-gray-50 text-gray-400'

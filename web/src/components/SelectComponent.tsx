@@ -26,7 +26,7 @@ const SelectComponent = ({
   onChange,
   disabled,
 }: SelectComponentProps) => {
-  const selectedOption = options.find(option => option.value === value)
+  const selectedOption = options.find((option) => option.value === value)
 
   return (
     <Select defaultValue={value} onValueChange={onChange} disabled={disabled}>

@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { Input } from '../ui/input'
-import { FilterIcon } from '@/components/icons'
+import { FilterIcon } from '../../../public/icon/FilterIcon'
 import { Button } from '../ui/button'
 import { Filter } from './CommitLog'
 
@@ -29,7 +29,7 @@ const CommitLogFilters = ({
         placeholder="Search commits..."
         type="search"
         value={searchInput}
-        onChange={e => setSearchInput(e.target.value)}
+        onChange={(e) => setSearchInput(e.target.value)}
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -41,7 +41,7 @@ const CommitLogFilters = ({
         <DropdownMenuContent align="end" className="w-64">
           <DropdownMenuLabel>Filters</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {filters.map(filter => (
+          {filters.map((filter) => (
             <DropdownMenuCheckboxItem key={filter.name}>
               <filter.icon className="w-5 h-5 mr-1" />
               <span>{filter.name}</span>

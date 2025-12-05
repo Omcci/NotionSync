@@ -17,7 +17,7 @@ const COLORS = {
 
 const SnakeGame = () => {
   const [board, setBoard] = useState(
-    Array(BOARD_SIZE).fill(Array(BOARD_SIZE).fill(false))
+    Array(BOARD_SIZE).fill(Array(BOARD_SIZE).fill(false)),
   )
   const [snake, setSnake] = useState([{ x: 12, y: 8 }])
   const [direction, setDirection] = useState(CONTROLS.LEFT)
@@ -25,7 +25,7 @@ const SnakeGame = () => {
   const [isGameOver, setIsGameOver] = useState(false)
   const [score, setScore] = useState(0)
   const [highScore, setHighScore] = useState(
-    Number(localStorage.getItem('highScore')) || 0
+    Number(localStorage.getItem('highScore')) || 0,
   )
 
   const directionRef = useRef(direction)
@@ -82,7 +82,7 @@ const SnakeGame = () => {
         head.x >= BOARD_SIZE ||
         head.y < 0 ||
         head.y >= BOARD_SIZE ||
-        newSnake.some(part => part.x === head.x && part.y === head.y)
+        newSnake.some((part) => part.x === head.x && part.y === head.y)
       ) {
         setIsGameOver(true)
         return
@@ -124,7 +124,7 @@ const SnakeGame = () => {
               className="w-6 h-6"
               style={{
                 backgroundColor: snake.some(
-                  part => part.x === colIndex && part.y === rowIndex
+                  (part) => part.x === colIndex && part.y === rowIndex,
                 )
                   ? COLORS.HEAD
                   : fruit.x === colIndex && fruit.y === rowIndex
@@ -132,7 +132,7 @@ const SnakeGame = () => {
                     : COLORS.BOARD,
               }}
             />
-          ))
+          )),
         )}
       </div>
       {isGameOver && (

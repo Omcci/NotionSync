@@ -177,7 +177,7 @@ const StackingFeatures = forwardRef(
         </div>
       </section>
     )
-  }
+  },
 )
 
 StackingFeatures.displayName = 'StackingFeatures'

@@ -51,7 +51,7 @@ export class CacheService {
   static async getRepositories(
     userId: string,
     githubToken: string,
-    config: Partial<CacheConfig> = {}
+    config: Partial<CacheConfig> = {},
   ): Promise<CacheResult<DatabaseRepository[]>> {
     const finalConfig = { ...this.defaultConfig, ...config }
 
@@ -62,7 +62,7 @@ export class CacheService {
 
       const now = new Date()
       const cacheThreshold = new Date(
-        now.getTime() - finalConfig.repositoryCacheTime * 60 * 1000
+        now.getTime() - finalConfig.repositoryCacheTime * 60 * 1000,
       )
 
       // Check if we have any cached data at all
@@ -78,7 +78,7 @@ export class CacheService {
           lastUpdated:
             cachedRepos.length > 0
               ? Math.max(
-                  ...cachedRepos.map(r => new Date(r.updated_at).getTime())
+                  ...cachedRepos.map((r) => new Date(r.updated_at).getTime()),
                 ).toString()
               : new Date().toISOString(),
           isFresh: false, // Mark as not fresh since we're using old cache
@@ -88,7 +88,7 @@ export class CacheService {
       // Only fetch from GitHub if we have no data at all AND force refresh is requested
       if (!hasAnyCache && finalConfig.forceRefresh) {
         const githubRepos = await GitHubService.getUserRepos(githubToken)
-        const transformedRepos = githubRepos.map(repo => ({
+        const transformedRepos = githubRepos.map((repo) => ({
           id: repo.id.toString(),
           name: repo.name,
           owner: repo.full_name.split('/')[0],
@@ -104,7 +104,7 @@ export class CacheService {
         // Update cache
         const syncResult = await RepositoryService.syncRepositoriesFromGitHub(
           userId,
-          transformedRepos
+          transformedRepos,
         )
 
         return {
@@ -128,7 +128,7 @@ export class CacheService {
       // If we get here, we have cache but force refresh was requested
       // This should rarely happen since we're being conservative
       const githubRepos = await GitHubService.getUserRepos(githubToken)
-      const transformedRepos = githubRepos.map(repo => ({
+      const transformedRepos = githubRepos.map((repo) => ({
         id: repo.id.toString(),
         name: repo.name,
         owner: repo.full_name.split('/')[0],
@@ -144,7 +144,7 @@ export class CacheService {
       // Update cache
       const syncResult = await RepositoryService.syncRepositoriesFromGitHub(
         userId,
-        transformedRepos
+        transformedRepos,
       )
 
       return {
@@ -164,7 +164,7 @@ export class CacheService {
         lastUpdated:
           cachedRepos.length > 0
             ? Math.max(
-                ...cachedRepos.map(r => new Date(r.updated_at).getTime())
+                ...cachedRepos.map((r) => new Date(r.updated_at).getTime()),
               ).toString()
             : new Date().toISOString(),
         isFresh: false,
@@ -181,31 +181,31 @@ export class CacheService {
     githubToken: string,
     startDate: string,
     endDate: string,
-    config: Partial<CacheConfig> = {}
+    config: Partial<CacheConfig> = {},
   ): Promise<CacheResult<Commit[]>> {
     const finalConfig = { ...this.defaultConfig, ...config }
 
     console.log(
-      `🗄️  CacheService: Checking commits for ${repositories.length} repositories`
+      `🗄️  CacheService: Checking commits for ${repositories.length} repositories`,
     )
     console.log(`📅 Date range: ${startDate} to ${endDate}`)
     console.log(`⚙️  Cache config:`, finalConfig)
 
     try {
       // Check cached commits first
-      const repoIds = repositories.map(r => r.id)
+      const repoIds = repositories.map((r) => r.id)
       const { commits: cachedCommits } = await CommitService.getCommits(
         userId,
         repoIds,
         startDate,
-        endDate
+        endDate,
       )
 
       console.log(`💾 Found ${cachedCommits.length} cached commits`)
 
       const now = new Date()
       const cacheThreshold = new Date(
-        now.getTime() - finalConfig.commitCacheTime * 60 * 1000
+        now.getTime() - finalConfig.commitCacheTime * 60 * 1000,
       )
 
       console.log(`⏰ Cache threshold: ${cacheThreshold.toISOString()}`)
@@ -214,14 +214,16 @@ export class CacheService {
       const reposNeedingUpdate: DatabaseRepository[] = []
 
       for (const repo of repositories) {
-        const repoCommits = cachedCommits.filter(c => c.repoName === repo.name)
+        const repoCommits = cachedCommits.filter(
+          (c) => c.repoName === repo.name,
+        )
         const lastSync = repo.last_sync ? new Date(repo.last_sync) : new Date(0)
 
         console.log(`📂 Repository ${repo.name}:`)
         console.log(`  - Cached commits: ${repoCommits.length}`)
         console.log(`  - Last sync: ${lastSync.toISOString()}`)
         console.log(
-          `  - Needs update: ${repoCommits.length === 0 || lastSync < cacheThreshold || finalConfig.forceRefresh}`
+          `  - Needs update: ${repoCommits.length === 0 || lastSync < cacheThreshold || finalConfig.forceRefresh}`,
         )
 
         // Need update if:
@@ -230,7 +232,7 @@ export class CacheService {
         // We're being conservative - only update if explicitly requested
         if (finalConfig.forceRefresh) {
           console.log(
-            `  ✅ Adding ${repo.name} to update queue (force refresh)`
+            `  ✅ Adding ${repo.name} to update queue (force refresh)`,
           )
           reposNeedingUpdate.push(repo)
         } else {
@@ -239,13 +241,13 @@ export class CacheService {
       }
 
       console.log(
-        `🔄 Repositories needing update: ${reposNeedingUpdate.length}/${repositories.length}`
+        `🔄 Repositories needing update: ${reposNeedingUpdate.length}/${repositories.length}`,
       )
 
       // If no repos need updating, return cached data
       if (reposNeedingUpdate.length === 0) {
         console.log(
-          `✅ Returning cached data (${cachedCommits.length} commits)`
+          `✅ Returning cached data (${cachedCommits.length} commits)`,
         )
         return {
           data: cachedCommits,
@@ -253,7 +255,9 @@ export class CacheService {
           lastUpdated:
             repositories.length > 0
               ? Math.max(
-                  ...repositories.map(r => new Date(r.last_sync || 0).getTime())
+                  ...repositories.map((r) =>
+                    new Date(r.last_sync || 0).getTime(),
+                  ),
                 ).toString()
               : new Date().toISOString(),
           isFresh: false, // Mark as not fresh since we're using cache
@@ -265,7 +269,7 @@ export class CacheService {
       const updatedRepoIds: string[] = []
 
       console.log(
-        `🚀 Fetching fresh commits from GitHub for ${reposNeedingUpdate.length} repositories`
+        `🚀 Fetching fresh commits from GitHub for ${reposNeedingUpdate.length} repositories`,
       )
 
       for (const repo of reposNeedingUpdate) {
@@ -277,18 +281,18 @@ export class CacheService {
             [{ owner: repo.owner, name: repo.name }],
             5000, // Increased limit for better coverage
             startDate,
-            endDate
+            endDate,
           )
 
-          const repoCommits = commits.flatMap(result => result.commits)
+          const repoCommits = commits.flatMap((result) => result.commits)
           console.log(
-            `📥 Received ${repoCommits?.length || 0} commits for ${repo.name}`
+            `📥 Received ${repoCommits?.length || 0} commits for ${repo.name}`,
           )
 
           if (repoCommits && repoCommits.length > 0) {
             // Store in database
             console.log(
-              `💾 Storing ${repoCommits.length} commits for ${repo.name}`
+              `💾 Storing ${repoCommits.length} commits for ${repo.name}`,
             )
             await CommitService.storeCommits(repoCommits, userId, repo.id)
             freshCommits.push(...repoCommits)
@@ -299,12 +303,12 @@ export class CacheService {
           await RepositoryService.updateSyncStatus(
             repo.id,
             true,
-            new Date().toISOString()
+            new Date().toISOString(),
           )
         } catch (error) {
           console.error(
             `❌ Failed to fetch commits for ${repo.owner}/${repo.name}:`,
-            error
+            error,
           )
           // Continue with other repos
         }
@@ -317,7 +321,7 @@ export class CacheService {
         userId,
         repoIds,
         startDate,
-        endDate
+        endDate,
       )
 
       console.log(`📊 Final result: ${allCommits.length} total commits`)
@@ -331,16 +335,16 @@ export class CacheService {
     } catch (error) {
       console.error('❌ Error in getCommits:', error)
       // Fallback to cached data
-      const repoIds = repositories.map(r => r.id)
+      const repoIds = repositories.map((r) => r.id)
       const { commits: cachedCommits } = await CommitService.getCommits(
         userId,
         repoIds,
         startDate,
-        endDate
+        endDate,
       )
 
       console.log(
-        `🆘 Fallback: returning ${cachedCommits.length} cached commits`
+        `🆘 Fallback: returning ${cachedCommits.length} cached commits`,
       )
 
       return {
@@ -349,7 +353,9 @@ export class CacheService {
         lastUpdated:
           repositories.length > 0
             ? Math.max(
-                ...repositories.map(r => new Date(r.last_sync || 0).getTime())
+                ...repositories.map((r) =>
+                  new Date(r.last_sync || 0).getTime(),
+                ),
               ).toString()
             : new Date().toISOString(),
         isFresh: false,
@@ -367,7 +373,7 @@ export class CacheService {
     startDate: string,
     endDate: string,
     maxCommitsPerRepo: number = 5000,
-    config: Partial<CacheConfig> = {}
+    config: Partial<CacheConfig> = {},
   ): Promise<CacheResult<PaginationResult>> {
     const finalConfig = { ...this.defaultConfig, ...config }
 
@@ -378,26 +384,28 @@ export class CacheService {
 
     try {
       // Check cached commits first
-      const repoIds = repositories.map(r => r.id)
+      const repoIds = repositories.map((r) => r.id)
       const { commits: cachedCommits } = await CommitService.getCommits(
         userId,
         repoIds,
         startDate,
-        endDate
+        endDate,
       )
 
       console.log(`💾 Found ${cachedCommits.length} cached commits`)
 
       const now = new Date()
       const cacheThreshold = new Date(
-        now.getTime() - finalConfig.commitCacheTime * 60 * 1000
+        now.getTime() - finalConfig.commitCacheTime * 60 * 1000,
       )
 
       // Check if we need to fetch from GitHub
       const reposNeedingUpdate: DatabaseRepository[] = []
 
       for (const repo of repositories) {
-        const repoCommits = cachedCommits.filter(c => c.repoName === repo.name)
+        const repoCommits = cachedCommits.filter(
+          (c) => c.repoName === repo.name,
+        )
         const lastSync = repo.last_sync ? new Date(repo.last_sync) : new Date(0)
 
         if (
@@ -415,20 +423,20 @@ export class CacheService {
 
       if (reposNeedingUpdate.length > 0 || finalConfig.forceRefresh) {
         console.log(
-          `🚀 Fetching fresh commits from GitHub for ${reposNeedingUpdate.length} repositories`
+          `🚀 Fetching fresh commits from GitHub for ${reposNeedingUpdate.length} repositories`,
         )
         source = 'github'
 
         // Fetch with pagination
         const paginationResults = await fetchCommitsWithPagination(
           githubToken,
-          reposNeedingUpdate.map(repo => ({
+          reposNeedingUpdate.map((repo) => ({
             owner: repo.owner,
             name: repo.name,
           })),
           maxCommitsPerRepo,
           startDate,
-          endDate
+          endDate,
         )
 
         // Store fresh commits and update repository details
@@ -442,12 +450,12 @@ export class CacheService {
               await RepositoryService.updateSyncStatus(
                 repo.id,
                 true,
-                new Date().toISOString()
+                new Date().toISOString(),
               )
             } catch (error) {
               console.error(
                 `❌ Failed to store commits for ${repo.name}:`,
-                error
+                error,
               )
             }
           }
@@ -468,14 +476,14 @@ export class CacheService {
           userId,
           repoIds,
           startDate,
-          endDate
+          endDate,
         )
         allCommits = updatedCommits
       } else {
         // Use cached data and build repository details
         for (const repo of repositories) {
           const repoCommits = cachedCommits.filter(
-            c => c.repoName === repo.name
+            (c) => c.repoName === repo.name,
           )
           repositoryDetails.push({
             repository: `${repo.owner}/${repo.name}`,
@@ -487,7 +495,7 @@ export class CacheService {
       }
 
       const limitedRepositories = repositoryDetails.filter(
-        detail => detail.limited
+        (detail) => detail.limited,
       ).length
 
       const result: PaginationResult = {
@@ -500,7 +508,7 @@ export class CacheService {
       console.log(`📊 Pagination summary:`)
       console.log(`  - Total commits: ${allCommits.length}`)
       console.log(
-        `  - Limited repositories: ${limitedRepositories}/${repositories.length}`
+        `  - Limited repositories: ${limitedRepositories}/${repositories.length}`,
       )
 
       return {
@@ -513,16 +521,18 @@ export class CacheService {
       console.error('❌ Error in getCommitsWithPagination:', error)
 
       // Fallback to cached data
-      const repoIds = repositories.map(r => r.id)
+      const repoIds = repositories.map((r) => r.id)
       const { commits: cachedCommits } = await CommitService.getCommits(
         userId,
         repoIds,
         startDate,
-        endDate
+        endDate,
       )
 
-      const repositoryDetails = repositories.map(repo => {
-        const repoCommits = cachedCommits.filter(c => c.repoName === repo.name)
+      const repositoryDetails = repositories.map((repo) => {
+        const repoCommits = cachedCommits.filter(
+          (c) => c.repoName === repo.name,
+        )
         return {
           repository: `${repo.owner}/${repo.name}`,
           commits: repoCommits.length,
@@ -542,7 +552,9 @@ export class CacheService {
         lastUpdated:
           repositories.length > 0
             ? Math.max(
-                ...repositories.map(r => new Date(r.last_sync || 0).getTime())
+                ...repositories.map((r) =>
+                  new Date(r.last_sync || 0).getTime(),
+                ),
               ).toString()
             : new Date().toISOString(),
         isFresh: false,
@@ -557,7 +569,7 @@ export class CacheService {
     userId: string,
     githubToken: string,
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<{
     repositories: CacheResult<DatabaseRepository[]>
     commits: CacheResult<Commit[]>
@@ -574,7 +586,7 @@ export class CacheService {
       githubToken,
       startDate,
       endDate,
-      { forceRefresh: true }
+      { forceRefresh: true },
     )
 
     return { repositories, commits }
@@ -614,7 +626,7 @@ export class CacheService {
       const lastRepositorySync =
         repositories.length > 0
           ? Math.max(
-              ...repositories.map(r => new Date(r.updated_at).getTime())
+              ...repositories.map((r) => new Date(r.updated_at).getTime()),
             ).toString()
           : null
 

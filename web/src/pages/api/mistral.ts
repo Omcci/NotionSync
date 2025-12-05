@@ -1,13 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { Mistral } from '@mistralai/mistralai'
+import MistralClient from '@mistralai/mistralai'
 import { mistral_prompt, summary_prompt_multiple } from './prompt'
 
 const mistralToken = process.env.MISTRAL_TOKEN
-const client = new Mistral({ apiKey: mistralToken })
+const client = new MistralClient(mistralToken)
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -29,7 +29,7 @@ export default async function handler(
       prompt = summary_prompt_multiple(commits)
     }
 
-    const chatResponse = await client.chat.complete({
+    const chatResponse = await client.chat({
       model: 'codestral-latest',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,

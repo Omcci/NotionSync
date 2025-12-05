@@ -5,7 +5,7 @@ import { Repository, AllReposResponse } from '../../../../types/repository'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<AllReposResponse | { message: string; error?: string }>
+  res: NextApiResponse<AllReposResponse | { message: string; error?: string }>,
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -20,11 +20,29 @@ export default async function handler(
 
   try {
     // Fetch all repositories with pagination using GitHubService
-    // getUserRepos handles pagination internally
-    const allRepos = await GitHubService.getUserRepos(githubToken, 1, 100)
+    let allRepos: GitHubRepo[] = []
+    let page = 1
+    const perPage = 100
+
+    while (true) {
+      const repos = await GitHubService.getUserRepos(githubToken, page, perPage)
+
+      if (repos.length === 0) {
+        break
+      }
+
+      allRepos = [...allRepos, ...repos]
+
+      // If we got less than perPage results, we've reached the end
+      if (repos.length < perPage) {
+        break
+      }
+
+      page++
+    }
 
     // Transform the data
-    const transformedRepos: Repository[] = allRepos.map(repo => ({
+    const transformedRepos: Repository[] = allRepos.map((repo) => ({
       id: repo.id.toString(),
       name: repo.name,
       owner: repo.full_name.split('/')[0],
@@ -40,7 +58,7 @@ export default async function handler(
     // Sort by last updated (most recent first)
     transformedRepos.sort(
       (a, b) =>
-        new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+        new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
     )
 
     res.status(200).json({
@@ -49,14 +67,9 @@ export default async function handler(
     })
   } catch (error) {
     console.error('Error fetching all repositories:', error)
-    let errorMessage = 'Unknown error'
-    if (error instanceof Error) {
-      errorMessage = error.message
-    }
-    // For non-Error types (strings, objects, etc.), use "Unknown error"
     res.status(500).json({
       message: 'Failed to fetch repositories',
-      error: errorMessage,
+      error: error instanceof Error ? error.message : 'Unknown error',
     })
   }
 }

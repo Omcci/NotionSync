@@ -28,7 +28,7 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 10,
       gcTime: 1000 * 60 * 30,
       retry: 2,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   },
 })

@@ -23,7 +23,7 @@ interface SyncRequest {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' })
@@ -56,7 +56,7 @@ export default async function handler(
     }> = []
 
     // First, ensure all repositories exist in the database
-    const repositoriesToSync = repos.map(repo => ({
+    const repositoriesToSync = repos.map((repo) => ({
       id: repo.id || `${repo.owner}/${repo.name}`,
       name: repo.name,
       owner: repo.owner,
@@ -71,7 +71,7 @@ export default async function handler(
 
     const repoSyncResult = await RepositoryService.syncRepositoriesFromGitHub(
       userId,
-      repositoriesToSync
+      repositoriesToSync,
     )
 
     if (!repoSyncResult.success) {
@@ -89,7 +89,7 @@ export default async function handler(
       try {
         // Find the database repository ID
         const dbRepo = dbRepositories.find(
-          r => r.name === repo.name && r.owner === repo.owner
+          (r) => r.name === repo.name && r.owner === repo.owner,
         )
         if (!dbRepo) {
           syncResults.push({
@@ -106,7 +106,7 @@ export default async function handler(
           githubToken,
           [{ owner: repo.owner, name: repo.name }],
           startDate,
-          endDate
+          endDate,
         )
 
         if (!commits || commits.length === 0) {
@@ -122,7 +122,7 @@ export default async function handler(
         const storeResult = await CommitService.storeCommits(
           commits,
           userId,
-          dbRepo.id
+          dbRepo.id,
         )
 
         if (!storeResult.success) {
@@ -149,12 +149,12 @@ export default async function handler(
         await RepositoryService.updateSyncStatus(
           dbRepo.id,
           true,
-          new Date().toISOString()
+          new Date().toISOString(),
         )
       } catch (error) {
         console.error(
           `Error syncing commits for ${repo.owner}/${repo.name}:`,
-          error
+          error,
         )
         syncResults.push({
           repo: `${repo.owner}/${repo.name}`,
@@ -165,8 +165,8 @@ export default async function handler(
       }
     }
 
-    const successfulSyncs = syncResults.filter(r => r.success).length
-    const failedSyncs = syncResults.filter(r => !r.success).length
+    const successfulSyncs = syncResults.filter((r) => r.success).length
+    const failedSyncs = syncResults.filter((r) => !r.success).length
 
     res.status(200).json({
       success: true,

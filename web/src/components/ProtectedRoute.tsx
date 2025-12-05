@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import router, { useRouter } from 'next/router'
+import { supabase } from '../lib/supabaseClient'
 import { LoadingSpinner } from './ui/loadingspinner'
-import { Shield } from 'lucide-react'
-import { getCurrentUser } from '@/lib/auth'
+import { Shield, CheckCircle } from 'lucide-react'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -16,15 +16,18 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const currentUser = await getCurrentUser()
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser()
 
-        if (!currentUser) {
+        if (error || !user) {
           router.push(`/login?redirectTo=${encodeURIComponent(router.asPath)}`)
           return
         }
 
-        console.log('✅ User authenticated:', currentUser.email)
-        setUser(currentUser)
+        console.log('✅ User authenticated:', user.email)
+        setUser(user)
       } catch (err) {
         console.error('❌ Auth check error:', err)
         router.push(`/login?redirectTo=${encodeURIComponent(router.asPath)}`)

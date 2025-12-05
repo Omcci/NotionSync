@@ -66,7 +66,7 @@ const ConfigSettingsForm = () => {
         description: 'Configuration saved successfully',
       })
     },
-    onError: error => {
+    onError: (error) => {
       toast({
         title: 'Error',
         description: 'Failed to save configuration',

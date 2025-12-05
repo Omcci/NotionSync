@@ -30,7 +30,7 @@ export class SummaryService {
     date: string,
     summary: string,
     commitCount: number,
-    repoId?: string
+    repoId?: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const summaryData = {
@@ -69,7 +69,7 @@ export class SummaryService {
   static async getSummary(
     userId: string,
     date: string,
-    repoId?: string
+    repoId?: string,
   ): Promise<{ summary: CommitSummary | null; error?: string }> {
     try {
       let query = supabase
@@ -109,7 +109,7 @@ export class SummaryService {
     userId: string,
     startDate: string,
     endDate: string,
-    repoId?: string
+    repoId?: string,
   ): Promise<{ summaries: CommitSummary[]; error?: string }> {
     try {
       let query = supabase
@@ -147,7 +147,7 @@ export class SummaryService {
   static async deleteSummary(
     userId: string,
     date: string,
-    repoId?: string
+    repoId?: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       let query = supabase
@@ -183,14 +183,14 @@ export class SummaryService {
    * Generate and store summary using AI
    */
   static async generateAndStoreSummary(
-    request: SummaryRequest
+    request: SummaryRequest,
   ): Promise<{ success: boolean; summary?: string; error?: string }> {
     try {
       // Check if summary already exists
       const existingSummary = await this.getSummary(
         request.userId,
         request.date,
-        request.repoId
+        request.repoId,
       )
 
       if (existingSummary.summary) {
@@ -221,7 +221,7 @@ export class SummaryService {
         request.date,
         summary,
         request.commits.length,
-        request.repoId
+        request.repoId,
       )
 
       if (!storeResult.success) {

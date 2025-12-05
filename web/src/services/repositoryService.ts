@@ -1,4 +1,4 @@
-import { query } from '@/lib/db'
+import { supabase } from '@/lib/supabaseClient'
 import { DatabaseRepository } from '../../types/repository'
 
 export interface RepositoryCreateData {
@@ -19,56 +19,29 @@ export class RepositoryService {
    * Create or update repositories in the database
    */
   static async upsertRepositories(
-    repositories: RepositoryCreateData[]
+    repositories: RepositoryCreateData[],
   ): Promise<{
     success: boolean
     repositories?: DatabaseRepository[]
     error?: string
   }> {
     try {
-      // Use PostgreSQL's ON CONFLICT for upsert
-      const values = repositories.map(
-        (repo, index) =>
-          `($${index * 11 + 1}, $${index * 11 + 2}, $${index * 11 + 3}, $${index * 11 + 4}, $${index * 11 + 5}, $${index * 11 + 6}, $${index * 11 + 7}, $${index * 11 + 8}, $${index * 11 + 9}, $${index * 11 + 10}, $${index * 11 + 11})`
-      )
+      const { data, error } = await supabase
+        .from('repositories')
+        .upsert(repositories, {
+          onConflict: 'user_id,name,owner',
+          ignoreDuplicates: false,
+        })
+        .select()
 
-      const params: any[] = []
-      repositories.forEach(repo => {
-        params.push(
-          repo.user_id,
-          repo.name,
-          repo.owner,
-          repo.description || null,
-          repo.private,
-          repo.language || null,
-          repo.url,
-          repo.stars,
-          repo.forks,
-          repo.last_updated ? new Date(repo.last_updated) : null,
-          true // sync_enabled default
-        )
-      })
+      if (error) {
+        console.error('Error upserting repositories:', error)
+        return { success: false, error: error.message }
+      }
 
-      const result = await query<DatabaseRepository>(
-        `INSERT INTO repositories (user_id, name, owner, description, private, language, url, stars, forks, last_updated, sync_enabled)
-         VALUES ${values.join(', ')}
-         ON CONFLICT (user_id, name, owner) 
-         DO UPDATE SET
-           description = EXCLUDED.description,
-           private = EXCLUDED.private,
-           language = EXCLUDED.language,
-           url = EXCLUDED.url,
-           stars = EXCLUDED.stars,
-           forks = EXCLUDED.forks,
-           last_updated = EXCLUDED.last_updated,
-           updated_at = NOW()
-         RETURNING *`,
-        params
-      )
-
-      return { success: true, repositories: result.rows }
+      return { success: true, repositories: data || [] }
     } catch (error) {
-      console.error('Error upserting repositories:', error)
+      console.error('Error in upsertRepositories:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -80,17 +53,23 @@ export class RepositoryService {
    * Get repositories for a user
    */
   static async getUserRepositories(
-    userId: string
+    userId: string,
   ): Promise<{ repositories: DatabaseRepository[]; error?: string }> {
     try {
-      const result = await query<DatabaseRepository>(
-        'SELECT * FROM repositories WHERE user_id = $1 ORDER BY created_at DESC',
-        [userId]
-      )
+      const { data, error } = await supabase
+        .from('repositories')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
 
-      return { repositories: result.rows }
+      if (error) {
+        console.error('Error fetching user repositories:', error)
+        return { repositories: [], error: error.message }
+      }
+
+      return { repositories: data || [] }
     } catch (error) {
-      console.error('Error fetching user repositories:', error)
+      console.error('Error in getUserRepositories:', error)
       return {
         repositories: [],
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -104,21 +83,29 @@ export class RepositoryService {
   static async getRepository(
     userId: string,
     name: string,
-    owner: string
+    owner: string,
   ): Promise<{ repository?: DatabaseRepository; error?: string }> {
     try {
-      const result = await query<DatabaseRepository>(
-        'SELECT * FROM repositories WHERE user_id = $1 AND name = $2 AND owner = $3 LIMIT 1',
-        [userId, name, owner]
-      )
+      const { data, error } = await supabase
+        .from('repositories')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('name', name)
+        .eq('owner', owner)
+        .single()
 
-      if (result.rows.length === 0) {
-        return { repository: undefined }
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No rows returned
+          return { repository: undefined }
+        }
+        console.error('Error fetching repository:', error)
+        return { repository: undefined, error: error.message }
       }
 
-      return { repository: result.rows[0] }
+      return { repository: data }
     } catch (error) {
-      console.error('Error fetching repository:', error)
+      console.error('Error in getRepository:', error)
       return {
         repository: undefined,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -132,25 +119,27 @@ export class RepositoryService {
   static async updateSyncStatus(
     repositoryId: string,
     syncEnabled: boolean,
-    lastSync?: string
+    lastSync?: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const result = await query(
-        `UPDATE repositories 
-         SET sync_enabled = $1, ${lastSync ? 'last_sync = $3,' : ''} updated_at = NOW()
-         WHERE id = $2`,
-        lastSync
-          ? [syncEnabled, repositoryId, new Date(lastSync)]
-          : [syncEnabled, repositoryId]
-      )
+      const updateData: any = { sync_enabled: syncEnabled }
+      if (lastSync) {
+        updateData.last_sync = lastSync
+      }
 
-      if (result.rowCount === 0) {
-        return { success: false, error: 'Repository not found' }
+      const { error } = await supabase
+        .from('repositories')
+        .update(updateData)
+        .eq('id', repositoryId)
+
+      if (error) {
+        console.error('Error updating sync status:', error)
+        return { success: false, error: error.message }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error updating sync status:', error)
+      console.error('Error in updateSyncStatus:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -162,20 +151,22 @@ export class RepositoryService {
    * Delete a repository
    */
   static async deleteRepository(
-    repositoryId: string
+    repositoryId: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const result = await query('DELETE FROM repositories WHERE id = $1', [
-        repositoryId,
-      ])
+      const { error } = await supabase
+        .from('repositories')
+        .delete()
+        .eq('id', repositoryId)
 
-      if (result.rowCount === 0) {
-        return { success: false, error: 'Repository not found' }
+      if (error) {
+        console.error('Error deleting repository:', error)
+        return { success: false, error: error.message }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error deleting repository:', error)
+      console.error('Error in deleteRepository:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -199,7 +190,7 @@ export class RepositoryService {
       stars: number
       forks: number
       lastUpdated: string
-    }>
+    }>,
   ): Promise<{
     success: boolean
     repositories?: DatabaseRepository[]
@@ -207,7 +198,7 @@ export class RepositoryService {
   }> {
     try {
       const repositoryData: RepositoryCreateData[] = githubRepositories.map(
-        repo => ({
+        (repo) => ({
           user_id: userId,
           name: repo.name,
           owner: repo.owner,
@@ -218,7 +209,7 @@ export class RepositoryService {
           stars: repo.stars,
           forks: repo.forks,
           last_updated: repo.lastUpdated,
-        })
+        }),
       )
 
       return await this.upsertRepositories(repositoryData)
