@@ -7,12 +7,10 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Accept build arguments for environment variables
-ARG NEXT_PUBLIC_SUPABASE_URL
-ARG NEXT_PUBLIC_SUPABASE_KEY
+ARG NEXT_PUBLIC_GITHUB_CLIENT_ID
 
 # Set them as environment variables for the build process
-ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
-ENV NEXT_PUBLIC_SUPABASE_KEY=$NEXT_PUBLIC_SUPABASE_KEY
+ENV NEXT_PUBLIC_GITHUB_CLIENT_ID=$NEXT_PUBLIC_GITHUB_CLIENT_ID
 
 COPY --from=installer /app/node_modules ./node_modules
 COPY . .

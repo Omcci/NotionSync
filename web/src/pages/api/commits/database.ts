@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CommitService } from '@/services/commitService'
 import { RepositoryService } from '@/services/repositoryService'
-import { supabase } from '@/lib/supabaseClient'
+import { validateSession } from '@/lib/session'
+import { UserService } from '@/services/userService'
 
 interface DatabaseRequest {
   userId: string
@@ -43,10 +44,20 @@ export default async function handler(
 
     if (!githubToken) {
       // Fallback to session token
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      githubToken = session?.provider_token || undefined
+      const sessionToken = req.headers.authorization?.replace('Bearer ', '')
+      if (sessionToken) {
+        try {
+          const { user } = await validateSession(sessionToken)
+          if (user) {
+            const storedToken = await UserService.getGitHubToken(user.id)
+            if (storedToken) {
+              githubToken = storedToken
+            }
+          }
+        } catch (error) {
+          console.error('Error getting GitHub token from session:', error)
+        }
+      }
 
       if (!githubToken) {
         return res.status(401).json({

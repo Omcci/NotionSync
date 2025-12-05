@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseClient'
+import { query } from '@/lib/db'
 import { DatabaseRepository } from '../../types/repository'
 
 export interface RepositoryCreateData {
@@ -26,22 +26,49 @@ export class RepositoryService {
     error?: string
   }> {
     try {
-      const { data, error } = await supabase
-        .from('repositories')
-        .upsert(repositories, {
-          onConflict: 'user_id,name,owner',
-          ignoreDuplicates: false,
-        })
-        .select()
+      // Use PostgreSQL's ON CONFLICT for upsert
+      const values = repositories.map(
+        (repo, index) =>
+          `($${index * 11 + 1}, $${index * 11 + 2}, $${index * 11 + 3}, $${index * 11 + 4}, $${index * 11 + 5}, $${index * 11 + 6}, $${index * 11 + 7}, $${index * 11 + 8}, $${index * 11 + 9}, $${index * 11 + 10}, $${index * 11 + 11})`
+      )
 
-      if (error) {
-        console.error('Error upserting repositories:', error)
-        return { success: false, error: error.message }
-      }
+      const params: any[] = []
+      repositories.forEach(repo => {
+        params.push(
+          repo.user_id,
+          repo.name,
+          repo.owner,
+          repo.description || null,
+          repo.private,
+          repo.language || null,
+          repo.url,
+          repo.stars,
+          repo.forks,
+          repo.last_updated ? new Date(repo.last_updated) : null,
+          true // sync_enabled default
+        )
+      })
 
-      return { success: true, repositories: data || [] }
+      const result = await query<DatabaseRepository>(
+        `INSERT INTO repositories (user_id, name, owner, description, private, language, url, stars, forks, last_updated, sync_enabled)
+         VALUES ${values.join(', ')}
+         ON CONFLICT (user_id, name, owner) 
+         DO UPDATE SET
+           description = EXCLUDED.description,
+           private = EXCLUDED.private,
+           language = EXCLUDED.language,
+           url = EXCLUDED.url,
+           stars = EXCLUDED.stars,
+           forks = EXCLUDED.forks,
+           last_updated = EXCLUDED.last_updated,
+           updated_at = NOW()
+         RETURNING *`,
+        params
+      )
+
+      return { success: true, repositories: result.rows }
     } catch (error) {
-      console.error('Error in upsertRepositories:', error)
+      console.error('Error upserting repositories:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -56,20 +83,14 @@ export class RepositoryService {
     userId: string
   ): Promise<{ repositories: DatabaseRepository[]; error?: string }> {
     try {
-      const { data, error } = await supabase
-        .from('repositories')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+      const result = await query<DatabaseRepository>(
+        'SELECT * FROM repositories WHERE user_id = $1 ORDER BY created_at DESC',
+        [userId]
+      )
 
-      if (error) {
-        console.error('Error fetching user repositories:', error)
-        return { repositories: [], error: error.message }
-      }
-
-      return { repositories: data || [] }
+      return { repositories: result.rows }
     } catch (error) {
-      console.error('Error in getUserRepositories:', error)
+      console.error('Error fetching user repositories:', error)
       return {
         repositories: [],
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -86,26 +107,18 @@ export class RepositoryService {
     owner: string
   ): Promise<{ repository?: DatabaseRepository; error?: string }> {
     try {
-      const { data, error } = await supabase
-        .from('repositories')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('name', name)
-        .eq('owner', owner)
-        .single()
+      const result = await query<DatabaseRepository>(
+        'SELECT * FROM repositories WHERE user_id = $1 AND name = $2 AND owner = $3 LIMIT 1',
+        [userId, name, owner]
+      )
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No rows returned
-          return { repository: undefined }
-        }
-        console.error('Error fetching repository:', error)
-        return { repository: undefined, error: error.message }
+      if (result.rows.length === 0) {
+        return { repository: undefined }
       }
 
-      return { repository: data }
+      return { repository: result.rows[0] }
     } catch (error) {
-      console.error('Error in getRepository:', error)
+      console.error('Error fetching repository:', error)
       return {
         repository: undefined,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -122,24 +135,22 @@ export class RepositoryService {
     lastSync?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const updateData: any = { sync_enabled: syncEnabled }
-      if (lastSync) {
-        updateData.last_sync = lastSync
-      }
+      const result = await query(
+        `UPDATE repositories 
+         SET sync_enabled = $1, ${lastSync ? 'last_sync = $3,' : ''} updated_at = NOW()
+         WHERE id = $2`,
+        lastSync
+          ? [syncEnabled, repositoryId, new Date(lastSync)]
+          : [syncEnabled, repositoryId]
+      )
 
-      const { error } = await supabase
-        .from('repositories')
-        .update(updateData)
-        .eq('id', repositoryId)
-
-      if (error) {
-        console.error('Error updating sync status:', error)
-        return { success: false, error: error.message }
+      if (result.rowCount === 0) {
+        return { success: false, error: 'Repository not found' }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error in updateSyncStatus:', error)
+      console.error('Error updating sync status:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -154,19 +165,17 @@ export class RepositoryService {
     repositoryId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase
-        .from('repositories')
-        .delete()
-        .eq('id', repositoryId)
+      const result = await query('DELETE FROM repositories WHERE id = $1', [
+        repositoryId,
+      ])
 
-      if (error) {
-        console.error('Error deleting repository:', error)
-        return { success: false, error: error.message }
+      if (result.rowCount === 0) {
+        return { success: false, error: 'Repository not found' }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error in deleteRepository:', error)
+      console.error('Error deleting repository:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',

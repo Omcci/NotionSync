@@ -36,8 +36,7 @@ jobs:
           cache-from: type=registry,ref=omci/notionsync:buildcache-prod
           cache-to: type=registry,ref=omci/notionsync:buildcache-prod,mode=max
           build-args: |
-            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-            NEXT_PUBLIC_SUPABASE_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_KEY }}
+            NEXT_PUBLIC_GITHUB_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
 
       - name: Invoke deployment hook
         if: success()
