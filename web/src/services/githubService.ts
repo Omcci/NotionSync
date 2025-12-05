@@ -66,14 +66,9 @@ export class GitHubService {
           // Handle rate limiting specifically
           if (response.status === 403) {
             const errorTextLower = errorText.toLowerCase()
-            if (
-              errorTextLower.includes('rate limit') ||
-              errorTextLower.includes('api rate limit')
-            ) {
+            if (errorTextLower.includes('rate limit') || errorTextLower.includes('api rate limit')) {
               const retryAfterHeader = response.headers.get('retry-after')
-              const retryAfter = retryAfterHeader
-                ? parseInt(retryAfterHeader, 10)
-                : 3600
+              const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 3600
               throw new GitHubRateLimitError(retryAfter)
             }
           }
@@ -85,7 +80,7 @@ export class GitHubService {
         }
 
         const repos = await response.json()
-
+        
         if (!Array.isArray(repos)) {
           break // Invalid response
         }
@@ -133,10 +128,7 @@ export class GitHubService {
       if (response.status === 401) {
         throw new GitHubAuthError()
       }
-      throw new GitHubAPIError(
-        `GitHub API error: ${response.status}`,
-        response.status
-      )
+      throw new GitHubAPIError(`GitHub API error: ${response.status}`, response.status)
     }
 
     return response.json()

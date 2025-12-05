@@ -54,9 +54,7 @@ describe('/api/repos', () => {
         },
       ]
 
-      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(
-        mockRepos
-      )
+      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(mockRepos)
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -86,9 +84,7 @@ describe('/api/repos', () => {
         },
       ]
 
-      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(
-        mockRepos
-      )
+      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(mockRepos)
 
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
 
@@ -131,9 +127,8 @@ describe('/api/repos', () => {
     it('returns 429 for rate limited requests', async () => {
       const rateLimitError = new Error('Rate limit exceeded')
       ;(rateLimitError as any).rateLimited = true
-      ;(GitHubService.getUserRepos as jest.Mock).mockRejectedValueOnce(
-        rateLimitError
-      )
+
+      ;(GitHubService.getUserRepos as jest.Mock).mockRejectedValueOnce(rateLimitError)
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -182,9 +177,7 @@ describe('/api/repos', () => {
         },
       ]
 
-      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(
-        mockRepos
-      )
+      ;(GitHubService.getUserRepos as jest.Mock).mockResolvedValueOnce(mockRepos)
 
       const result = await fetchUserRepos('test-token')
 
@@ -203,3 +196,4 @@ describe('/api/repos', () => {
     })
   })
 })
+

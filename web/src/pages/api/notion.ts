@@ -1,10 +1,10 @@
 import { Client } from '@notionhq/client'
 import { mistral_prompt } from './prompt'
-import MistralClient from '@mistralai/mistralai'
+import { Mistral } from '@mistralai/mistralai'
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN })
 const mistralToken = process.env.MISTRAL_TOKEN
-const client = new MistralClient(mistralToken)
+const client = new Mistral({ apiKey: mistralToken })
 
 export const addCommitToNotion = async (
   commit: string,
@@ -147,7 +147,7 @@ const summarizeCommitWithMistral = async (
   const prompt = mistral_prompt(commitMessage, filteredDiff)
 
   try {
-    const chatResponse = await client.chat({
+    const chatResponse = await client.chat.complete({
       model: 'mistral-small-latest',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
@@ -158,6 +158,9 @@ const summarizeCommitWithMistral = async (
 
     if (chatResponse.choices && chatResponse.choices.length > 0) {
       const summary = chatResponse.choices[0].message.content
+      if (!summary) {
+        return 'No summary available'
+      }
       const tokenCount = Math.ceil(summary.length / 3)
       return `${summary}\n\nToken count: ${tokenCount}`
     } else {

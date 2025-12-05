@@ -14,12 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/Omcci/NotionSync.git"
   },
-  "keywords": [
-    "notion",
-    "github",
-    "sync",
-    "commits"
-  ],
+  "keywords": ["notion", "github", "sync", "commits"],
   "author": "",
   "license": "ISC",
   "bugs": {
