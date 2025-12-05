@@ -133,10 +133,12 @@ export class CommitService {
 
       sql += ` ORDER BY c.date DESC LIMIT 50000` // Large limit, but reasonable
 
-      const result = await query<DatabaseCommit & {
-        repo_name: string
-        repo_owner: string
-      }>(sql, params)
+      const result = await query<
+        DatabaseCommit & {
+          repo_name: string
+          repo_owner: string
+        }
+      >(sql, params)
 
       // Transform database commits back to Commit format
       const commits: Commit[] = result.rows.map((dbCommit: any) => ({
