@@ -321,5 +321,3 @@ export function UserIcon({
     </svg>
   )
 }
-
-

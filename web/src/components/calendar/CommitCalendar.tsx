@@ -6,17 +6,17 @@ import { Card, CardContent } from '@/components/ui/card'
 
 // Memoized color mapping to avoid repeated string checks
 const COMMIT_COLORS = {
-  fix: '#ef4444',     // Red
-  bug: '#ef4444',     // Red  
-  feat: '#10b981',    // Emerald
-  add: '#10b981',     // Emerald
-  docs: '#f59e0b',    // Amber
-  readme: '#f59e0b',  // Amber
-  refactor: '#8b5cf6',// Violet
-  clean: '#8b5cf6',   // Violet
-  test: '#06b6d4',    // Cyan
-  style: '#ec4899',   // Pink
-  ui: '#ec4899',      // Pink
+  fix: '#ef4444', // Red
+  bug: '#ef4444', // Red
+  feat: '#10b981', // Emerald
+  add: '#10b981', // Emerald
+  docs: '#f59e0b', // Amber
+  readme: '#f59e0b', // Amber
+  refactor: '#8b5cf6', // Violet
+  clean: '#8b5cf6', // Violet
+  test: '#06b6d4', // Cyan
+  style: '#ec4899', // Pink
+  ui: '#ec4899', // Pink
   default: '#6366f1', // Indigo
 } as const
 
@@ -110,23 +110,26 @@ export function CommitCalendar({
         const commitCount = repoCommits.length
         const firstCommit = repoCommits[0]
         const message = firstCommit.commit?.message || ''
-        
+
         // Use optimized color function
         const color = getCommitColor(message)
 
         // Create title with conditional logic
         let title: string
         if (selectedRepo) {
-          title = commitCount === 1
-            ? (message.length > 40 ? `${message.substring(0, 40)}...` : message)
-            : `${commitCount} commits`
+          title =
+            commitCount === 1
+              ? message.length > 40
+                ? `${message.substring(0, 40)}...`
+                : message
+              : `${commitCount} commits`
         } else {
-          const truncatedRepo = repoName.length > 20 
-            ? `${repoName.substring(0, 20)}...` 
-            : repoName
-          title = commitCount === 1
-            ? `${truncatedRepo}: ${message.length > 25 ? `${message.substring(0, 25)}...` : message}`
-            : `${truncatedRepo}: ${commitCount} commits`
+          const truncatedRepo =
+            repoName.length > 20 ? `${repoName.substring(0, 20)}...` : repoName
+          title =
+            commitCount === 1
+              ? `${truncatedRepo}: ${message.length > 25 ? `${message.substring(0, 25)}...` : message}`
+              : `${truncatedRepo}: ${commitCount} commits`
         }
 
         calendarEvents.push({
