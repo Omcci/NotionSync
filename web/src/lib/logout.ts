@@ -19,7 +19,7 @@ export const signOut = async (): Promise<Error | null> => {
             body: JSON.stringify({ token: sessionToken }),
           })
         } catch (error) {
-          console.error('Error deleting session:', error)
+          // Ignore errors - continue with local logout
         }
 
         // Clear local storage
@@ -30,7 +30,6 @@ export const signOut = async (): Promise<Error | null> => {
 
     return null
   } catch (error) {
-    console.error('Error signing out:', error)
     return error instanceof Error ? error : new Error('Failed to sign out')
   }
 }

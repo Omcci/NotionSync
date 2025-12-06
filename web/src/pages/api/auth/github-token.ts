@@ -40,7 +40,6 @@ export default async function handler(
 
     return res.status(200).json({ token: githubToken })
   } catch (error) {
-    console.error('Error getting GitHub token:', error)
     return res.status(500).json({
       message: 'Internal server error',
       error: error instanceof Error ? error.message : 'Unknown error',

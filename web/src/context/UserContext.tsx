@@ -1,133 +1,205 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
-import { User } from '@supabase/supabase-js'
-import { useQuery } from '@tanstack/react-query'
-import { signOut } from '@/lib/logout'
-import { UserService } from '@/services/userService'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { SupabaseUser } from '../../types/user'
 import { UserContextType } from '../../types/context'
+
+// Define a simplified user type for our session-based auth
+interface SessionUser {
+  id: string
+  email: string | null
+  github_username: string | null
+  full_name: string | null
+  avatar_url: string | null
+}
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<SessionUser | null>(null)
   const [githubToken, setGithubToken] = useState<string | null>(null)
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<
     boolean | null
   >(null)
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
+  const queryClient = useQueryClient()
 
-  const { data, isLoading } = useQuery({
+  // Get session token from localStorage
+  const getSessionToken = (): string | null => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('session_token')
+  }
+
+  // Fetch session from API
+  const { data: sessionData, isLoading } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
-      const { data } = await supabase.auth.getSession()
-      return data?.session
+      const token = getSessionToken()
+      if (!token) {
+        return null
+      }
+
+      try {
+        const response = await fetch('/api/auth/session', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          // Session invalid, clear it
+          localStorage.removeItem('session_token')
+          return null
+        }
+
+        const data = await response.json()
+        return data
+      } catch (error) {
+        localStorage.removeItem('session_token')
+        return null
+      }
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: false,
+  })
+
+  // Fetch GitHub token when we have a valid session
+  const { data: githubTokenData } = useQuery({
+    queryKey: ['github-token', sessionData?.user?.id],
+    queryFn: async () => {
+      const token = getSessionToken()
+      if (!token || !sessionData?.user) {
+        return null
+      }
+
+      try {
+        const response = await fetch('/api/auth/github-token', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          return null
+        }
+
+        const data = await response.json()
+        return data.token
+      } catch (error) {
+        return null
+      }
+    },
+    enabled: !!sessionData?.user,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: false,
   })
 
   const markOnboardingComplete = async () => {
     if (!user) return
     try {
-      await UserService.markOnboardingComplete(user.id)
-      setHasCompletedOnboarding(true)
-      if (supabaseUser) {
-        setSupabaseUser({ ...supabaseUser, onboarding_completed: true })
+      const token = getSessionToken()
+      if (!token) return
+
+      // Call API to mark onboarding complete
+      const response = await fetch('/api/user/onboarding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ completed: true }),
+      })
+
+      if (response.ok) {
+        setHasCompletedOnboarding(true)
+        if (supabaseUser) {
+          setSupabaseUser({ ...supabaseUser, onboarding_completed: true })
+        }
+        localStorage.setItem('onboarding_completed', 'true')
       }
-      localStorage.setItem('onboarding_completed', 'true')
     } catch (error) {
-      console.error('Error marking onboarding complete:', error)
+      // Silently fail, onboarding status is not critical
     }
   }
 
+  // Update state when session data changes
   useEffect(() => {
-    const handleUserSession = async () => {
-      if (data) {
-        setUser(data.user)
-        // Get GitHub token with priority: session > database
-        let githubToken = null
-        let shouldStoreToken = false
-        // Check for fresh token from OAuth session
-        if (data.provider_token) {
-          githubToken = data.provider_token
-          shouldStoreToken = true
-        } else if (data.user?.user_metadata?.provider_token) {
-          githubToken = data.user.user_metadata.provider_token
-          shouldStoreToken = true
-        } else if (data.user?.app_metadata?.provider_token) {
-          githubToken = data.user.app_metadata.provider_token
-          shouldStoreToken = true
-        }
-        // Fallback to database token if no session token
-        if (!githubToken && data.user) {
-          try {
-            const storedToken = await UserService.getGitHubToken(data.user.id)
-            if (storedToken) {
-              githubToken = storedToken
-            }
-          } catch (error) {
-            console.error('Error getting GitHub token:', error)
-          }
-        }
-        // Store fresh token in database
-        if (githubToken && shouldStoreToken && data.user) {
-          try {
-            await UserService.storeGitHubToken(
-              data.user.id,
-              githubToken,
-              data.provider_refresh_token || undefined
-            )
-          } catch (error) {
-            console.error('Error storing GitHub token:', error)
-          }
-        }
-        setGithubToken(githubToken)
-        // Sync user with database
-        if (data.user) {
-          try {
-            const syncedUser = await UserService.syncUserWithDatabase(data.user)
-            setSupabaseUser(syncedUser)
-            setHasCompletedOnboarding(syncedUser.onboarding_completed)
-          } catch (error) {
-            // Fallback: check onboarding status directly
-            try {
-              const onboardingStatus = await UserService.getOnboardingStatus(
-                data.user.id
-              )
-              setHasCompletedOnboarding(onboardingStatus)
-            } catch (fallbackError) {
-              setHasCompletedOnboarding(false)
-            }
-          }
-        }
-      } else {
-        setUser(null)
-        setGithubToken(null)
-        setHasCompletedOnboarding(null)
-        setSupabaseUser(null)
-      }
+    if (sessionData?.user) {
+      const userData = sessionData.user
+      setUser({
+        id: userData.id,
+        email: userData.email,
+        github_username: userData.github_username,
+        full_name: userData.full_name,
+        avatar_url: userData.avatar_url,
+      })
+
+      // Set supabaseUser for compatibility
+      setSupabaseUser({
+        id: userData.id,
+        email: userData.email,
+        github_username: userData.github_username,
+        full_name: userData.full_name,
+        avatar_url: userData.avatar_url,
+        created_at: userData.created_at || new Date().toISOString(),
+        updated_at: userData.updated_at || new Date().toISOString(),
+        isPremium: userData.isPremium || false,
+        onboarding_completed: userData.onboarding_completed || false,
+        github_token: null, // Don't expose in context
+        github_refresh_token: null,
+        github_token_updated_at: null,
+      })
+
+      setHasCompletedOnboarding(userData.onboarding_completed || false)
+    } else {
+      setUser(null)
+      setSupabaseUser(null)
+      setHasCompletedOnboarding(null)
     }
-    handleUserSession()
-  }, [data])
+  }, [sessionData])
+
+  // Update GitHub token when it changes
+  useEffect(() => {
+    setGithubToken(githubTokenData || null)
+  }, [githubTokenData])
 
   const signOutUser = async () => {
-    // Clear stored GitHub token on logout
-    if (user) {
-      try {
-        await UserService.clearGitHubToken(user.id)
-      } catch (error) {
-        console.error('Error clearing GitHub token:', error)
+    try {
+      const token = getSessionToken()
+      if (token) {
+        // Call logout API
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
       }
+    } catch (error) {
+      // Continue with local logout even if API fails
     }
 
-    const error = await signOut()
-    if (!error) {
-      setUser(null)
-      setGithubToken(null)
-      setHasCompletedOnboarding(null)
-      setSupabaseUser(null)
+    // Clear local state
+    localStorage.removeItem('session_token')
+    localStorage.removeItem('onboarding_completed')
+    setUser(null)
+    setGithubToken(null)
+    setHasCompletedOnboarding(null)
+    setSupabaseUser(null)
+
+    // Invalidate queries
+    queryClient.invalidateQueries({ queryKey: ['session'] })
+    queryClient.invalidateQueries({ queryKey: ['github-token'] })
+
+    // Redirect to home
+    if (typeof window !== 'undefined') {
+      window.location.href = '/'
     }
   }
 

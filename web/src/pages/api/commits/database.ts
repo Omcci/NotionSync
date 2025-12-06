@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CommitService } from '@/services/commitService'
 import { RepositoryService } from '@/services/repositoryService'
-import { supabase } from '@/lib/supabaseClient'
+import { validateSession } from '@/lib/session'
+import { UserService } from '@/services/userService'
 
 interface DatabaseRequest {
   userId: string
@@ -39,24 +40,37 @@ export default async function handler(
   let githubToken: string | undefined = undefined
 
   if (sync === 'true' || backfill === 'true') {
-    githubToken = req.headers.authorization?.replace('Bearer ', '') || undefined
+    // First, try to get token from Authorization header
+    const authHeader = req.headers.authorization
+    const sessionToken = authHeader?.replace('Bearer ', '')
+
+    if (sessionToken) {
+      // Validate session and get GitHub token
+      try {
+        const { user } = await validateSession(sessionToken)
+        if (user) {
+          const token = await UserService.getGitHubToken(user.id)
+          githubToken = token || undefined
+        }
+      } catch (error) {
+        // Session validation failed, continue to check if token was passed directly
+      }
+    }
+
+    // If no token from session, check if it was passed directly as a token
+    if (!githubToken && authHeader) {
+      // Token might be passed directly (for backward compatibility)
+      githubToken = authHeader.replace('Bearer ', '')
+    }
 
     if (!githubToken) {
-      // Fallback to session token
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      githubToken = session?.provider_token || undefined
-
-      if (!githubToken) {
-        return res.status(401).json({
-          message: 'GitHub token not found',
-          error:
-            'No GitHub access token available. Please re-authenticate with GitHub.',
-          authRequired: true,
-          redirectTo: '/login',
-        })
-      }
+      return res.status(401).json({
+        message: 'GitHub token not found',
+        error:
+          'No GitHub access token available. Please re-authenticate with GitHub.',
+        authRequired: true,
+        redirectTo: '/login',
+      })
     }
   }
 
@@ -74,8 +88,6 @@ export default async function handler(
 
     // Check if we need to backfill older commits
     if (backfill === 'true' && githubToken) {
-      console.log(`🔄 Starting intelligent backfill process...`)
-
       const repoIds = repos.map(repo => repo.id)
       const backfillResult = await CommitService.backfillOlderCommits(
         userId,
@@ -85,11 +97,7 @@ export default async function handler(
       )
 
       if (!backfillResult.success) {
-        console.error(`❌ Backfill failed: ${backfillResult.error}`)
-      } else {
-        console.log(
-          `✅ Backfill completed: ${backfillResult.newCommits} new commits`
-        )
+        // Backfill failed, but continue with existing commits
       }
     }
 
@@ -205,8 +213,6 @@ export default async function handler(
       },
     })
   } catch (error) {
-    console.error('❌ Database API error:', error)
-
     // Handle rate limit errors specifically
     if (error instanceof Error && error.message.includes('rate limit')) {
       return res.status(429).json({

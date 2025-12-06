@@ -60,7 +60,6 @@ const AuthCallback = () => {
             // Redirect to dashboard
             router.push('/dashboardv0')
           } catch (verifyError) {
-            console.error('Session verification error:', verifyError)
             setError('Failed to verify session. Please try logging in again.')
             setStatus('Authentication failed')
           }
@@ -72,7 +71,6 @@ const AuthCallback = () => {
           setStatus('Authentication failed')
         }
       } catch (error) {
-        console.error('Auth callback error:', error)
         setError(
           error instanceof Error ? error.message : 'Authentication failed'
         )

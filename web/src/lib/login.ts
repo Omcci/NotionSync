@@ -14,7 +14,6 @@ const signInWithGitHub = async (forceReauth: boolean = false) => {
 
     return { data: { url }, error: null }
   } catch (error) {
-    console.error('Error initiating GitHub OAuth:', error)
     return {
       error:
         error instanceof Error

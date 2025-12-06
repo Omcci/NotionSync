@@ -28,10 +28,10 @@ const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
 
   const handleLogin = async () => {
     try {
-      const result = await signInWithGitHub()
+      await signInWithGitHub()
       onComplete?.()
     } catch (error) {
-      console.error('GitHub auth error:', error)
+      // Auth redirect will handle error display
     }
   }
 

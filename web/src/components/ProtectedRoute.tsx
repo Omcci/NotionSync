@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import router, { useRouter } from 'next/router'
-import { supabase } from '../lib/supabaseClient'
 import { LoadingSpinner } from './ui/loadingspinner'
-import { Shield, CheckCircle } from 'lucide-react'
+import { Shield } from 'lucide-react'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -16,20 +15,46 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser()
+        // Get session token from localStorage
+        const sessionToken =
+          typeof window !== 'undefined'
+            ? localStorage.getItem('session_token')
+            : null
 
-        if (error || !user) {
+        if (!sessionToken) {
           router.push(`/login?redirectTo=${encodeURIComponent(router.asPath)}`)
           return
         }
 
-        console.log('✅ User authenticated:', user.email)
-        setUser(user)
+        // Validate session with API
+        const response = await fetch('/api/auth/session', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionToken}`,
+          },
+        })
+
+        if (!response.ok) {
+          // Session invalid, clear it and redirect
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('session_token')
+          }
+          router.push(`/login?redirectTo=${encodeURIComponent(router.asPath)}`)
+          return
+        }
+
+        const data = await response.json()
+        if (data.user) {
+          setUser(data.user)
+        } else {
+          router.push(`/login?redirectTo=${encodeURIComponent(router.asPath)}`)
+        }
       } catch (err) {
-        console.error('❌ Auth check error:', err)
+        // On error, clear session and redirect
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('session_token')
+        }
         router.push(`/login?redirectTo=${encodeURIComponent(router.asPath)}`)
       } finally {
         setLoading(false)

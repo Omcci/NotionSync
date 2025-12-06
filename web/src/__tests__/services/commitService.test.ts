@@ -121,28 +121,19 @@ describe('CommitService', () => {
         },
       ]
 
-      const mockChain = {
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        in: jest.fn().mockReturnThis(),
-        gte: jest.fn().mockReturnThis(),
-        lte: jest.fn().mockReturnThis(),
-        order: jest.fn().mockReturnThis(),
-        range: jest.fn().mockResolvedValue({ data: mockCommits, error: null }),
-      }
-
-      // Create a chain object that properly chains methods
+      // Create a thenable chain object that properly chains methods
+      // The chain itself must be awaitable since code does: await query
       const createChain = () => {
-        const chain: any = {}
+        const chain: any = {
+          then: (resolve: any) => resolve({ data: mockCommits, error: null }),
+        }
         chain.select = jest.fn(() => chain)
         chain.eq = jest.fn(() => chain)
         chain.in = jest.fn(() => chain)
         chain.gte = jest.fn(() => chain)
         chain.lte = jest.fn(() => chain)
         chain.order = jest.fn(() => chain)
-        chain.range = jest.fn(() =>
-          Promise.resolve({ data: mockCommits, error: null })
-        )
+        chain.range = jest.fn(() => chain)
         return chain
       }
 
@@ -178,18 +169,18 @@ describe('CommitService', () => {
         repositories: { name: 'repo1' },
       }))
 
-      // Create a factory function that returns a new chain for each page
+      // Create a factory function that returns a thenable chain for each page
       const createMockChain = (pageData: any[]) => {
-        const chain: any = {}
+        const chain: any = {
+          then: (resolve: any) => resolve({ data: pageData, error: null }),
+        }
         chain.select = jest.fn(() => chain)
         chain.eq = jest.fn(() => chain)
         chain.in = jest.fn(() => chain)
         chain.gte = jest.fn(() => chain)
         chain.lte = jest.fn(() => chain)
         chain.order = jest.fn(() => chain)
-        chain.range = jest.fn(() =>
-          Promise.resolve({ data: pageData, error: null })
-        )
+        chain.range = jest.fn(() => chain)
         return chain
       }
 
@@ -212,18 +203,16 @@ describe('CommitService', () => {
     it('returns error when fetch fails', async () => {
       // When repoIds is empty, .in() is not called, so the chain is different
       const createErrorChain = () => {
-        const chain: any = {}
+        const chain: any = {
+          then: (resolve: any) =>
+            resolve({ data: null, error: { message: 'Fetch error' } }),
+        }
         chain.select = jest.fn(() => chain)
         chain.eq = jest.fn(() => chain)
         chain.gte = jest.fn(() => chain)
         chain.lte = jest.fn(() => chain)
         chain.order = jest.fn(() => chain)
-        chain.range = jest.fn(() =>
-          Promise.resolve({
-            data: null,
-            error: { message: 'Fetch error' },
-          })
-        )
+        chain.range = jest.fn(() => chain)
         return chain
       }
 
@@ -255,16 +244,16 @@ describe('CommitService', () => {
       ]
 
       const createFilterChain = () => {
-        const chain: any = {}
+        const chain: any = {
+          then: (resolve: any) => resolve({ data: mockCommits, error: null }),
+        }
         chain.select = jest.fn(() => chain)
         chain.eq = jest.fn(() => chain)
         chain.in = jest.fn(() => chain)
         chain.gte = jest.fn(() => chain)
         chain.lte = jest.fn(() => chain)
         chain.order = jest.fn(() => chain)
-        chain.range = jest.fn(() =>
-          Promise.resolve({ data: mockCommits, error: null })
-        )
+        chain.range = jest.fn(() => chain)
         return chain
       }
 

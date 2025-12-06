@@ -36,7 +36,6 @@ export default async function handler(
       },
     })
   } catch (error) {
-    console.error('Error validating session:', error)
     return res.status(500).json({
       message: 'Internal server error',
       error: error instanceof Error ? error.message : 'Unknown error',
