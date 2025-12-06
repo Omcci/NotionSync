@@ -131,7 +131,7 @@ describe('CommitService', () => {
         range: jest.fn().mockResolvedValue({ data: mockCommits, error: null }),
       }
 
-      ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
+      ;(supabase.from as jest.Mock).mockImplementation(() => mockChain)
 
       const result = await CommitService.getCommits(
         'user-1',
@@ -175,9 +175,11 @@ describe('CommitService', () => {
       })
 
       jest.clearAllMocks()
-      ;(supabase.from as jest.Mock)
-        .mockReturnValueOnce(createMockChain(firstPage))
-        .mockReturnValueOnce(createMockChain(secondPage))
+      let callCount = 0
+      ;(supabase.from as jest.Mock).mockImplementation(() => {
+        const chains = [createMockChain(firstPage), createMockChain(secondPage)]
+        return chains[callCount++]
+      })
 
       const result = await CommitService.getCommits(
         'user-1',
@@ -204,7 +206,7 @@ describe('CommitService', () => {
       }
 
       jest.clearAllMocks()
-      ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
+      ;(supabase.from as jest.Mock).mockImplementation(() => mockChain)
 
       const result = await CommitService.getCommits(
         'user-1',
@@ -242,7 +244,7 @@ describe('CommitService', () => {
       }
 
       jest.clearAllMocks()
-      ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
+      ;(supabase.from as jest.Mock).mockImplementation(() => mockChain)
 
       const result = await CommitService.getCommits(
         'user-1',

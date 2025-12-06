@@ -2,16 +2,17 @@ import { createMocks } from 'node-mocks-http'
 import reposHandler, { fetchUserRepos } from '@/pages/api/repos'
 
 // Mock GitHubService
-jest.mock('@/services/githubService', () => ({
-  GitHubService: {
-    getUserRepos: jest.fn(),
-  },
-}))
+jest.mock('@/services/githubService', () => {
+  const actual = jest.requireActual('@/services/githubService')
+  return {
+    ...actual,
+    GitHubService: {
+      getUserRepos: jest.fn(),
+    },
+  }
+})
 
-import {
-  GitHubService,
-  GitHubRateLimitError,
-} from '@/services/githubService'
+import { GitHubService, GitHubRateLimitError } from '@/services/githubService'
 
 describe('/api/repos', () => {
   beforeEach(() => {
