@@ -26,43 +26,29 @@ import { GitHubAuthGuideProps } from '../../types/ui'
 const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleLogin = async () => {
-    // Check if client ID is available before attempting redirect
-    const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID
-    if (!clientId) {
-      alert(
-        'GitHub Client ID is not configured. Please contact support.\n\nThis is a configuration issue that needs to be fixed by the administrator.'
-      )
-      return
-    }
+    setError(null)
+    setIsRedirecting(true)
+    onComplete?.() // Show loading state
 
     try {
-      setIsRedirecting(true)
-      onComplete?.() // Show loading state
-
       const result = await signInWithGitHub()
       if (result.error) {
         setIsRedirecting(false)
-        // Show error to user with more details
-        const errorMsg = result.error.message || 'Unknown error'
-        alert(
-          `Failed to start GitHub authentication: ${errorMsg}\n\nPlease check:\n1. GitHub Client ID is configured\n2. Your browser allows redirects\n3. Contact support if the issue persists`
-        )
+        setError(result.error.message || 'Failed to start GitHub authentication')
         return
       }
       // If successful, redirect will happen immediately in signInWithGitHub
       // The page will navigate away, so we don't need to do anything else
     } catch (error) {
       setIsRedirecting(false)
-      // Show error to user
       const errorMessage =
         error instanceof Error
           ? error.message
           : 'Failed to start GitHub authentication'
-      alert(
-        `Error: ${errorMessage}\n\nPlease check your configuration or contact support.`
-      )
+      setError(errorMessage)
     }
   }
 
@@ -71,8 +57,10 @@ const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
   }
 
   const handleConfirmConnect = () => {
-    setShowConfirmDialog(false)
     handleLogin()
+    // Don't close dialog immediately - let it show error or redirect
+    // If redirecting, the page will navigate away
+    // If error, it will be shown in the dialog
   }
 
   return (
@@ -312,6 +300,24 @@ const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
                   organization permissions later in Settings → GitHub Access.
                 </p>
               </div>
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                        Authentication Error
+                      </p>
+                      <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                        {error}
+                      </p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+                        Please check your configuration or contact support if the issue persists.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="flex space-x-3">
                 <Button
                   onClick={handleConfirmConnect}
@@ -323,7 +329,10 @@ const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => setShowConfirmDialog(false)}
+                  onClick={() => {
+                    setShowConfirmDialog(false)
+                    setError(null)
+                  }}
                   className="flex-1"
                   disabled={isRedirecting}
                 >
