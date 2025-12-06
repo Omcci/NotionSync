@@ -8,10 +8,7 @@ jest.mock('@/services/githubService', () => ({
   },
 }))
 
-import {
-  GitHubService,
-  GitHubRateLimitError,
-} from '@/services/githubService'
+import { GitHubService, GitHubRateLimitError } from '@/services/githubService'
 
 describe('/api/repos', () => {
   beforeEach(() => {
