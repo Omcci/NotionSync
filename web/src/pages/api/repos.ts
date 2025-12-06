@@ -27,15 +27,25 @@ export default async function handler(
   // Check for token in Authorization header first, then query param
   const authHeader = req.headers.authorization
   let githubToken: string | undefined
+  let isDeprecatedQueryToken = false
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     githubToken = authHeader.split(' ')[1]
   } else {
     githubToken = req.query.githubToken as string | undefined
+    if (githubToken) {
+      isDeprecatedQueryToken = true
+    }
   }
 
   if (!githubToken || typeof githubToken !== 'string') {
     return res.status(401).json({ error: 'Authorization required' })
+  }
+
+  if (isDeprecatedQueryToken) {
+    console.warn(
+      'DEPRECATED: Using githubToken query parameter is deprecated. Use Authorization header instead.'
+    )
   }
 
   try {
@@ -43,6 +53,18 @@ export default async function handler(
     res.status(200).json({ repos })
   } catch (error: any) {
     // Handle specific GitHub errors
+    if (error && typeof error === 'object' && 'name' in error) {
+      if (error.name === 'GitHubAuthError') {
+        return res
+          .status(401)
+          .json({ error: 'Invalid or expired GitHub token' })
+      }
+      if (error.name === 'GitHubRateLimitError') {
+        return res
+          .status(429)
+          .json({ error: error.message || 'Rate limit exceeded' })
+      }
+    }
     if (error instanceof Error) {
       if (
         error.message.includes('401') ||
@@ -56,6 +78,6 @@ export default async function handler(
         return res.status(429).json({ error: error.message })
       }
     }
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: error?.message || 'Unknown error' })
   }
 }

@@ -94,8 +94,12 @@ export class GitHubService {
 
       return allRepos
     } catch (error) {
-      // If we got some repos before the error, return them
-      if (allRepos.length > 0) {
+      // Only return partial results for non-auth/rate-limit errors
+      if (
+        allRepos.length > 0 &&
+        !(error instanceof GitHubAuthError) &&
+        !(error instanceof GitHubRateLimitError)
+      ) {
         return allRepos
       }
       throw error

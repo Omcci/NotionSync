@@ -174,6 +174,7 @@ describe('CommitService', () => {
         range: jest.fn().mockResolvedValue({ data: pageData, error: null }),
       })
 
+      jest.clearAllMocks()
       ;(supabase.from as jest.Mock)
         .mockReturnValueOnce(createMockChain(firstPage))
         .mockReturnValueOnce(createMockChain(secondPage))
@@ -202,6 +203,7 @@ describe('CommitService', () => {
         }),
       }
 
+      jest.clearAllMocks()
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
 
       const result = await CommitService.getCommits(
@@ -239,6 +241,7 @@ describe('CommitService', () => {
         range: jest.fn().mockResolvedValue({ data: mockCommits, error: null }),
       }
 
+      jest.clearAllMocks()
       ;(supabase.from as jest.Mock).mockReturnValue(mockChain)
 
       const result = await CommitService.getCommits(
@@ -250,6 +253,9 @@ describe('CommitService', () => {
 
       // Client-side filter should keep only in-range commits
       expect(result.commits.some((c: any) => c.sha === 'in-range')).toBe(true)
+      expect(result.commits.some((c: any) => c.sha === 'out-of-range')).toBe(
+        false
+      )
     })
   })
 

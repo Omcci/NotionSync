@@ -39,7 +39,7 @@ describe('GitHubService', () => {
           json: async () => secondPageRepos,
         })
 
-      const repos = await GitHubService.getUserRepos('test-token')
+      const repos = await GitHubService.getUserRepos('test-token', 1, 100)
 
       expect(repos).toHaveLength(150)
       expect(global.fetch).toHaveBeenCalledTimes(2)
@@ -63,7 +63,7 @@ describe('GitHubService', () => {
           json: async () => [], // Empty second page
         })
 
-      const repos = await GitHubService.getUserRepos('test-token')
+      const repos = await GitHubService.getUserRepos('test-token', 1, 100)
 
       expect(repos).toHaveLength(100)
       expect(global.fetch).toHaveBeenCalledTimes(2)
@@ -146,10 +146,10 @@ describe('GitHubService', () => {
         })
       )
 
-      const repos = await GitHubService.getUserRepos('test-token')
+      const repos = await GitHubService.getUserRepos('test-token', 1, 100)
 
-      // MAX_PAGES is 10, so max 1000 repos
-      expect(repos.length).toBeLessThanOrEqual(1000)
+      // MAX_PAGES is 10, so max 1000 repos (10 pages * 100 per page)
+      expect(repos.length).toBe(1000)
       expect(global.fetch).toHaveBeenCalledTimes(10)
     })
   })

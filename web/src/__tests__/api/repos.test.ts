@@ -8,7 +8,10 @@ jest.mock('@/services/githubService', () => ({
   },
 }))
 
-import { GitHubService } from '@/services/githubService'
+import {
+  GitHubService,
+  GitHubRateLimitError,
+} from '@/services/githubService'
 
 describe('/api/repos', () => {
   beforeEach(() => {
@@ -129,8 +132,7 @@ describe('/api/repos', () => {
     })
 
     it('returns 429 for rate limited requests', async () => {
-      const rateLimitError = new Error('Rate limit exceeded')
-      ;(rateLimitError as any).rateLimited = true
+      const rateLimitError = new GitHubRateLimitError(3600)
       ;(GitHubService.getUserRepos as jest.Mock).mockRejectedValueOnce(
         rateLimitError
       )
