@@ -138,5 +138,4 @@ jobs:
           push: false
           tags: test-image
           build-args: |
-            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-            NEXT_PUBLIC_SUPABASE_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_KEY }} 
+            NEXT_PUBLIC_GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }} 

@@ -131,7 +131,20 @@ describe('CommitService', () => {
         range: jest.fn().mockResolvedValue({ data: mockCommits, error: null }),
       }
 
-      ;(supabase.from as jest.Mock).mockImplementation(() => mockChain)
+      ;(supabase.from as jest.Mock).mockImplementation(() => {
+        // Create a fresh chain for each call
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          in: jest.fn().mockReturnThis(),
+          gte: jest.fn().mockReturnThis(),
+          lte: jest.fn().mockReturnThis(),
+          order: jest.fn().mockReturnThis(),
+          range: jest
+            .fn()
+            .mockResolvedValue({ data: mockCommits, error: null }),
+        }
+      })
 
       const result = await CommitService.getCommits(
         'user-1',
@@ -174,7 +187,6 @@ describe('CommitService', () => {
         range: jest.fn().mockResolvedValue({ data: pageData, error: null }),
       })
 
-      jest.clearAllMocks()
       let callCount = 0
       ;(supabase.from as jest.Mock).mockImplementation(() => {
         const chains = [createMockChain(firstPage), createMockChain(secondPage)]
@@ -193,20 +205,19 @@ describe('CommitService', () => {
 
     it('returns error when fetch fails', async () => {
       // When repoIds is empty, .in() is not called, so the chain is different
-      const mockChain = {
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        gte: jest.fn().mockReturnThis(),
-        lte: jest.fn().mockReturnThis(),
-        order: jest.fn().mockReturnThis(),
-        range: jest.fn().mockResolvedValue({
-          data: null,
-          error: { message: 'Fetch error' },
-        }),
-      }
-
-      jest.clearAllMocks()
-      ;(supabase.from as jest.Mock).mockImplementation(() => mockChain)
+      ;(supabase.from as jest.Mock).mockImplementation(() => {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          gte: jest.fn().mockReturnThis(),
+          lte: jest.fn().mockReturnThis(),
+          order: jest.fn().mockReturnThis(),
+          range: jest.fn().mockResolvedValue({
+            data: null,
+            error: { message: 'Fetch error' },
+          }),
+        }
+      })
 
       const result = await CommitService.getCommits(
         'user-1',
@@ -233,18 +244,19 @@ describe('CommitService', () => {
         },
       ]
 
-      const mockChain = {
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        in: jest.fn().mockReturnThis(),
-        gte: jest.fn().mockReturnThis(),
-        lte: jest.fn().mockReturnThis(),
-        order: jest.fn().mockReturnThis(),
-        range: jest.fn().mockResolvedValue({ data: mockCommits, error: null }),
-      }
-
-      jest.clearAllMocks()
-      ;(supabase.from as jest.Mock).mockImplementation(() => mockChain)
+      ;(supabase.from as jest.Mock).mockImplementation(() => {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          in: jest.fn().mockReturnThis(),
+          gte: jest.fn().mockReturnThis(),
+          lte: jest.fn().mockReturnThis(),
+          order: jest.fn().mockReturnThis(),
+          range: jest
+            .fn()
+            .mockResolvedValue({ data: mockCommits, error: null }),
+        }
+      })
 
       const result = await CommitService.getCommits(
         'user-1',

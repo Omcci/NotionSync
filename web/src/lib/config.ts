@@ -1,9 +1,9 @@
 // Configuration for different environments
 export const config = {
-  // Supabase configuration
+  // Supabase configuration (deprecated - kept for backward compatibility)
   supabase: {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    anonKey: process.env.NEXT_PUBLIC_SUPABASE_KEY || '',
   },
 
   // Environment detection
@@ -42,10 +42,14 @@ export const config = {
   github: {
     clientId:
       process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID,
-    // For GitHub OAuth App, we need to use Supabase's callback URL
+    // GitHub OAuth redirect URI - use app's callback URL
     redirectUri:
       process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI ||
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`,
+      (typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/callback`
+        : process.env.NODE_ENV === 'development'
+          ? 'http://localhost:9001/auth/callback'
+          : 'https://notionsync.fr/auth/callback'),
   },
 }
 
