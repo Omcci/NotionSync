@@ -61,9 +61,19 @@ export const buildGitHubOAuthUrl = (config: GitHubOAuthConfig): string => {
 export const initiateGitHubOAuth = (
   forceReauth: boolean = false
 ): { url: string; state: string } => {
+  // Check for client ID
   const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID
+
   if (!clientId) {
-    throw new Error('NEXT_PUBLIC_GITHUB_CLIENT_ID is not configured')
+    // In development, provide more helpful error
+    if (process.env.NODE_ENV === 'development') {
+      throw new Error(
+        'NEXT_PUBLIC_GITHUB_CLIENT_ID is not configured. Please set this environment variable in your .env.local file or Docker build args.'
+      )
+    }
+    throw new Error(
+      'GitHub Client ID is not configured. Please contact support.'
+    )
   }
 
   const redirectUri =

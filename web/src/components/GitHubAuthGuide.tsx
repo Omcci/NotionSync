@@ -25,13 +25,44 @@ import { GitHubAuthGuideProps } from '../../types/ui'
 
 const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const handleLogin = async () => {
+    // Check if client ID is available before attempting redirect
+    const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID
+    if (!clientId) {
+      alert(
+        'GitHub Client ID is not configured. Please contact support.\n\nThis is a configuration issue that needs to be fixed by the administrator.'
+      )
+      return
+    }
+
     try {
-      await signInWithGitHub()
-      onComplete?.()
+      setIsRedirecting(true)
+      onComplete?.() // Show loading state
+
+      const result = await signInWithGitHub()
+      if (result.error) {
+        setIsRedirecting(false)
+        // Show error to user with more details
+        const errorMsg = result.error.message || 'Unknown error'
+        alert(
+          `Failed to start GitHub authentication: ${errorMsg}\n\nPlease check:\n1. GitHub Client ID is configured\n2. Your browser allows redirects\n3. Contact support if the issue persists`
+        )
+        return
+      }
+      // If successful, redirect will happen immediately in signInWithGitHub
+      // The page will navigate away, so we don't need to do anything else
     } catch (error) {
-      // Auth redirect will handle error display
+      setIsRedirecting(false)
+      // Show error to user
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to start GitHub authentication'
+      alert(
+        `Error: ${errorMessage}\n\nPlease check your configuration or contact support.`
+      )
     }
   }
 
@@ -282,14 +313,19 @@ const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
                 </p>
               </div>
               <div className="flex space-x-3">
-                <Button onClick={handleConfirmConnect} className="flex-1">
+                <Button
+                  onClick={handleConfirmConnect}
+                  className="flex-1"
+                  disabled={isRedirecting}
+                >
                   <GithubIcon className="w-4 h-4 mr-2" />
-                  Continue to GitHub
+                  {isRedirecting ? 'Redirecting...' : 'Continue to GitHub'}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setShowConfirmDialog(false)}
                   className="flex-1"
+                  disabled={isRedirecting}
                 >
                   Cancel
                 </Button>

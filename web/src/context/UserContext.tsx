@@ -25,14 +25,27 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
   const queryClient = useQueryClient()
 
+  // Track if we've checked for a token (to handle initial mount)
+  const [hasCheckedToken, setHasCheckedToken] = useState(false)
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
+
   // Get session token from localStorage
   const getSessionToken = (): string | null => {
     if (typeof window === 'undefined') return null
     return localStorage.getItem('session_token')
   }
 
-  // Fetch session from API
-  const { data: sessionData, isLoading } = useQuery({
+  // Check for token on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = getSessionToken()
+      setSessionToken(token)
+      setHasCheckedToken(true)
+    }
+  }, [])
+
+  // Fetch session from API (only if we have a token)
+  const { data: sessionData, isLoading: isSessionLoading } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
       const token = getSessionToken()
@@ -51,20 +64,34 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
         if (!response.ok) {
           // Session invalid, clear it
-          localStorage.removeItem('session_token')
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('session_token')
+            setSessionToken(null)
+          }
           return null
         }
 
         const data = await response.json()
         return data
       } catch (error) {
-        localStorage.removeItem('session_token')
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('session_token')
+          setSessionToken(null)
+        }
         return null
       }
     },
+    enabled: hasCheckedToken && !!sessionToken, // Only run if we have a token
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: false,
   })
+
+  // isLoading is false if:
+  // - We haven't checked for a token yet (initial mount)
+  // - We've checked and there's no token (no need to load)
+  // - We've checked, there's a token, and we're not loading anymore
+  // isLoading is true only if we have a token and are actively loading
+  const isLoading = hasCheckedToken && !!sessionToken && isSessionLoading
 
   // Fetch GitHub token when we have a valid session
   const { data: githubTokenData } = useQuery({
@@ -188,6 +215,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     // Clear local state
     localStorage.removeItem('session_token')
     localStorage.removeItem('onboarding_completed')
+    setSessionToken(null)
     setUser(null)
     setGithubToken(null)
     setHasCompletedOnboarding(null)

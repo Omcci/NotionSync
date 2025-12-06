@@ -5,11 +5,20 @@ import { initiateGitHubOAuth } from './githubAuth'
  */
 const signInWithGitHub = async (forceReauth: boolean = false) => {
   try {
-    const { url } = initiateGitHubOAuth(forceReauth)
+    const result = initiateGitHubOAuth(forceReauth)
+    const { url } = result
 
-    // Redirect to GitHub OAuth
+    if (!url) {
+      return {
+        error: new Error('Failed to generate GitHub OAuth URL'),
+      }
+    }
+
+    // Redirect to GitHub OAuth immediately
     if (typeof window !== 'undefined') {
       window.location.href = url
+      // Return immediately - the redirect will happen
+      return { data: { url }, error: null }
     }
 
     return { data: { url }, error: null }
