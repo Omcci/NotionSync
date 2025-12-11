@@ -37,7 +37,9 @@ const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
       const result = await signInWithGitHub()
       if (result.error) {
         setIsRedirecting(false)
-        setError(result.error.message || 'Failed to start GitHub authentication')
+        setError(
+          result.error.message || 'Failed to start GitHub authentication'
+        )
         return
       }
       // If successful, redirect will happen immediately in signInWithGitHub
@@ -312,7 +314,8 @@ const GitHubAuthGuide: React.FC<GitHubAuthGuideProps> = ({ onComplete }) => {
                         {error}
                       </p>
                       <p className="text-xs text-red-600 dark:text-red-400 mt-2">
-                        Please check your configuration or contact support if the issue persists.
+                        Please check your configuration or contact support if
+                        the issue persists.
                       </p>
                     </div>
                   </div>
