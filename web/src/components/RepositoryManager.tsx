@@ -273,13 +273,13 @@ const RepositoryManager: React.FC = () => {
                                 )}
                                 <Badge
                                   variant={
-                                    (repo.syncEnabled ?? true)
+                                    repo.syncEnabled ?? true
                                       ? 'default'
                                       : 'secondary'
                                   }
                                   className="text-xs"
                                 >
-                                  {(repo.syncEnabled ?? true)
+                                  {repo.syncEnabled ?? true
                                     ? 'Syncing'
                                     : 'Paused'}
                                 </Badge>
