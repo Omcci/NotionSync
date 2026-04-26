@@ -42,7 +42,7 @@
     "framer-motion": "^11.18.2",
     "locomotive-scroll": "^4.1.4",
     "lucide-react": "^0.378.0",
-    "next": "14.2.3",
+    "next": "^15.3.9",
     "next-themes": "^0.2.1",
     "next-transpile-modules": "^10.0.1",
     "react": "^18",
@@ -54,6 +54,18 @@
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"
   },
+  "overrides": {
+    "form-data": ">=4.0.2",
+    "flatted": ">=3.3.2",
+    "minimatch": ">=9.0.5",
+    "cross-spawn": ">=7.0.6",
+    "braces": ">=3.0.3",
+    "picomatch": ">=2.3.2",
+    "brace-expansion": ">=1.1.12",
+    "next": {
+      "postcss": ">=8.5.10"
+    }
+  },
   "devDependencies": {
     "@types/locomotive-scroll": "^4.1.4",
     "@types/node": "^20",
@@ -61,8 +73,8 @@
     "@types/react-dom": "^18",
     "@types/tailwindcss": "^3.1.0",
     "eslint": "^8",
-    "eslint-config-next": "14.2.3",
-    "postcss": "^8",
+    "eslint-config-next": "^15.3.9",
+    "postcss": "^8.5.10",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.6.2"
   }
