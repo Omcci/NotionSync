@@ -18,7 +18,7 @@ const fetchCommits = async (
   }`
 
   const response = await fetch(commitsUrl, {
-    headers: { Authorization: `token ${githubToken}` },
+    headers: { Authorization: `Bearer ${githubToken}` },
   })
 
   if (!response.ok) {
@@ -35,7 +35,7 @@ const fetchCommits = async (
 const fetchAuthorDetails = async (githubToken: string, username: string) => {
   const userUrl = `https://api.github.com/users/${username}`
   const response = await fetch(userUrl, {
-    headers: { Authorization: `token ${githubToken}` },
+    headers: { Authorization: `Bearer ${githubToken}` },
   })
 
   if (!response.ok)
@@ -52,7 +52,7 @@ const fetchCommitDiff = async (
   const diffUrl = `https://api.github.com/repos/${owner}/${repoName}/commits/${commitSha}`
   const response = await fetch(diffUrl, {
     headers: {
-      Authorization: `token ${githubToken}`,
+      Authorization: `Bearer ${githubToken}`,
       Accept: 'application/vnd.github.v3.diff',
     },
   })
