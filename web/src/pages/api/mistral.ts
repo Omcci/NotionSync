@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import MistralClient from '@mistralai/mistralai'
+import { Mistral } from '@mistralai/mistralai'
 
 const mistralToken = process.env.MISTRAL_TOKEN
-const client = new MistralClient(mistralToken)
+const client = new Mistral({ apiKey: mistralToken })
 
 export default async function handler(
   req: NextApiRequest,
@@ -28,7 +28,7 @@ export default async function handler(
     ?.replace('{COMBINED_COMMIT_MESSAGE}', combinedCommitMessage)
     .replace('{COMBINED_DIFF}', combinedDiff)
   try {
-    const chatResponse = await client.chat({
+    const chatResponse = await client.chat.complete({
       model: 'mistral-small-latest',
       messages: [{ role: 'user', content: prompt }],
     })

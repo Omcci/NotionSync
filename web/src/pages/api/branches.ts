@@ -10,7 +10,7 @@ export const fetchRepoBranches = async (
   const url = `https://api.github.com/repos/${orgName}/${repoName}/branches?per_page=${perPage}&page=${page}`
   try {
     const response = await fetch(url, {
-      headers: { Authorization: `token ${githubToken}` },
+      headers: { Authorization: `Bearer ${githubToken}` },
     })
     const data = await response.json()
     if (!response.ok) {

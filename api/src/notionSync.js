@@ -1,9 +1,5 @@
-import fetch from 'node-fetch'
-if (!globalThis.fetch) {
-  globalThis.fetch = fetch
-}
 import { mistral_prompt } from '../utils/prompts.js'
-import MistralClient from '@mistralai/mistralai'
+import { Mistral } from '@mistralai/mistralai'
 import { Client } from '@notionhq/client'
 import {
   githubToken,
@@ -26,7 +22,7 @@ export class NotionSync {
     this.mistralToken = mistralToken
     this.startDate = startDate
     this.endDate = endDate
-    this.client = new MistralClient(this.mistralToken)
+    this.client = new Mistral({ apiKey: this.mistralToken })
     this.notion = new Client({ auth: this.notionToken })
   }
 
@@ -34,7 +30,7 @@ export class NotionSync {
     const url = `https://api.github.com/users/${username}/repos`
     try {
       const response = await fetch(url, {
-        headers: { Authorization: `token ${this.githubToken}` },
+        headers: { Authorization: `Bearer ${this.githubToken}` },
       })
       if (!response.ok) {
         throw new Error(`Error fetching repositories: ${response.status}`)
@@ -55,7 +51,7 @@ export class NotionSync {
     const url = `https://api.github.com/repos/${orgName}/${repoName}/branches`
     try {
       const response = await fetch(url, {
-        headers: { Authorization: `token ${githubToken}` },
+        headers: { Authorization: `Bearer ${githubToken}` },
       })
       const data = await response.json()
       if (!response.ok) {
@@ -75,7 +71,7 @@ export class NotionSync {
 
     try {
       const response = await fetch(url, {
-        headers: { Authorization: `token ${githubToken}` },
+        headers: { Authorization: `Bearer ${githubToken}` },
       })
       const data = await response.json()
       if (!response.ok) {
@@ -97,7 +93,7 @@ export class NotionSync {
     try {
       const response = await fetch(url, {
         headers: {
-          Authorization: `token ${githubToken}`,
+          Authorization: `Bearer ${githubToken}`,
           Accept: 'application/vnd.github.v3.diff',
         },
       })
@@ -224,7 +220,7 @@ export class NotionSync {
     const prompt = mistral_prompt(commitMessage, filteredDiff)
 
     try {
-      const chatResponse = await this.client.chat({
+      const chatResponse = await this.client.chat.complete({
         model: 'open-mistral-7b',
         messages: [{ role: 'user', content: prompt }],
       })

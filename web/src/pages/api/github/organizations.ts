@@ -18,7 +18,7 @@ export default async function handler(
     // Fetch user's organizations
     const orgsResponse = await fetch('https://api.github.com/user/orgs', {
       headers: {
-        Authorization: `token ${githubToken}`,
+        Authorization: `Bearer ${githubToken}`,
         Accept: 'application/vnd.github.v3+json',
         'User-Agent': 'NotionSync-App',
       },
@@ -38,7 +38,7 @@ export default async function handler(
             `https://api.github.com/orgs/${org.login}/memberships/${await getUserLogin(githubToken)}`,
             {
               headers: {
-                Authorization: `token ${githubToken}`,
+                Authorization: `Bearer ${githubToken}`,
                 Accept: 'application/vnd.github.v3+json',
                 'User-Agent': 'NotionSync-App',
               },
@@ -107,7 +107,7 @@ export default async function handler(
 async function getUserLogin(githubToken: string): Promise<string> {
   const userResponse = await fetch('https://api.github.com/user', {
     headers: {
-      Authorization: `token ${githubToken}`,
+      Authorization: `Bearer ${githubToken}`,
       Accept: 'application/vnd.github.v3+json',
       'User-Agent': 'NotionSync-App',
     },

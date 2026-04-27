@@ -16,7 +16,7 @@ export default async function handler(
   try {
     const response = await fetch('https://api.github.com/user', {
       headers: {
-        Authorization: `token ${githubToken}`,
+        Authorization: `Bearer ${githubToken}`,
         'User-Agent': 'NotionSync-App',
       },
     })
