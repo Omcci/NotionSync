@@ -3,7 +3,7 @@ import { Client } from '@notionhq/client'
 import Error from 'next/error'
 import { fetchRepoBranches } from './branches'
 import { fetchCommitsForUserInRepo } from './commits'
-import { addCommitToNotion, commitExistsInNotion } from './notion'
+import { addCommitToNotion, commitExistsInNotion } from '../../lib/notion'
 import { SyncStatus } from '../../../types/types'
 
 const githubToken = process.env.GITHUB_TOKEN
